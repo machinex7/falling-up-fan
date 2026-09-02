@@ -7,15 +7,54 @@ expected to keep changing and would just go stale here.
 ## What this is
 
 A fan site for the band Falling Up, themed as a spacecraft flight deck /
-cockpit. `index.html` is the entire site so far: one self-contained file
-(inline `<style>` and `<script>`, no build step, no dependencies beyond a
-Google Fonts link). Open it directly in a browser or serve the directory
-with any static file server.
+cockpit. `index.html` is the entire site so far: plain HTML markup that
+links out to separate CSS and JS files rather than inlining `<style>` /
+`<script>` (no build step, no dependencies beyond a Google Fonts link) —
+see "File layout" below for what lives where. Open it directly in a
+browser or serve the directory with any static file server; the `css/`
+and `js/` files are linked with relative paths, so serving is the safer
+option if a bare `file://` open ever runs into relative-path issues.
 
 `members.html`, `tracks.html`, and `connections.html` are linked from the
 console but don't exist yet — they're the planned next pages. `Stories.md`
 has narrative/world-building notes for the site's fiction if that's ever
 relevant to future content.
+
+## File layout
+
+```
+index.html          markup only — links the CSS files, loads the JS
+                     files at the end of <body>
+css/
+  base.css           reset, :root palette/spacing variables, html/body
+  cockpit.css        shell layout: plaque bar, hull walls, seams,
+                     conduits, wall lamps, #forward wrapper
+  window.css         the star window: bolts, HUD corner readouts,
+                     reticle, canvas sizing
+  console.css        the widget deck: #deck-grid, .tile and every
+                     widget "face" (readout, gauge, nav-tile, knob,
+                     toggle, bar, alert light, throttle, equalizer)
+  animations.css     all @keyframes, shared across the files above
+  responsive.css     the >=900px media query — kept last on purpose,
+                     since it overrides rules defined in the files
+                     above and CSS source order decides that fight
+js/
+  starfield.js       canvas starfield IIFE, sized to #window via
+                     ResizeObserver
+  controls.js        toggle/knob/alert click handling on .tile
+  readouts.js        readout drift (setInterval) + cargo bar fill-in
+  throttle.js        pointer-based drag on .throttle-track
+```
+
+Split for size/readability, not for reuse or bundling — there's still no
+build step. When adding a new widget type, put its CSS in `console.css`
+alongside the existing widget faces (don't start a new file per widget),
+and give new interaction logic its own small IIFE in `js/`, following the
+existing files' pattern, rather than growing one of the existing ones into
+a grab-bag. `<link>` tags in `<head>` must keep `responsive.css` last; new
+`<script>` tags go at the end of `<body>`, in whatever order matches their
+dependencies (none of the current ones depend on each other, but keep that
+in mind if a new one starts to).
 
 ## Layout architecture
 
