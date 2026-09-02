@@ -36,6 +36,8 @@
       --green-glow:   rgba(63,143,95,0.65);
       --cyan:         #2fa8c4;
       --cyan-glow:    rgba(47,168,196,0.65);
+      --red:          #d33b3b;
+      --red-glow:     rgba(211,59,59,0.75);
 
       --led-bg:       #101214;
       --led-amber:    #ffb339;
@@ -429,6 +431,87 @@
     }
     .tile.is-on .toggle-led { background: var(--led-green); box-shadow: 0 0 5px var(--green-glow); }
 
+    /* horizontal bar tile — 2 columns wide */
+    .tile.bar { grid-column: span 4; width: 100%; }
+    .bar-track {
+      width: 100%;
+      height: clamp(7px, 2vw, 10px);
+      border-radius: 3px;
+      background: var(--bezel-lo);
+      border: 1px solid var(--bezel);
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.7);
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      width: 0%;
+      transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
+    }
+    .bar-fill.c-amber { background: linear-gradient(90deg, var(--amber), var(--led-amber)); box-shadow: 0 0 6px var(--amber-glow); }
+    .bar-fill.c-cyan  { background: linear-gradient(90deg, var(--cyan),  var(--led-cyan));  box-shadow: 0 0 6px var(--cyan-glow); }
+
+    /* alert light tile — small round lamp, off by default */
+    .alert-lamp {
+      width: clamp(9px, 2.6vw, 13px);
+      height: clamp(9px, 2.6vw, 13px);
+      border-radius: 50%;
+      background: var(--bezel-lo);
+      border: 1px solid var(--bezel);
+      box-shadow: inset 0 0 3px rgba(0,0,0,0.85);
+    }
+    .tile.alert { cursor: pointer; padding: 6px 7px; margin: -6px -7px; }
+    .tile.alert.is-alert .alert-lamp {
+      background: var(--red);
+      border-color: var(--red);
+      box-shadow: 0 0 9px 2px var(--red-glow), inset 0 0 2px rgba(255,255,255,0.4);
+      animation: alert-blink 1s steps(1, jump-none) infinite;
+    }
+    .tile.alert.is-alert .tile-label { color: var(--red); }
+
+    /* throttle tile — vertical drag lever, 2 columns wide */
+    .tile.throttle { grid-column: span 4; }
+    .throttle-track {
+      position: relative;
+      width: clamp(22px, 6vw, 30px);
+      height: clamp(64px, 16vw, 96px);
+      border-radius: 5px;
+      background: var(--bezel-lo);
+      border: 1px solid var(--bezel);
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.8);
+      touch-action: none;
+      cursor: ns-resize;
+    }
+    .throttle-track::before {
+      content: '';
+      position: absolute;
+      left: 50%; top: 6px; bottom: 6px;
+      width: 2px;
+      background: var(--bezel);
+      transform: translateX(-50%);
+      border-radius: 2px;
+    }
+    .throttle-handle {
+      position: absolute;
+      left: 50%;
+      bottom: 50%;
+      width: clamp(26px, 7.5vw, 36px);
+      height: clamp(13px, 3.6vw, 17px);
+      transform: translate(-50%, 50%);
+      border-radius: 3px;
+      background: radial-gradient(circle at 35% 30%, var(--spec), var(--metal-lo) 65%, var(--metal-shadow) 100%);
+      border: 1px solid var(--bezel);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.5);
+    }
+    .throttle-handle::before {
+      content: '';
+      position: absolute;
+      inset: 3px 6px;
+      background: repeating-linear-gradient(180deg, var(--bezel) 0 1.5px, transparent 1.5px 4px);
+      opacity: 0.6;
+      border-radius: 1px;
+    }
+
     /* ═══════════════════════════════════════════
        ANIMATIONS
     ═══════════════════════════════════════════ */
@@ -442,6 +525,12 @@
     @keyframes eq-bounce {
       0%, 100% { height: 18%; }
       50%      { height: 100%; }
+    }
+
+    @keyframes alert-blink {
+      0%, 45%  { opacity: 1; }
+      50%, 95% { opacity: 0.25; }
+      100%     { opacity: 1; }
     }
 
     @keyframes gauge-fill-cyan {
@@ -665,6 +754,42 @@
             <div class="tile-label">Nav Lt</div>
           </div>
 
+          <!-- row 5: bar, alert lights, throttle -->
+          <div class="tile bar">
+            <div class="bar-track">
+              <div class="bar-fill c-amber" id="bar-cargo"></div>
+            </div>
+            <div class="tile-label">Cargo</div>
+          </div>
+
+          <div class="tile alert is-alert">
+            <div class="alert-lamp"></div>
+            <div class="tile-label">O2</div>
+          </div>
+          <div class="tile alert">
+            <div class="alert-lamp"></div>
+            <div class="tile-label">Reactor</div>
+          </div>
+          <div class="tile alert is-alert">
+            <div class="alert-lamp"></div>
+            <div class="tile-label">Hull</div>
+          </div>
+          <div class="tile alert">
+            <div class="alert-lamp"></div>
+            <div class="tile-label">Comms</div>
+          </div>
+          <div class="tile alert">
+            <div class="alert-lamp"></div>
+            <div class="tile-label">Nav</div>
+          </div>
+
+          <div class="tile throttle">
+            <div class="throttle-track" id="throttle-main">
+              <div class="throttle-handle" style="bottom: 62%;"></div>
+            </div>
+            <div class="tile-label">Throttle</div>
+          </div>
+
         </div>
       </div>
     </div>
@@ -771,6 +896,10 @@
         const deg = current ? parseInt(current[0], 10) : 0;
         knob.style.transform = `rotate(${deg + 45}deg)`;
       });
+      return;
+    }
+    if (tile.classList.contains('alert')) {
+      tile.addEventListener('click', () => tile.classList.toggle('is-alert'));
     }
   });
 })();
@@ -789,6 +918,47 @@
     val = Math.max(60, Math.min(100, val));
     el.textContent = String(val).padStart(3, '0') + '%';
   }, 2600);
+})();
+
+// ═══════════════════════════════════════════════════════
+// BAR FILL — animate to its target width after mount, same
+// power-up feel as the arc gauges
+// ═══════════════════════════════════════════════════════
+(function () {
+  const fill = document.getElementById('bar-cargo');
+  if (!fill) return;
+  requestAnimationFrame(() => {
+    setTimeout(() => { fill.style.width = '72%'; }, 200);
+  });
+})();
+
+// ═══════════════════════════════════════════════════════
+// THROTTLE — drag the handle up/down its track (mouse + touch
+// via Pointer Events); click-anywhere-on-track also jumps to
+// that position
+// ═══════════════════════════════════════════════════════
+(function () {
+  document.querySelectorAll('.throttle-track').forEach(track => {
+    const handle = track.querySelector('.throttle-handle');
+    let dragging = false;
+
+    function setFromClientY(clientY) {
+      const rect = track.getBoundingClientRect();
+      const pct = 1 - (clientY - rect.top) / rect.height;
+      handle.style.bottom = `${Math.max(0, Math.min(100, pct * 100))}%`;
+    }
+
+    track.addEventListener('pointerdown', e => {
+      dragging = true;
+      track.setPointerCapture(e.pointerId);
+      setFromClientY(e.clientY);
+    });
+    track.addEventListener('pointermove', e => {
+      if (dragging) setFromClientY(e.clientY);
+    });
+    track.addEventListener('pointerup', () => { dragging = false; });
+    track.addEventListener('pointercancel', () => { dragging = false; });
+  });
 })();
 </script>
 </body>
