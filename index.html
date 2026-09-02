@@ -266,25 +266,35 @@
       transform-origin: bottom center;
     }
 
-    /* ── a dense, uneven scatter of controls — no grid, no cards.
-       Four strips stack to fill the console at any width (so the
-       tilted base still reads as full of hardware, not empty floor);
-       within each strip, items just hug their own content size. ── */
+    /* ── the deck: a fine-grained CSS Grid, not a table.
+       A real <table> was tempting for row/colspan, but table columns
+       share one width across every row (widest cell in that column
+       wins, globally) — that's exactly the "neat aligned grid" look
+       we just tore out. CSS Grid gives the same spanning ability
+       (grid-column/grid-row: span N below) without that forced
+       alignment: 24 slim columns act as a coordinate system, items
+       claim as many as their content needs, and `dense` packing lets
+       later items fill gaps left by earlier ones instead of forcing
+       new rows. Columns are capped at 44px (not 1fr) so they stay
+       content-sized instead of stretching to fill wide desktop
+       screens — that stretch is what turned small controls into
+       widely-spaced islands earlier. ── */
     #deck-grid {
       height: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
+      display: grid;
+      grid-template-columns: repeat(16, minmax(0, 40px));
+      grid-auto-rows: minmax(0, 1fr);
+      grid-auto-flow: dense;
+      gap: 8px 6px;
     }
 
-    .deck-row {
-      flex: 1;
-      min-height: 0;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: flex-end;
-      gap: 10px 18px;
-    }
+    /* future multi-cell controls: add alongside a tile's other classes */
+    .span-3  { grid-column: span 3; }
+    .span-4  { grid-column: span 4; }
+    .span-6  { grid-column: span 6; }
+    .span-8  { grid-column: span 8; }
+    .rowspan-2 { grid-row: span 2; }
+    .rowspan-3 { grid-row: span 3; }
 
     /* just a layout wrapper now (control + caption) — sized to its
        own content, not a uniform card, so the deck stays cluttered
@@ -293,10 +303,14 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: flex-end;
       gap: 2px;
+      grid-column: span 2;
       text-decoration: none;
       color: inherit;
     }
+
+    .tile.readout, .tile.nav-tile { grid-column: span 4; }
 
     /* invisible touch-target padding — no visible box, but a bigger
        hit area, since the 3D tilt shifts a small control's rendered
@@ -532,7 +546,6 @@
         <div id="deck-grid">
 
           <!-- row 1: readouts + gauges -->
-          <div class="deck-row">
           <div class="tile readout c-amber">
             <div class="r-value" id="ro-power">072%</div>
             <div class="tile-label">Power</div>
@@ -567,10 +580,8 @@
             </svg>
             <div class="tile-label">O2</div>
           </div>
-          </div>
 
           <!-- row 2: the real links + more instruments -->
-          <div class="deck-row">
           <a href="members.html" class="tile nav-tile">
             <div class="nav-lamp"></div>
             <div class="tile-label">Members</div>
@@ -604,10 +615,8 @@
             </svg>
             <div class="tile-label">Fuel</div>
           </div>
-          </div>
 
           <!-- row 3: knobs -->
-          <div class="deck-row">
           <div class="tile">
             <div class="knob" style="transform:rotate(10deg)"></div>
             <div class="tile-label">Nav</div>
@@ -628,10 +637,8 @@
             <div class="knob" style="transform:rotate(-20deg)"></div>
             <div class="tile-label">Scan</div>
           </div>
-          </div>
 
           <!-- row 4: toggles -->
-          <div class="deck-row">
           <div class="tile is-on">
             <div class="toggle-led"></div>
             <div class="toggle is-on"><div class="toggle-lever"></div></div>
@@ -656,7 +663,6 @@
             <div class="toggle-led"></div>
             <div class="toggle"><div class="toggle-lever"></div></div>
             <div class="tile-label">Nav Lt</div>
-          </div>
           </div>
 
         </div>
