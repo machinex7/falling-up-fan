@@ -3,165 +3,735 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Falling Up — Fan Archive</title>
+  <title>Falling Up — Flight Deck</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=VT323&display=swap" rel="stylesheet">
   <style>
 
-    :root {
-      --bg:          #0b0c10;
-      --surface:     #131419;
-      --border:      #23252d;
-      --text:        #e8e9ee;
-      --text-dim:    #8b8d9a;
-      --accent:      #7dd3c0;
-      --accent-dim:  rgba(125, 211, 192, 0.14);
-      --font-head:   'Space Grotesk', system-ui, sans-serif;
-      --font-mono:   'IBM Plex Mono', monospace;
-    }
-
+    /* ═══════════════════════════════════════════
+       RESET & PALETTE
+    ═══════════════════════════════════════════ */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    html, body {
-      min-height: 100%;
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--font-head);
+    :root {
+      --space:        #06070a;
+
+      --metal-hi:     #efe9db;
+      --metal:        #cec5b0;
+      --metal-lo:     #a89d87;
+      --metal-shadow: #756a58;
+
+      --bezel:        #2a2721;
+      --bezel-lo:     #16140f;
+
+      --ink:          #2c2820;
+      --ink-soft:     #5b5346;
+
+      --amber:        #d9861f;
+      --amber-glow:   rgba(217,134,31,0.65);
+      --red:          #b5382b;
+      --red-glow:     rgba(181,56,43,0.65);
+      --green:        #3f8f5f;
+      --green-glow:   rgba(63,143,95,0.65);
+
+      --led-bg:       #131310;
+      --led-amber:    #ffb339;
+      --led-green:    #5ee88a;
+
+      --font-label:   'Barlow Semi Condensed', sans-serif;
+      --font-led:     'VT323', monospace;
     }
 
-    body {
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: var(--space);
+      font-family: var(--font-label);
+      color: var(--ink);
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* ═══════════════════════════════════════════
+       STARFIELD (fixed behind everything)
+    ═══════════════════════════════════════════ */
+    #starfield {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background: var(--space);
+    }
+
+    /* ═══════════════════════════════════════════
+       COCKPIT SHELL
+    ═══════════════════════════════════════════ */
+    #cockpit {
+      position: relative;
+      z-index: 1;
+      width: 100vw;
+      height: 100vh;
       display: flex;
       flex-direction: column;
-      min-height: 100vh;
     }
 
-    /* ── header ── */
-    header {
-      padding: 2.5rem 2rem 1rem;
-      text-align: center;
-    }
-
-    .wordmark {
-      font-size: clamp(2.2rem, 6vw, 3.4rem);
-      font-weight: 700;
-      letter-spacing: 0.02em;
-    }
-
-    .tagline {
-      margin-top: 0.6rem;
-      font-family: var(--font-mono);
-      font-size: 0.85rem;
-      letter-spacing: 0.08em;
-      color: var(--text-dim);
-      text-transform: uppercase;
-    }
-
-    /* ── main ── */
-    main {
-      flex: 1;
+    /* ── Mission plaque bar ── */
+    #plaque-bar {
+      flex: 0 0 34px;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 2rem;
+      gap: 14px;
+      background: linear-gradient(180deg, var(--bezel) 0%, var(--bezel-lo) 100%);
+      border-bottom: 2px solid var(--bezel-lo);
     }
 
-    nav.links {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 1.25rem;
+    .plaque {
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--metal);
+    }
+
+    .rivet {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, var(--metal-hi), var(--metal-lo) 70%, var(--bezel-lo) 100%);
+      box-shadow: 0 0 0 1px var(--bezel-lo);
+    }
+
+    /* ═══════════════════════════════════════════
+       VIEWPORT (window on the stars)
+    ═══════════════════════════════════════════ */
+    #viewport {
+      flex: 1 1 0;
+      min-height: 0;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 22px 60px 10px;
+    }
+
+    #window-frame {
+      position: relative;
       width: 100%;
-      max-width: 900px;
+      height: 100%;
+      max-width: 1180px;
+      border-radius: 14px;
+      border: 10px solid var(--bezel);
+      box-shadow:
+        0 0 0 3px var(--bezel-lo),
+        inset 0 0 40px rgba(0,0,0,0.65),
+        0 18px 30px rgba(0,0,0,0.5);
+      background: radial-gradient(ellipse at center, rgba(20,26,38,0.15), rgba(0,0,0,0.35) 100%);
+      overflow: hidden;
     }
 
-    .link-card {
+    /* mullions splitting the window into three panes */
+    .mullion {
+      position: absolute;
+      top: 0; bottom: 0;
+      width: 10px;
+      background: linear-gradient(90deg, var(--bezel-lo), var(--bezel) 50%, var(--bezel-lo));
+      z-index: 3;
+    }
+    .mullion.m1 { left: 25%; }
+    .mullion.m2 { left: 75%; }
+
+    .bolt {
+      position: absolute;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, var(--metal-hi), var(--metal-lo) 70%, var(--bezel-lo) 100%);
+      box-shadow: 0 0 0 1px var(--bezel-lo), inset 0 0 2px rgba(0,0,0,0.5);
+      z-index: 4;
+    }
+    .bolt.tl { top: 8px; left: 8px; }
+    .bolt.tr { top: 8px; right: 8px; }
+    .bolt.bl { bottom: 8px; left: 8px; }
+    .bolt.br { bottom: 8px; right: 8px; }
+
+    .hud {
+      position: absolute;
+      font-family: var(--font-led);
+      font-size: 0.95rem;
+      letter-spacing: 0.08em;
+      color: rgba(217,134,31,0.55);
+      line-height: 1.5;
+      text-transform: uppercase;
+      pointer-events: none;
+      z-index: 3;
+    }
+    .hud.tl { top: 14px; left: 20px; }
+    .hud.tr { top: 14px; right: 20px; text-align: right; }
+    .hud.bl { bottom: 14px; left: 20px; }
+    .hud.br { bottom: 14px; right: 20px; text-align: right; }
+
+    #reticle {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 2;
+      opacity: 0.32;
+      pointer-events: none;
+    }
+
+    /* ═══════════════════════════════════════════
+       CONTROL DECK
+    ═══════════════════════════════════════════ */
+    #deck {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      gap: 0;
+      padding: 0 0 14px;
+      perspective: 1000px;
+    }
+
+    /* ── shared panel skin ── */
+    .panel {
+      background: linear-gradient(180deg, var(--metal-hi) 0%, var(--metal) 45%, var(--metal-lo) 100%);
+      border: 2px solid var(--bezel);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.5),
+        inset 0 -6px 10px rgba(0,0,0,0.12),
+        0 10px 22px rgba(0,0,0,0.55);
+    }
+
+    /* ── side panels (narrow, angled to wrap around the pilot) ── */
+    .side-panel {
+      flex: 0 0 148px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-evenly;
+      padding: 14px 8px;
+      position: relative;
+      transform-style: preserve-3d;
+    }
+
+    .side-panel.left {
+      border-radius: 10px 0 0 0;
+      transform-origin: right center;
+      transform: rotateY(24deg);
+      margin-right: -1px;
+    }
+
+    .side-panel.right {
+      border-radius: 0 10px 0 0;
+      transform-origin: left center;
+      transform: rotateY(-24deg);
+      margin-left: -1px;
+    }
+
+    .side-label {
+      font-size: 0.55rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+      text-align: center;
+    }
+
+    .side-cluster {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ── main control panel ── */
+    #main-panel {
+      flex: 0 0 auto;
+      width: min(760px, 62vw);
+      border-radius: 10px 10px 0 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 12px 22px 14px;
+      z-index: 2;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+      border-bottom: 2px solid var(--metal-shadow);
+      padding-bottom: 8px;
+    }
+
+    .panel-header .rivet { opacity: 0.6; }
+
+    /* ── LED readouts row ── */
+    #readouts {
+      display: flex;
+      gap: 10px;
+    }
+
+    .readout {
+      flex: 1;
+      background: var(--led-bg);
+      border-radius: 4px;
+      border: 2px solid var(--bezel);
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.8);
+      padding: 5px 8px 4px;
+    }
+
+    .readout .r-label {
+      font-size: 0.46rem;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #7a7160;
+    }
+
+    .readout .r-value {
+      font-family: var(--font-led);
+      font-size: 1.3rem;
+      line-height: 1.05;
+      letter-spacing: 0.05em;
+    }
+
+    .readout.c-amber .r-value { color: var(--led-amber); text-shadow: 0 0 8px var(--amber-glow); }
+    .readout.c-green .r-value { color: var(--led-green); text-shadow: 0 0 8px var(--green-glow); }
+
+    /* ── nav buttons row (the real links) ── */
+    #nav-row {
+      display: flex;
+      gap: 12px;
+    }
+
+    .nav-btn {
+      flex: 1;
       position: relative;
       display: flex;
       flex-direction: column;
-      gap: 0.4rem;
-      padding: 1.75rem 1.5rem;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      text-decoration: none;
-      color: inherit;
-      transition: border-color 0.15s ease, transform 0.15s ease, background 0.15s ease;
+      align-items: center;
+      gap: 5px;
+      padding: 12px 8px 10px;
+      border-radius: 6px;
+      background: linear-gradient(180deg, #3a352c 0%, #211e18 100%);
+      border: 2px solid var(--bezel-lo);
+      box-shadow:
+        0 3px 0 #0a0906,
+        0 6px 8px rgba(0,0,0,0.5);
+      cursor: pointer;
+      transition: transform 0.08s ease, box-shadow 0.08s ease;
     }
 
-    .link-card:hover {
-      border-color: var(--accent);
-      background: var(--accent-dim);
-      transform: translateY(-2px);
+    .nav-btn:hover { filter: brightness(1.08); }
+
+    .nav-btn:active {
+      transform: translateY(3px);
+      box-shadow: 0 0 0 #0a0906, 0 2px 4px rgba(0,0,0,0.5);
     }
 
-    .link-card .label {
-      font-size: 1.15rem;
-      font-weight: 500;
+    .nav-lamp {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--amber);
+      box-shadow: 0 0 6px 1px var(--amber-glow);
+      animation: lamp-pulse 3.4s ease-in-out infinite;
     }
 
-    .link-card .desc {
-      font-family: var(--font-mono);
-      font-size: 0.78rem;
-      color: var(--text-dim);
-    }
-
-    .link-card .status {
-      margin-top: 0.75rem;
-      font-family: var(--font-mono);
-      font-size: 0.68rem;
-      letter-spacing: 0.06em;
+    .nav-btn .nav-label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
       text-transform: uppercase;
-      color: var(--accent);
-      opacity: 0.75;
+      color: var(--metal-hi);
     }
 
-    /* ── footer ── */
-    footer {
-      padding: 1.5rem;
-      text-align: center;
-      font-family: var(--font-mono);
-      font-size: 0.72rem;
-      color: var(--text-dim);
+    .nav-btn .nav-sub {
+      font-family: var(--font-led);
+      font-size: 0.85rem;
+      letter-spacing: 0.05em;
+      color: #b7ac95;
     }
 
-    footer a {
-      color: inherit;
+    /* ── knob / toggle row ── */
+    #control-row {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .knob-cluster, .toggle-cluster {
+      display: flex;
+      gap: 16px;
+    }
+
+    .knob-unit, .toggle-unit {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .knob {
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, var(--metal-hi), var(--metal-lo) 65%, var(--metal-shadow) 100%);
+      border: 1px solid var(--bezel);
+      box-shadow: 0 3px 4px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.6);
+      position: relative;
+      cursor: pointer;
+    }
+
+    .knob::before {
+      content: '';
+      position: absolute;
+      top: 4px; left: 50%;
+      width: 3px; height: 14px;
+      background: var(--bezel);
+      transform: translateX(-50%);
+      border-radius: 2px;
+    }
+
+    .knob-label {
+      font-size: 0.48rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+    }
+
+    /* toggle switch */
+    .toggle {
+      width: 26px; height: 40px;
+      border-radius: 4px;
+      background: var(--bezel-lo);
+      border: 1px solid var(--bezel);
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.7);
+      position: relative;
+      cursor: pointer;
+    }
+
+    .toggle-lever {
+      position: absolute;
+      left: 3px; right: 3px;
+      height: 16px;
+      border-radius: 3px;
+      background: linear-gradient(180deg, var(--metal-hi), var(--metal-lo));
+      box-shadow: 0 2px 3px rgba(0,0,0,0.5);
+      top: 3px;
+      transition: top 0.12s ease;
+    }
+
+    .toggle.is-on .toggle-lever { top: 21px; }
+
+    .toggle-led {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--bezel-lo);
+      box-shadow: inset 0 0 2px rgba(0,0,0,0.8);
+    }
+
+    .toggle.is-on ~ .toggle-led,
+    .toggle-unit.is-on .toggle-led {
+      background: var(--led-green);
+      box-shadow: 0 0 5px var(--green-glow);
+    }
+
+    /* ═══════════════════════════════════════════
+       ANIMATIONS
+    ═══════════════════════════════════════════ */
+    @keyframes lamp-pulse {
+      0%, 60%, 100% { opacity: 1; }
+      68% { opacity: 0.2; }
+      74% { opacity: 0.9; }
+      80% { opacity: 0.2; }
+    }
+
+    /* ═══════════════════════════════════════════
+       RESPONSIVE FALLBACK
+    ═══════════════════════════════════════════ */
+    @media (max-width: 860px) {
+      html, body { overflow: auto; }
+      #cockpit { height: auto; min-height: 100vh; }
+      #viewport { padding: 14px; min-height: 260px; }
+      #deck { flex-direction: column; align-items: stretch; perspective: none; padding: 0 14px 20px; }
+      .side-panel.left, .side-panel.right { transform: none; flex-direction: row; flex-wrap: wrap; }
+      #main-panel { width: 100%; }
     }
 
   </style>
 </head>
 <body>
 
-  <header>
-    <div class="wordmark">Falling Up</div>
-    <div class="tagline">Fan Archive &amp; Companion</div>
-  </header>
+<canvas id="starfield"></canvas>
 
-  <main>
-    <nav class="links">
-      <a href="members.html" class="link-card">
-        <span class="label">Members</span>
-        <span class="desc">The people behind the band</span>
-        <span class="status">In progress</span>
-      </a>
+<div id="cockpit">
 
-      <a href="tracks.html" class="link-card">
-        <span class="label">Tracks</span>
-        <span class="desc">Discography, lyrics &amp; notes</span>
-        <span class="status">In progress</span>
-      </a>
+  <!-- ═══ PLAQUE BAR ═══ -->
+  <div id="plaque-bar">
+    <div class="rivet"></div>
+    <div class="plaque">Falling Up · Flight Deck</div>
+    <div class="rivet"></div>
+  </div>
 
-      <a href="connections.html" class="link-card">
-        <span class="label">Connections</span>
-        <span class="desc">Community &amp; related links</span>
-        <span class="status">In progress</span>
-      </a>
-    </nav>
-  </main>
+  <!-- ═══ VIEWPORT ═══ -->
+  <div id="viewport">
+    <div id="window-frame">
+      <div class="bolt tl"></div>
+      <div class="bolt tr"></div>
+      <div class="bolt bl"></div>
+      <div class="bolt br"></div>
+      <div class="mullion m1"></div>
+      <div class="mullion m2"></div>
 
-  <footer>
-    A fan-made project &middot; not affiliated with Falling Up
-  </footer>
+      <div class="hud tl">Heading 227.4°<br>Drift 0.001 AU/HR</div>
+      <div class="hud tr">Range: Deep Field<br>Signal: Locked</div>
+      <div class="hud bl">Proximity: Clear</div>
+      <div class="hud br">Waypoint: Deep Station α</div>
 
+      <svg id="reticle" width="70" height="70" viewBox="0 0 70 70">
+        <circle cx="35" cy="35" r="32" fill="none" stroke="#d9861f" stroke-width="0.6"/>
+        <line x1="35" y1="0"  x2="35" y2="28" stroke="#d9861f" stroke-width="0.6"/>
+        <line x1="35" y1="42" x2="35" y2="70" stroke="#d9861f" stroke-width="0.6"/>
+        <line x1="0"  y1="35" x2="28" y2="35" stroke="#d9861f" stroke-width="0.6"/>
+        <line x1="42" y1="35" x2="70" y2="35" stroke="#d9861f" stroke-width="0.6"/>
+        <circle cx="35" cy="35" r="3.5" fill="none" stroke="#d9861f" stroke-width="0.7"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- ═══ CONTROL DECK ═══ -->
+  <div id="deck">
+
+    <!-- LEFT SIDE PANEL -->
+    <div class="side-panel panel left">
+      <div class="side-label">Power</div>
+      <div class="side-cluster">
+        <div class="knob-unit">
+          <div class="knob" style="transform:rotate(-35deg)"></div>
+          <div class="knob-label">Main</div>
+        </div>
+        <div class="knob-unit">
+          <div class="knob" style="transform:rotate(60deg)"></div>
+          <div class="knob-label">Aux</div>
+        </div>
+      </div>
+      <div class="side-cluster">
+        <div class="toggle-unit">
+          <div class="toggle-led"></div>
+          <div class="toggle is-on"><div class="toggle-lever"></div></div>
+          <div class="knob-label">Cabin Lt</div>
+        </div>
+        <div class="toggle-unit">
+          <div class="toggle-led"></div>
+          <div class="toggle"><div class="toggle-lever"></div></div>
+          <div class="knob-label">Nav Lt</div>
+        </div>
+      </div>
+      <div class="side-label">Life Sup</div>
+    </div>
+
+    <!-- MAIN CONTROL PANEL -->
+    <div id="main-panel" class="panel">
+
+      <div class="panel-header">
+        <div class="rivet"></div> Command Console <div class="rivet"></div>
+      </div>
+
+      <div id="readouts">
+        <div class="readout c-amber">
+          <div class="r-label">Power</div>
+          <div class="r-value" id="ro-power">072%</div>
+        </div>
+        <div class="readout c-green">
+          <div class="r-label">Signal</div>
+          <div class="r-value" id="ro-signal">090%</div>
+        </div>
+        <div class="readout c-amber">
+          <div class="r-label">Hull</div>
+          <div class="r-value" id="ro-hull">100%</div>
+        </div>
+      </div>
+
+      <div id="nav-row">
+        <a href="members.html" class="nav-btn">
+          <div class="nav-lamp"></div>
+          <div class="nav-label">Members</div>
+          <div class="nav-sub">crew manifest</div>
+        </a>
+        <a href="tracks.html" class="nav-btn">
+          <div class="nav-lamp" style="animation-delay:1.1s"></div>
+          <div class="nav-label">Tracks</div>
+          <div class="nav-sub">audio archive</div>
+        </a>
+        <a href="connections.html" class="nav-btn">
+          <div class="nav-lamp" style="animation-delay:2.2s"></div>
+          <div class="nav-label">Connections</div>
+          <div class="nav-sub">comm array</div>
+        </a>
+      </div>
+
+      <div id="control-row">
+        <div class="knob-cluster">
+          <div class="knob-unit">
+            <div class="knob" style="transform:rotate(10deg)"></div>
+            <div class="knob-label">Nav</div>
+          </div>
+          <div class="knob-unit">
+            <div class="knob" style="transform:rotate(-70deg)"></div>
+            <div class="knob-label">Comm</div>
+          </div>
+          <div class="knob-unit">
+            <div class="knob" style="transform:rotate(90deg)"></div>
+            <div class="knob-label">Gain</div>
+          </div>
+        </div>
+        <div class="toggle-cluster">
+          <div class="toggle-unit is-on">
+            <div class="toggle-led"></div>
+            <div class="toggle is-on"><div class="toggle-lever"></div></div>
+            <div class="knob-label">Auto Plt</div>
+          </div>
+          <div class="toggle-unit">
+            <div class="toggle-led"></div>
+            <div class="toggle"><div class="toggle-lever"></div></div>
+            <div class="knob-label">Beacon</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT SIDE PANEL -->
+    <div class="side-panel panel right">
+      <div class="side-label">Nav / Comm</div>
+      <div class="side-cluster">
+        <div class="knob-unit">
+          <div class="knob" style="transform:rotate(140deg)"></div>
+          <div class="knob-label">Freq</div>
+        </div>
+        <div class="knob-unit">
+          <div class="knob" style="transform:rotate(-20deg)"></div>
+          <div class="knob-label">Scan</div>
+        </div>
+      </div>
+      <div class="side-cluster">
+        <div class="toggle-unit">
+          <div class="toggle-led"></div>
+          <div class="toggle"><div class="toggle-lever"></div></div>
+          <div class="knob-label">Wipers</div>
+        </div>
+        <div class="toggle-unit is-on">
+          <div class="toggle-led"></div>
+          <div class="toggle is-on"><div class="toggle-lever"></div></div>
+          <div class="knob-label">Shield</div>
+        </div>
+      </div>
+      <div class="side-label">Hull Sys</div>
+    </div>
+
+  </div><!-- /#deck -->
+
+</div><!-- /#cockpit -->
+
+<script>
+// ═══════════════════════════════════════════════════════
+// STARFIELD
+// ═══════════════════════════════════════════════════════
+(function () {
+  const cv = document.getElementById('starfield');
+  const cx = cv.getContext('2d');
+  let W, H, stars = [];
+
+  function resize() {
+    W = cv.width  = window.innerWidth;
+    H = cv.height = window.innerHeight;
+  }
+
+  function makeStars() {
+    stars = [];
+    const n = Math.round(W * H / 2600);
+    for (let i = 0; i < n; i++) {
+      stars.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        r: Math.random() * 1.4 + 0.2,
+        base: Math.random() * 0.7 + 0.15,
+        freq: Math.random() * 0.014 + 0.003,
+        phase: Math.random() * Math.PI * 2,
+        vx: (Math.random() - 0.5) * 0.012,
+      });
+    }
+  }
+
+  let tick = 0;
+  function frame() {
+    cx.fillStyle = '#06070a';
+    cx.fillRect(0, 0, W, H);
+
+    tick++;
+    for (const s of stars) {
+      const t = Math.sin(tick * s.freq + s.phase);
+      const a = s.base * (0.6 + 0.4 * t);
+      cx.beginPath();
+      cx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      cx.fillStyle = `rgba(220,225,235,${a})`;
+      cx.fill();
+      s.x += s.vx;
+      if (s.x < 0) s.x = W;
+      if (s.x > W) s.x = 0;
+    }
+    requestAnimationFrame(frame);
+  }
+
+  resize();
+  makeStars();
+  frame();
+  window.addEventListener('resize', () => { resize(); makeStars(); });
+})();
+
+// ═══════════════════════════════════════════════════════
+// TACTILE CONTROLS — toggles click on/off, knobs click-turn
+// ═══════════════════════════════════════════════════════
+(function () {
+  document.querySelectorAll('.toggle').forEach(t => {
+    t.addEventListener('click', () => {
+      t.classList.toggle('is-on');
+      const unit = t.closest('.toggle-unit');
+      if (unit) unit.classList.toggle('is-on', t.classList.contains('is-on'));
+    });
+  });
+
+  document.querySelectorAll('.knob').forEach(k => {
+    k.addEventListener('click', () => {
+      const current = k.style.transform.match(/-?\d+/);
+      const deg = current ? parseInt(current[0], 10) : 0;
+      k.style.transform = `rotate(${deg + 45}deg)`;
+    });
+  });
+})();
+
+// ═══════════════════════════════════════════════════════
+// READOUT DRIFT — small live-feeling number nudges
+// ═══════════════════════════════════════════════════════
+(function () {
+  const ids = ['ro-power', 'ro-signal', 'ro-hull'];
+  setInterval(() => {
+    const id = ids[Math.floor(Math.random() * ids.length)];
+    const el = document.getElementById(id);
+    if (!el) return;
+    let val = parseInt(el.textContent, 10);
+    val += Math.random() > 0.5 ? 1 : -1;
+    val = Math.max(60, Math.min(100, val));
+    el.textContent = String(val).padStart(3, '0') + '%';
+  }, 2600);
+})();
+</script>
 </body>
 </html>
