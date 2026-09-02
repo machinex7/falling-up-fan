@@ -1,0 +1,14 @@
+/* ═══════════════════════════════════════════
+   PROGRESSIVE ENHANCEMENT — targets modern
+   phones and up; more room brings more deck
+═══════════════════════════════════════════ */
+
+/* tablets/desktop: fixed-width walls with fuller instrument clusters */
+@media (min-width: 900px) {
+  :root { --wall-w: 150px; --wall-tilt: 26deg; --seam-w: 6px; }
+  #plaque-bar { flex-basis: 32px; }
+  .plaque { font-size: 0.68rem; }
+  #forward { max-width: 1040px; margin: 0 auto; }
+  .wall-extra.tier2 { display: flex; }
+  .side-label { display: block; }
+}

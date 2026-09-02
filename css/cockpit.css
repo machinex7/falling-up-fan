@@ -1,0 +1,132 @@
+/* ═══════════════════════════════════════════
+   COCKPIT SHELL
+═══════════════════════════════════════════ */
+#cockpit {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding-top: env(safe-area-inset-top);
+}
+
+/* ── thin mission plaque ── */
+#plaque-bar {
+  flex: 0 0 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: linear-gradient(180deg, var(--bezel) 0%, var(--bezel-lo) 100%);
+  border-bottom: 2px solid var(--bezel-lo);
+}
+
+.plaque {
+  font-size: 0.56rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.rivet {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, var(--spec), var(--metal-lo) 70%, var(--bezel-lo) 100%);
+  box-shadow: 0 0 0 1px var(--bezel-lo);
+  flex: none;
+}
+
+/* ── the hull row: left wall / forward wall / right wall ── */
+#shell {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  align-items: stretch;
+  perspective: 500px;
+}
+
+/* shared hull-plate skin */
+.hull {
+  background: linear-gradient(180deg, var(--metal-hi) 0%, var(--metal) 45%, var(--metal-lo) 100%);
+}
+
+/* ── seams between plates ── */
+.seam {
+  flex: 0 0 var(--seam-w);
+  background: linear-gradient(180deg, var(--bezel-lo), var(--bezel) 50%, var(--bezel-lo));
+  z-index: 3;
+}
+
+/* ── side walls (narrow always, tilt away in 3D) ── */
+.wall {
+  flex: 0 0 var(--wall-w);
+  min-width: 22px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  transform-style: preserve-3d;
+  overflow: hidden;
+  /* same hull material as the front, just dimmer — out of the window light, in vacuum shadow */
+  filter: brightness(0.62);
+}
+
+.wall.left  { transform-origin: right center; transform: rotateY(var(--wall-tilt)); }
+.wall.right { transform-origin: left center;  transform: rotateY(calc(-1 * var(--wall-tilt))); }
+
+/* depth-shading so the receding edge reads even darker */
+.wall::before {
+  content: '';
+  position: absolute; inset: 0;
+  pointer-events: none;
+}
+.wall.left::before  { background: linear-gradient(90deg, rgba(0,0,0,0.55), transparent 70%); }
+.wall.right::before { background: linear-gradient(270deg, rgba(0,0,0,0.55), transparent 70%); }
+
+.conduit {
+  width: 7px;
+  flex: 1 1 auto;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--metal-shadow), var(--metal-hi) 45%, var(--metal-shadow));
+  box-shadow: inset 0 0 2px rgba(0,0,0,0.6);
+}
+
+.wall-light {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--amber);
+  box-shadow: 0 0 6px 1px var(--amber-glow);
+  animation: lamp-pulse 3.6s ease-in-out infinite;
+  flex: none;
+}
+
+.wall-extra {
+  display: none; /* revealed at wider breakpoints */
+}
+
+.knob-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.side-label {
+  display: none;
+  font-size: 0.5rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  text-align: center;
+}
+
+/* ── forward wall: window over console ── */
+#forward {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}

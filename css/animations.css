@@ -1,0 +1,35 @@
+/* ═══════════════════════════════════════════
+   ANIMATIONS
+═══════════════════════════════════════════ */
+@keyframes lamp-pulse {
+  0%, 60%, 100% { opacity: 1; }
+  68% { opacity: 0.2; }
+  74% { opacity: 0.9; }
+  80% { opacity: 0.2; }
+}
+
+@keyframes eq-bounce {
+  0%, 100% { height: 18%; }
+  50%      { height: 100%; }
+}
+
+@keyframes alert-blink {
+  0%, 45%  { opacity: 1; }
+  50%, 95% { opacity: 0.25; }
+  100%     { opacity: 1; }
+}
+
+@keyframes gauge-fill-cyan {
+  from { stroke-dasharray: 0 163.4; }
+  to   { stroke-dasharray: 83.3 80.1; }
+}
+
+@keyframes gauge-fill-green {
+  from { stroke-dasharray: 0 163.4; }
+  to   { stroke-dasharray: 115.2 48.2; }
+}
+
+@keyframes gauge-fill-amber {
+  from { stroke-dasharray: 0 163.4; }
+  to   { stroke-dasharray: 99.2 64.2; }
+}
