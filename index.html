@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Falling Up — Flight Deck</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,12 +11,12 @@
 
     /* ═══════════════════════════════════════════
        RESET & PALETTE
+       Mobile-first: base rules target phones,
+       min-width queries progressively add room.
     ═══════════════════════════════════════════ */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --space:        #06070a;
-
       --metal-hi:     #efe9db;
       --metal:        #cec5b0;
       --metal-lo:     #a89d87;
@@ -30,8 +30,6 @@
 
       --amber:        #d9861f;
       --amber-glow:   rgba(217,134,31,0.65);
-      --red:          #b5382b;
-      --red-glow:     rgba(181,56,43,0.65);
       --green:        #3f8f5f;
       --green-glow:   rgba(63,143,95,0.65);
 
@@ -39,14 +37,20 @@
       --led-amber:    #ffb339;
       --led-green:    #5ee88a;
 
+      --wall-w:       11%;
+      --seam-w:       4px;
+      --wall-tilt:    46deg;
+
       --font-label:   'Barlow Semi Condensed', sans-serif;
       --font-led:     'VT323', monospace;
     }
 
     html, body {
-      width: 100%; height: 100%;
+      width: 100%;
+      height: 100vh;
+      height: 100dvh;
       overflow: hidden;
-      background: var(--space);
+      background: var(--bezel-lo);
       font-family: var(--font-label);
       color: var(--ink);
     }
@@ -54,276 +58,257 @@
     a { color: inherit; text-decoration: none; }
 
     /* ═══════════════════════════════════════════
-       STARFIELD (fixed behind everything)
-    ═══════════════════════════════════════════ */
-    #starfield {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      background: var(--space);
-    }
-
-    /* ═══════════════════════════════════════════
        COCKPIT SHELL
     ═══════════════════════════════════════════ */
     #cockpit {
-      position: relative;
-      z-index: 1;
-      width: 100vw;
-      height: 100vh;
+      width: 100%;
+      height: 100%;
       display: flex;
       flex-direction: column;
+      padding-top: env(safe-area-inset-top);
     }
 
-    /* ── Mission plaque bar ── */
+    /* ── thin mission plaque ── */
     #plaque-bar {
-      flex: 0 0 34px;
+      flex: 0 0 22px;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 14px;
+      gap: 10px;
       background: linear-gradient(180deg, var(--bezel) 0%, var(--bezel-lo) 100%);
       border-bottom: 2px solid var(--bezel-lo);
     }
 
     .plaque {
-      font-size: 0.68rem;
+      font-size: 0.56rem;
       font-weight: 600;
-      letter-spacing: 0.28em;
+      letter-spacing: 0.2em;
       text-transform: uppercase;
       color: var(--metal);
     }
 
     .rivet {
-      width: 6px; height: 6px;
+      width: 5px; height: 5px;
       border-radius: 50%;
       background: radial-gradient(circle at 35% 30%, var(--metal-hi), var(--metal-lo) 70%, var(--bezel-lo) 100%);
       box-shadow: 0 0 0 1px var(--bezel-lo);
+      flex: none;
     }
 
-    /* ═══════════════════════════════════════════
-       VIEWPORT (window on the stars)
-    ═══════════════════════════════════════════ */
-    #viewport {
+    /* ── the hull row: left wall / forward wall / right wall ── */
+    #shell {
       flex: 1 1 0;
       min-height: 0;
-      position: relative;
       display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 22px 60px 10px;
+      align-items: stretch;
+      perspective: 500px;
     }
 
-    #window-frame {
+    /* shared hull-plate skin */
+    .hull {
+      background: linear-gradient(180deg, var(--metal-hi) 0%, var(--metal) 45%, var(--metal-lo) 100%);
+    }
+
+    /* ── seams between plates ── */
+    .seam {
+      flex: 0 0 var(--seam-w);
+      background: linear-gradient(180deg, var(--bezel-lo), var(--bezel) 50%, var(--bezel-lo));
+      z-index: 3;
+    }
+
+    /* ── side walls (narrow always, tilt away in 3D) ── */
+    .wall {
+      flex: 0 0 var(--wall-w);
+      min-width: 22px;
       position: relative;
-      width: 100%;
-      height: 100%;
-      max-width: 1180px;
-      border-radius: 14px;
-      border: 10px solid var(--bezel);
-      box-shadow:
-        0 0 0 3px var(--bezel-lo),
-        inset 0 0 40px rgba(0,0,0,0.65),
-        0 18px 30px rgba(0,0,0,0.5);
-      background: radial-gradient(ellipse at center, rgba(20,26,38,0.15), rgba(0,0,0,0.35) 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      transform-style: preserve-3d;
       overflow: hidden;
     }
 
-    /* mullions splitting the window into three panes */
-    .mullion {
-      position: absolute;
-      top: 0; bottom: 0;
-      width: 10px;
-      background: linear-gradient(90deg, var(--bezel-lo), var(--bezel) 50%, var(--bezel-lo));
-      z-index: 3;
+    .wall.left  { transform-origin: right center; transform: rotateY(var(--wall-tilt)); }
+    .wall.right { transform-origin: left center;  transform: rotateY(calc(-1 * var(--wall-tilt))); }
+
+    /* depth-shading so the receding edge reads darker */
+    .wall::before {
+      content: '';
+      position: absolute; inset: 0;
+      pointer-events: none;
     }
-    .mullion.m1 { left: 25%; }
-    .mullion.m2 { left: 75%; }
+    .wall.left::before  { background: linear-gradient(90deg, rgba(0,0,0,0.35), transparent 70%); }
+    .wall.right::before { background: linear-gradient(270deg, rgba(0,0,0,0.35), transparent 70%); }
+
+    .conduit {
+      width: 7px;
+      flex: 1 1 auto;
+      border-radius: 4px;
+      background: linear-gradient(90deg, var(--metal-shadow), var(--metal-hi) 45%, var(--metal-shadow));
+      box-shadow: inset 0 0 2px rgba(0,0,0,0.6);
+    }
+
+    .wall-light {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--amber);
+      box-shadow: 0 0 6px 1px var(--amber-glow);
+      animation: lamp-pulse 3.6s ease-in-out infinite;
+      flex: none;
+    }
+
+    .wall-extra {
+      display: none; /* revealed at wider breakpoints */
+    }
+
+    /* ── forward wall: window over console ── */
+    #forward {
+      flex: 1 1 auto;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ═══════════════════════════════════════════
+       WINDOW
+    ═══════════════════════════════════════════ */
+    #window {
+      flex: 1 1 54%;
+      min-height: 0;
+      position: relative;
+      margin: 8px 8px 6px;
+      border-radius: 10px;
+      border: 7px solid var(--bezel);
+      box-shadow:
+        0 0 0 2px var(--bezel-lo),
+        inset 0 0 30px rgba(0,0,0,0.7);
+      background: #05060a;
+      overflow: hidden;
+    }
+
+    #window canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
 
     .bolt {
       position: absolute;
-      width: 10px; height: 10px;
+      width: 8px; height: 8px;
       border-radius: 50%;
       background: radial-gradient(circle at 35% 30%, var(--metal-hi), var(--metal-lo) 70%, var(--bezel-lo) 100%);
       box-shadow: 0 0 0 1px var(--bezel-lo), inset 0 0 2px rgba(0,0,0,0.5);
       z-index: 4;
     }
-    .bolt.tl { top: 8px; left: 8px; }
-    .bolt.tr { top: 8px; right: 8px; }
-    .bolt.bl { bottom: 8px; left: 8px; }
-    .bolt.br { bottom: 8px; right: 8px; }
+    .bolt.tl { top: 6px; left: 6px; }
+    .bolt.tr { top: 6px; right: 6px; }
+    .bolt.bl { bottom: 6px; left: 6px; }
+    .bolt.br { bottom: 6px; right: 6px; }
 
     .hud {
       position: absolute;
       font-family: var(--font-led);
-      font-size: 0.95rem;
-      letter-spacing: 0.08em;
+      font-size: clamp(0.62rem, 2vw, 0.95rem);
+      letter-spacing: 0.06em;
       color: rgba(217,134,31,0.55);
-      line-height: 1.5;
+      line-height: 1.4;
       text-transform: uppercase;
       pointer-events: none;
       z-index: 3;
     }
-    .hud.tl { top: 14px; left: 20px; }
-    .hud.tr { top: 14px; right: 20px; text-align: right; }
-    .hud.bl { bottom: 14px; left: 20px; }
-    .hud.br { bottom: 14px; right: 20px; text-align: right; }
+    .hud.tl { top: 10px; left: 14px; max-width: 46%; }
+    .hud.tr { top: 10px; right: 14px; text-align: right; max-width: 46%; }
+    .hud.bl { bottom: 10px; left: 14px; display: none; }
+    .hud.br { bottom: 10px; right: 14px; text-align: right; display: none; }
 
     #reticle {
       position: absolute;
       top: 50%; left: 50%;
       transform: translate(-50%, -50%);
       z-index: 2;
-      opacity: 0.32;
+      opacity: 0.3;
       pointer-events: none;
+      width: clamp(40px, 12vw, 70px);
+      height: auto;
     }
 
     /* ═══════════════════════════════════════════
-       CONTROL DECK
+       CONSOLE
     ═══════════════════════════════════════════ */
-    #deck {
-      flex: 0 0 auto;
+    #console {
+      flex: 1 1 46%;
+      min-height: 0;
       display: flex;
-      align-items: stretch;
+      flex-direction: column;
       justify-content: center;
-      gap: 0;
-      padding: 0 0 14px;
-      perspective: 1000px;
-    }
-
-    /* ── shared panel skin ── */
-    .panel {
-      background: linear-gradient(180deg, var(--metal-hi) 0%, var(--metal) 45%, var(--metal-lo) 100%);
-      border: 2px solid var(--bezel);
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.5),
-        inset 0 -6px 10px rgba(0,0,0,0.12),
-        0 10px 22px rgba(0,0,0,0.55);
-    }
-
-    /* ── side panels (narrow, angled to wrap around the pilot) ── */
-    .side-panel {
-      flex: 0 0 148px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: space-evenly;
-      padding: 14px 8px;
-      position: relative;
-      transform-style: preserve-3d;
-    }
-
-    .side-panel.left {
-      border-radius: 10px 0 0 0;
-      transform-origin: right center;
-      transform: rotateY(24deg);
-      margin-right: -1px;
-    }
-
-    .side-panel.right {
-      border-radius: 0 10px 0 0;
-      transform-origin: left center;
-      transform: rotateY(-24deg);
-      margin-left: -1px;
-    }
-
-    .side-label {
-      font-size: 0.55rem;
-      font-weight: 700;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--ink-soft);
-      text-align: center;
-    }
-
-    .side-cluster {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
       gap: 6px;
+      margin: 0 8px 8px;
+      padding: 8px 10px 10px;
+      border-radius: 8px;
+      background: linear-gradient(180deg, rgba(0,0,0,0.06), rgba(0,0,0,0.14));
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.25);
     }
 
-    /* ── main control panel ── */
-    #main-panel {
-      flex: 0 0 auto;
-      width: min(760px, 62vw);
-      border-radius: 10px 10px 0 0;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      padding: 12px 22px 14px;
-      z-index: 2;
-    }
-
-    .panel-header {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      font-size: 0.62rem;
-      font-weight: 700;
-      letter-spacing: 0.3em;
-      text-transform: uppercase;
-      color: var(--ink-soft);
-      border-bottom: 2px solid var(--metal-shadow);
-      padding-bottom: 8px;
-    }
-
-    .panel-header .rivet { opacity: 0.6; }
-
-    /* ── LED readouts row ── */
+    /* LED readouts */
     #readouts {
       display: flex;
-      gap: 10px;
+      gap: 6px;
+      flex: 0 0 auto;
     }
 
     .readout {
       flex: 1;
+      min-width: 0;
       background: var(--led-bg);
       border-radius: 4px;
       border: 2px solid var(--bezel);
       box-shadow: inset 0 2px 6px rgba(0,0,0,0.8);
-      padding: 5px 8px 4px;
+      padding: 2px 6px 1px;
     }
 
     .readout .r-label {
-      font-size: 0.46rem;
+      font-size: 0.4rem;
       font-weight: 600;
-      letter-spacing: 0.18em;
+      letter-spacing: 0.14em;
       text-transform: uppercase;
       color: #7a7160;
     }
 
     .readout .r-value {
       font-family: var(--font-led);
-      font-size: 1.3rem;
+      font-size: clamp(0.85rem, 3.6vw, 1.3rem);
       line-height: 1.05;
-      letter-spacing: 0.05em;
     }
 
     .readout.c-amber .r-value { color: var(--led-amber); text-shadow: 0 0 8px var(--amber-glow); }
     .readout.c-green .r-value { color: var(--led-green); text-shadow: 0 0 8px var(--green-glow); }
 
-    /* ── nav buttons row (the real links) ── */
+    /* nav buttons — the real links, always the star of the console */
     #nav-row {
       display: flex;
-      gap: 12px;
+      gap: 8px;
+      flex: 1 1 auto;
+      min-height: 0;
     }
 
     .nav-btn {
       flex: 1;
+      min-width: 0;
       position: relative;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 5px;
-      padding: 12px 8px 10px;
+      justify-content: center;
+      gap: 3px;
+      padding: 6px 4px;
       border-radius: 6px;
       background: linear-gradient(180deg, #3a352c 0%, #211e18 100%);
       border: 2px solid var(--bezel-lo);
-      box-shadow:
-        0 3px 0 #0a0906,
-        0 6px 8px rgba(0,0,0,0.5);
+      box-shadow: 0 3px 0 #0a0906, 0 6px 8px rgba(0,0,0,0.5);
       cursor: pointer;
       transition: transform 0.08s ease, box-shadow 0.08s ease;
     }
@@ -336,112 +321,98 @@
     }
 
     .nav-lamp {
-      width: 10px; height: 10px;
+      width: 8px; height: 8px;
       border-radius: 50%;
       background: var(--amber);
       box-shadow: 0 0 6px 1px var(--amber-glow);
       animation: lamp-pulse 3.4s ease-in-out infinite;
+      flex: none;
     }
 
     .nav-btn .nav-label {
-      font-size: 0.85rem;
+      font-size: clamp(0.62rem, 3vw, 0.85rem);
       font-weight: 700;
-      letter-spacing: 0.18em;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
       color: var(--metal-hi);
+      white-space: nowrap;
     }
 
     .nav-btn .nav-sub {
       font-family: var(--font-led);
-      font-size: 0.85rem;
-      letter-spacing: 0.05em;
+      font-size: clamp(0.6rem, 2.6vw, 0.85rem);
+      letter-spacing: 0.03em;
       color: #b7ac95;
+      display: none;
     }
 
-    /* ── knob / toggle row ── */
+    /* knob / toggle row — hidden on the smallest screens, appears as room allows */
     #control-row {
-      display: flex;
+      display: none;
       align-items: flex-end;
       justify-content: space-between;
-      gap: 10px;
+      gap: 8px;
+      flex: 0 0 auto;
     }
 
-    .knob-cluster, .toggle-cluster {
-      display: flex;
-      gap: 16px;
-    }
-
-    .knob-unit, .toggle-unit {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-    }
+    .knob-cluster, .toggle-cluster { display: flex; gap: 10px; }
+    .knob-unit, .toggle-unit { display: flex; flex-direction: column; align-items: center; gap: 3px; }
 
     .knob {
-      width: 42px; height: 42px;
+      width: 30px; height: 30px;
       border-radius: 50%;
       background: radial-gradient(circle at 35% 30%, var(--metal-hi), var(--metal-lo) 65%, var(--metal-shadow) 100%);
       border: 1px solid var(--bezel);
-      box-shadow: 0 3px 4px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.6);
+      box-shadow: 0 2px 3px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.6);
       position: relative;
       cursor: pointer;
     }
-
     .knob::before {
       content: '';
       position: absolute;
-      top: 4px; left: 50%;
-      width: 3px; height: 14px;
+      top: 3px; left: 50%;
+      width: 2px; height: 10px;
       background: var(--bezel);
       transform: translateX(-50%);
       border-radius: 2px;
     }
 
     .knob-label {
-      font-size: 0.48rem;
+      font-size: 0.42rem;
       font-weight: 600;
-      letter-spacing: 0.14em;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
       color: var(--ink-soft);
     }
 
-    /* toggle switch */
     .toggle {
-      width: 26px; height: 40px;
-      border-radius: 4px;
+      width: 18px; height: 28px;
+      border-radius: 3px;
       background: var(--bezel-lo);
       border: 1px solid var(--bezel);
       box-shadow: inset 0 2px 4px rgba(0,0,0,0.7);
       position: relative;
       cursor: pointer;
     }
-
     .toggle-lever {
       position: absolute;
-      left: 3px; right: 3px;
-      height: 16px;
-      border-radius: 3px;
+      left: 2px; right: 2px;
+      height: 11px;
+      border-radius: 2px;
       background: linear-gradient(180deg, var(--metal-hi), var(--metal-lo));
       box-shadow: 0 2px 3px rgba(0,0,0,0.5);
-      top: 3px;
+      top: 2px;
       transition: top 0.12s ease;
     }
-
-    .toggle.is-on .toggle-lever { top: 21px; }
+    .toggle.is-on .toggle-lever { top: 15px; }
 
     .toggle-led {
-      width: 6px; height: 6px;
+      width: 5px; height: 5px;
       border-radius: 50%;
       background: var(--bezel-lo);
       box-shadow: inset 0 0 2px rgba(0,0,0,0.8);
     }
-
-    .toggle.is-on ~ .toggle-led,
-    .toggle-unit.is-on .toggle-led {
-      background: var(--led-green);
-      box-shadow: 0 0 5px var(--green-glow);
-    }
+    .toggle-unit.is-on .toggle-led { background: var(--led-green); box-shadow: 0 0 5px var(--green-glow); }
 
     /* ═══════════════════════════════════════════
        ANIMATIONS
@@ -454,22 +425,45 @@
     }
 
     /* ═══════════════════════════════════════════
-       RESPONSIVE FALLBACK
+       PROGRESSIVE ENHANCEMENT — more room, more deck
     ═══════════════════════════════════════════ */
-    @media (max-width: 860px) {
-      html, body { overflow: auto; }
-      #cockpit { height: auto; min-height: 100vh; }
-      #viewport { padding: 14px; min-height: 260px; }
-      #deck { flex-direction: column; align-items: stretch; perspective: none; padding: 0 14px 20px; }
-      .side-panel.left, .side-panel.right { transform: none; flex-direction: row; flex-wrap: wrap; }
-      #main-panel { width: 100%; }
+
+    /* small phones in landscape / large phones: show sub-labels + wall lights */
+    @media (min-width: 420px) {
+      .nav-btn .nav-sub { display: block; }
+      .wall-extra.tier1 { display: block; }
+    }
+
+    /* small tablets: bring back the knob/toggle row */
+    @media (min-width: 640px) {
+      :root { --wall-w: 13%; --wall-tilt: 38deg; }
+      #control-row { display: flex; }
+      .hud.bl, .hud.br { display: block; }
+    }
+
+    /* tablets/desktop: fixed-width walls with fuller instrument clusters */
+    @media (min-width: 900px) {
+      :root { --wall-w: 150px; --wall-tilt: 26deg; --seam-w: 6px; }
+      #plaque-bar { flex-basis: 32px; }
+      .plaque { font-size: 0.68rem; }
+      #forward { max-width: 1040px; margin: 0 auto; }
+      .wall-extra.tier2 { display: flex; }
+      .side-label { display: block; }
+    }
+
+    .side-label {
+      display: none;
+      font-size: 0.5rem;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+      text-align: center;
     }
 
   </style>
 </head>
 <body>
-
-<canvas id="starfield"></canvas>
 
 <div id="cockpit">
 
@@ -480,183 +474,156 @@
     <div class="rivet"></div>
   </div>
 
-  <!-- ═══ VIEWPORT ═══ -->
-  <div id="viewport">
-    <div id="window-frame">
-      <div class="bolt tl"></div>
-      <div class="bolt tr"></div>
-      <div class="bolt bl"></div>
-      <div class="bolt br"></div>
-      <div class="mullion m1"></div>
-      <div class="mullion m2"></div>
+  <!-- ═══ HULL ═══ -->
+  <div id="shell">
 
-      <div class="hud tl">Heading 227.4°<br>Drift 0.001 AU/HR</div>
-      <div class="hud tr">Range: Deep Field<br>Signal: Locked</div>
-      <div class="hud bl">Proximity: Clear</div>
-      <div class="hud br">Waypoint: Deep Station α</div>
-
-      <svg id="reticle" width="70" height="70" viewBox="0 0 70 70">
-        <circle cx="35" cy="35" r="32" fill="none" stroke="#d9861f" stroke-width="0.6"/>
-        <line x1="35" y1="0"  x2="35" y2="28" stroke="#d9861f" stroke-width="0.6"/>
-        <line x1="35" y1="42" x2="35" y2="70" stroke="#d9861f" stroke-width="0.6"/>
-        <line x1="0"  y1="35" x2="28" y2="35" stroke="#d9861f" stroke-width="0.6"/>
-        <line x1="42" y1="35" x2="70" y2="35" stroke="#d9861f" stroke-width="0.6"/>
-        <circle cx="35" cy="35" r="3.5" fill="none" stroke="#d9861f" stroke-width="0.7"/>
-      </svg>
-    </div>
-  </div>
-
-  <!-- ═══ CONTROL DECK ═══ -->
-  <div id="deck">
-
-    <!-- LEFT SIDE PANEL -->
-    <div class="side-panel panel left">
-      <div class="side-label">Power</div>
-      <div class="side-cluster">
+    <!-- LEFT WALL -->
+    <div class="wall hull left">
+      <div class="wall-light"></div>
+      <div class="side-label">Pwr</div>
+      <div class="wall-extra tier2">
         <div class="knob-unit">
           <div class="knob" style="transform:rotate(-35deg)"></div>
           <div class="knob-label">Main</div>
         </div>
-        <div class="knob-unit">
-          <div class="knob" style="transform:rotate(60deg)"></div>
-          <div class="knob-label">Aux</div>
-        </div>
       </div>
-      <div class="side-cluster">
-        <div class="toggle-unit">
-          <div class="toggle-led"></div>
-          <div class="toggle is-on"><div class="toggle-lever"></div></div>
-          <div class="knob-label">Cabin Lt</div>
-        </div>
-        <div class="toggle-unit">
-          <div class="toggle-led"></div>
-          <div class="toggle"><div class="toggle-lever"></div></div>
-          <div class="knob-label">Nav Lt</div>
-        </div>
-      </div>
-      <div class="side-label">Life Sup</div>
+      <div class="conduit"></div>
+      <div class="wall-extra tier1 wall-light" style="animation-delay:1.4s;"></div>
     </div>
 
-    <!-- MAIN CONTROL PANEL -->
-    <div id="main-panel" class="panel">
+    <div class="seam"></div>
 
-      <div class="panel-header">
-        <div class="rivet"></div> Command Console <div class="rivet"></div>
+    <!-- FORWARD WALL: window + console -->
+    <div id="forward">
+
+      <div id="window">
+        <div class="bolt tl"></div>
+        <div class="bolt tr"></div>
+        <div class="bolt bl"></div>
+        <div class="bolt br"></div>
+
+        <canvas id="starfield"></canvas>
+
+        <div class="hud tl">Heading 227.4&deg;<br>Drift 0.001 AU/HR</div>
+        <div class="hud tr">Range: Deep Field<br>Signal: Locked</div>
+        <div class="hud bl">Proximity: Clear</div>
+        <div class="hud br">Waypoint: Deep Station &alpha;</div>
+
+        <svg id="reticle" viewBox="0 0 70 70">
+          <circle cx="35" cy="35" r="32" fill="none" stroke="#d9861f" stroke-width="0.6"/>
+          <line x1="35" y1="0"  x2="35" y2="28" stroke="#d9861f" stroke-width="0.6"/>
+          <line x1="35" y1="42" x2="35" y2="70" stroke="#d9861f" stroke-width="0.6"/>
+          <line x1="0"  y1="35" x2="28" y2="35" stroke="#d9861f" stroke-width="0.6"/>
+          <line x1="42" y1="35" x2="70" y2="35" stroke="#d9861f" stroke-width="0.6"/>
+          <circle cx="35" cy="35" r="3.5" fill="none" stroke="#d9861f" stroke-width="0.7"/>
+        </svg>
       </div>
 
-      <div id="readouts">
-        <div class="readout c-amber">
-          <div class="r-label">Power</div>
-          <div class="r-value" id="ro-power">072%</div>
-        </div>
-        <div class="readout c-green">
-          <div class="r-label">Signal</div>
-          <div class="r-value" id="ro-signal">090%</div>
-        </div>
-        <div class="readout c-amber">
-          <div class="r-label">Hull</div>
-          <div class="r-value" id="ro-hull">100%</div>
-        </div>
-      </div>
+      <div id="console" class="hull">
 
-      <div id="nav-row">
-        <a href="members.html" class="nav-btn">
-          <div class="nav-lamp"></div>
-          <div class="nav-label">Members</div>
-          <div class="nav-sub">crew manifest</div>
-        </a>
-        <a href="tracks.html" class="nav-btn">
-          <div class="nav-lamp" style="animation-delay:1.1s"></div>
-          <div class="nav-label">Tracks</div>
-          <div class="nav-sub">audio archive</div>
-        </a>
-        <a href="connections.html" class="nav-btn">
-          <div class="nav-lamp" style="animation-delay:2.2s"></div>
-          <div class="nav-label">Connections</div>
-          <div class="nav-sub">comm array</div>
-        </a>
-      </div>
-
-      <div id="control-row">
-        <div class="knob-cluster">
-          <div class="knob-unit">
-            <div class="knob" style="transform:rotate(10deg)"></div>
-            <div class="knob-label">Nav</div>
+        <div id="readouts">
+          <div class="readout c-amber">
+            <div class="r-label">Power</div>
+            <div class="r-value" id="ro-power">072%</div>
           </div>
-          <div class="knob-unit">
-            <div class="knob" style="transform:rotate(-70deg)"></div>
-            <div class="knob-label">Comm</div>
+          <div class="readout c-green">
+            <div class="r-label">Signal</div>
+            <div class="r-value" id="ro-signal">090%</div>
           </div>
-          <div class="knob-unit">
-            <div class="knob" style="transform:rotate(90deg)"></div>
-            <div class="knob-label">Gain</div>
+          <div class="readout c-amber">
+            <div class="r-label">Hull</div>
+            <div class="r-value" id="ro-hull">100%</div>
           </div>
         </div>
-        <div class="toggle-cluster">
-          <div class="toggle-unit is-on">
-            <div class="toggle-led"></div>
-            <div class="toggle is-on"><div class="toggle-lever"></div></div>
-            <div class="knob-label">Auto Plt</div>
+
+        <div id="nav-row">
+          <a href="members.html" class="nav-btn">
+            <div class="nav-lamp"></div>
+            <div class="nav-label">Members</div>
+            <div class="nav-sub">crew manifest</div>
+          </a>
+          <a href="tracks.html" class="nav-btn">
+            <div class="nav-lamp" style="animation-delay:1.1s"></div>
+            <div class="nav-label">Tracks</div>
+            <div class="nav-sub">audio archive</div>
+          </a>
+          <a href="connections.html" class="nav-btn">
+            <div class="nav-lamp" style="animation-delay:2.2s"></div>
+            <div class="nav-label">Connections</div>
+            <div class="nav-sub">comm array</div>
+          </a>
+        </div>
+
+        <div id="control-row">
+          <div class="knob-cluster">
+            <div class="knob-unit">
+              <div class="knob" style="transform:rotate(10deg)"></div>
+              <div class="knob-label">Nav</div>
+            </div>
+            <div class="knob-unit">
+              <div class="knob" style="transform:rotate(-70deg)"></div>
+              <div class="knob-label">Comm</div>
+            </div>
+            <div class="knob-unit">
+              <div class="knob" style="transform:rotate(90deg)"></div>
+              <div class="knob-label">Gain</div>
+            </div>
           </div>
-          <div class="toggle-unit">
-            <div class="toggle-led"></div>
-            <div class="toggle"><div class="toggle-lever"></div></div>
-            <div class="knob-label">Beacon</div>
+          <div class="toggle-cluster">
+            <div class="toggle-unit is-on">
+              <div class="toggle-led"></div>
+              <div class="toggle is-on"><div class="toggle-lever"></div></div>
+              <div class="knob-label">Auto</div>
+            </div>
+            <div class="toggle-unit">
+              <div class="toggle-led"></div>
+              <div class="toggle"><div class="toggle-lever"></div></div>
+              <div class="knob-label">Beacon</div>
+            </div>
           </div>
         </div>
-      </div>
 
+      </div>
     </div>
 
-    <!-- RIGHT SIDE PANEL -->
-    <div class="side-panel panel right">
-      <div class="side-label">Nav / Comm</div>
-      <div class="side-cluster">
+    <div class="seam"></div>
+
+    <!-- RIGHT WALL -->
+    <div class="wall hull right">
+      <div class="wall-light" style="animation-delay:0.8s;"></div>
+      <div class="side-label">Nav</div>
+      <div class="wall-extra tier2">
         <div class="knob-unit">
           <div class="knob" style="transform:rotate(140deg)"></div>
           <div class="knob-label">Freq</div>
         </div>
-        <div class="knob-unit">
-          <div class="knob" style="transform:rotate(-20deg)"></div>
-          <div class="knob-label">Scan</div>
-        </div>
       </div>
-      <div class="side-cluster">
-        <div class="toggle-unit">
-          <div class="toggle-led"></div>
-          <div class="toggle"><div class="toggle-lever"></div></div>
-          <div class="knob-label">Wipers</div>
-        </div>
-        <div class="toggle-unit is-on">
-          <div class="toggle-led"></div>
-          <div class="toggle is-on"><div class="toggle-lever"></div></div>
-          <div class="knob-label">Shield</div>
-        </div>
-      </div>
-      <div class="side-label">Hull Sys</div>
+      <div class="conduit"></div>
+      <div class="wall-extra tier1 wall-light" style="animation-delay:2.1s;"></div>
     </div>
 
-  </div><!-- /#deck -->
+  </div><!-- /#shell -->
 
 </div><!-- /#cockpit -->
 
 <script>
 // ═══════════════════════════════════════════════════════
-// STARFIELD
+// STARFIELD — canvas lives inside the window, sized to it
 // ═══════════════════════════════════════════════════════
 (function () {
+  const win = document.getElementById('window');
   const cv = document.getElementById('starfield');
   const cx = cv.getContext('2d');
   let W, H, stars = [];
 
   function resize() {
-    W = cv.width  = window.innerWidth;
-    H = cv.height = window.innerHeight;
+    W = cv.width  = win.clientWidth;
+    H = cv.height = win.clientHeight;
   }
 
   function makeStars() {
     stars = [];
-    const n = Math.round(W * H / 2600);
+    const n = Math.round(W * H / 1800);
     for (let i = 0; i < n; i++) {
       stars.push({
         x: Math.random() * W,
@@ -672,7 +639,7 @@
 
   let tick = 0;
   function frame() {
-    cx.fillStyle = '#06070a';
+    cx.fillStyle = '#05060a';
     cx.fillRect(0, 0, W, H);
 
     tick++;
@@ -690,10 +657,11 @@
     requestAnimationFrame(frame);
   }
 
+  const ro = new ResizeObserver(() => { resize(); makeStars(); });
+  ro.observe(win);
   resize();
   makeStars();
   frame();
-  window.addEventListener('resize', () => { resize(); makeStars(); });
 })();
 
 // ═══════════════════════════════════════════════════════
