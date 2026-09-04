@@ -37,6 +37,16 @@
   --seam-w:       4px;
   --wall-tilt:    46deg;
 
+  /* ── light source ──
+     Every specular highlight (bolts, rivets, knobs, the throttle
+     handle) and every top-lit panel gradient (hull plates, the
+     plaque bar, toggle levers) reads its direction from these two
+     variables instead of hardcoding one. Currently aimed straight
+     down from the top of the window — re-aim the whole cockpit by
+     changing these, not by touching individual rules. */
+  --light-pos:    50% 20%;  /* radial highlight center: top, dead-center */
+  --light-angle:  180deg;   /* linear gradient angle: brightest at top */
+
   --font-label:   'Barlow Semi Condensed', sans-serif;
   --font-led:     'VT323', monospace;
 }

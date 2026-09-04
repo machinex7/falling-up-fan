@@ -131,7 +131,7 @@
   width: clamp(20px, 5.5vw, 28px);
   height: clamp(20px, 5.5vw, 28px);
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, var(--spec), var(--metal-lo) 65%, var(--metal-shadow) 100%);
+  background: radial-gradient(circle at var(--light-pos), var(--spec), var(--metal-lo) 65%, var(--metal-shadow) 100%);
   border: 1px solid var(--bezel);
   box-shadow: 0 2px 3px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.5);
   position: relative;
@@ -162,7 +162,7 @@
   left: 2px; right: 2px;
   height: 8px;
   border-radius: 2px;
-  background: linear-gradient(180deg, var(--spec), var(--metal-lo));
+  background: linear-gradient(var(--light-angle), var(--spec), var(--metal-lo));
   box-shadow: 0 2px 3px rgba(0,0,0,0.5);
   top: 2px;
   transition: top 0.12s ease;
@@ -245,7 +245,7 @@
   height: clamp(13px, 3.6vw, 17px);
   transform: translate(-50%, 50%);
   border-radius: 3px;
-  background: radial-gradient(circle at 35% 30%, var(--spec), var(--metal-lo) 65%, var(--metal-shadow) 100%);
+  background: radial-gradient(circle at var(--light-pos), var(--spec), var(--metal-lo) 65%, var(--metal-shadow) 100%);
   border: 1px solid var(--bezel);
   box-shadow: 0 2px 4px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.5);
 }

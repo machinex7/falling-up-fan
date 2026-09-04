@@ -27,7 +27,7 @@
   position: absolute;
   width: 8px; height: 8px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, var(--spec), var(--metal-lo) 70%, var(--bezel-lo) 100%);
+  background: radial-gradient(circle at var(--light-pos), var(--spec), var(--metal-lo) 70%, var(--bezel-lo) 100%);
   box-shadow: 0 0 0 1px var(--bezel-lo), inset 0 0 2px rgba(0,0,0,0.5);
   z-index: 4;
 }

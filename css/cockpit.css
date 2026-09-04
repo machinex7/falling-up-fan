@@ -16,7 +16,7 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  background: linear-gradient(180deg, var(--bezel) 0%, var(--bezel-lo) 100%);
+  background: linear-gradient(var(--light-angle), var(--bezel) 0%, var(--bezel-lo) 100%);
   border-bottom: 2px solid var(--bezel-lo);
 }
 
@@ -31,7 +31,7 @@
 .rivet {
   width: 5px; height: 5px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, var(--spec), var(--metal-lo) 70%, var(--bezel-lo) 100%);
+  background: radial-gradient(circle at var(--light-pos), var(--spec), var(--metal-lo) 70%, var(--bezel-lo) 100%);
   box-shadow: 0 0 0 1px var(--bezel-lo);
   flex: none;
 }
@@ -47,7 +47,7 @@
 
 /* shared hull-plate skin */
 .hull {
-  background: linear-gradient(180deg, var(--metal-hi) 0%, var(--metal) 45%, var(--metal-lo) 100%);
+  background: linear-gradient(var(--light-angle), var(--metal-hi) 0%, var(--metal) 45%, var(--metal-lo) 100%);
 }
 
 /* ── seams between plates ── */
