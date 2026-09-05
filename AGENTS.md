@@ -99,35 +99,42 @@ control is genuinely meant to look like a physical button, not as a
 default card look for everything.
 
 The nav links (Members/Tracks/Connections) are now visually prominent
-labeled pushbuttons — a deliberate reversal of an earlier "no more
-prominent than decorative" rule, changed by explicit user request. Toggles
-(Auto/Beacon/Shield/etc.) are also `.push-btn`s now: a round illuminated
-pushbutton cap you click to latch on/off (state shown by a colored glow,
-via `--btn-glow`), not the sliding lever-in-a-slot design from earlier —
-also an explicit user request, not an oversight if you see it differ from
-older screenshots or commit history.
+pushbuttons — a deliberate reversal of an earlier "no more prominent than
+decorative" rule, changed by explicit user request. Toggles
+(Auto/Beacon/Shield/etc.) are also `.push-btn`s now: a round pushbutton you
+click to latch on/off, not the sliding lever-in-a-slot design from earlier
+— also an explicit user request, not an oversight if you see it differ
+from older screenshots or commit history.
 
-`.push-btn` is hard, matte plastic (`--plastic-*` in base.css), a duller
-material than the polished metal knobs/bolts, with a hard-edged "skirt"
-shadow (not a soft blur) for its raised look and a flush, shadow-collapsed
-`:active` state for the press. `.square` and `.round` are its two shape
-modifiers (nav keys vs toggles respectively) — reach for one of those
-before inventing a third shape unless a new control genuinely needs it.
-Its specular highlight and glow both key off the same `--light-pos` /
-`--light-angle` variables as the rest of the panel (see the light-source
-comment in base.css) — keep new pushbutton variants on that system rather
-than hardcoding a highlight position.
+`.push-btn` models a real panel-mount pushbutton/indicator as two parts,
+per a reference photo the user pointed to: a raised black plastic bezel
+(hard, near-black — `--plastic-*` in base.css, distinct from the polished
+knob metal and the bluish `--bezel` tokens) socketing a smaller, separate
+`.btn-lens` — the only part that carries color and glow. Reach for that
+same two-part shape for any future pushbutton-style control instead of
+inventing a one-piece colored button; `.square` and `.round` are `.push-btn`'s
+two bezel shapes (nav keys vs toggles), and `.btn-lens` follows automatically
+via `.push-btn.round .btn-lens`. A lens's color/glow come from three
+custom properties — `--lens-hi`/`--lens`/`--lens-lo` (gradient) and
+`--btn-glow` (the light escaping the socket) — set together on a variant
+class or state selector (`.btn-lens.amber`, `.toggle-btn.is-on .btn-lens`)
+rather than redeclaring the gradient/shadow stack. Both the bezel's and the
+lens's specular highlights key off the shared `--light-pos` / `--light-angle`
+variables (see the light-source comment in base.css) — keep new pushbutton
+variants on that system rather than hardcoding a highlight position.
 
-Watch button chrome (padding/gap) on the nav keys specifically: at the
-narrowest supported phone widths the deck-grid's per-column budget is
-already tight (the three-column hull + tilted console leave surprisingly
-little width for 16 grid columns), and the row holding the nav buttons is
-already crowded with other tiles. Extra padding/gap here is exactly what
-caused two real bugs during this rework — text visually overlapping into
-the next pushbutton, and (separately) an absolutely-positioned pilot light
-overlapping a label's last letter — both invisible at desktop width and
-only obvious in a narrow-phone screenshot. If you touch `.nav-btn` sizing,
-re-check the narrow-phone breakpoint, not just desktop.
+The nav keys' caption went back to a plain `.tile-label` below the button
+(matching every other control) rather than text printed on the button face
+— the lens replaced the old pilot-light dot instead, and the bezel is too
+small at phone widths to hold a word like "Connections" without crowding
+its neighbors. `.tile.nav-tile` spans 3 grid columns (not the default 2,
+not the old 4) specifically to give that caption enough room; the row
+holding the nav buttons is one of the most crowded on the whole deck at the
+narrowest supported phone widths (the three-column hull + tilted console
+leave surprisingly little width for 16 grid columns), and this rework hit
+two real, desktop-invisible overlap bugs there before landing on span 3 —
+re-check a narrow-phone screenshot, not just desktop, if you touch nav-tile
+sizing or spans again.
 
 ## A real gotcha: 3D transforms break naive click targeting
 
