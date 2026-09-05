@@ -137,7 +137,14 @@
   position: relative;
   cursor: pointer;
 }
-.knob::before {
+/* the rotating indicator lives in its own full-size layer so the
+   knob's own background (and its fixed top-light highlight) never
+   spins with it — only .knob-pointer takes the inline rotate() */
+.knob-pointer {
+  position: absolute;
+  inset: 0;
+}
+.knob-pointer::before {
   content: '';
   position: absolute;
   top: 3px; left: 50%;
