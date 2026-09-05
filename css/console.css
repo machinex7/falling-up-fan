@@ -60,10 +60,10 @@
 
 .tile.readout, .tile.nav-tile { grid-column: span 4; }
 
-/* invisible touch-target padding — no visible box, but a bigger
-   hit area, since the 3D tilt shifts a small control's rendered
+/* invisible touch-target padding — bigger hit area than the visible
+   control, since the 3D tilt shifts a small control's rendered
    position enough that a tight box can miss its own click point */
-.tile:has(.knob), .tile:has(.toggle), .tile.nav-tile {
+.tile:has(.knob), .tile:has(.toggle-btn), .tile.nav-tile {
   cursor: pointer;
   padding: 6px 7px;
   margin: -6px -7px;
@@ -87,17 +87,58 @@
 .tile.readout.c-amber .r-value { color: var(--led-amber); text-shadow: 0 0 6px var(--amber-glow); }
 .tile.readout.c-green .r-value { color: var(--led-green); text-shadow: 0 0 6px var(--green-glow); }
 
-/* nav tile — the real links, flagged only by their lamp, sized to their label */
-.tile.nav-tile {
+/* ── hard-plastic pushbutton — shared shell for the nav keys and
+   the toggle buttons below. A flat molded cap in its own duller
+   plastic material (not the polished knob metal), raised off the
+   panel by a hard-edged "skirt" shadow rather than a soft blur, and
+   pressed flush on :active. --btn-glow is transparent by default;
+   a lit variant (see .toggle-btn.is-on) just overrides it. ── */
+.push-btn {
+  --btn-glow: transparent;
+  position: relative;
   cursor: pointer;
-  transition: filter 0.08s ease, transform 0.08s ease;
+  background: radial-gradient(circle at var(--light-pos), var(--plastic-hi), var(--plastic) 60%, var(--plastic-lo) 100%);
+  border: 1px solid var(--bezel-lo);
+  box-shadow:
+    0 3px 0 var(--bezel-lo),
+    0 4px 5px rgba(0,0,0,0.5),
+    inset 0 1px 1px rgba(255,255,255,0.22),
+    0 0 9px 1px var(--btn-glow);
+  transition: transform 0.06s ease, box-shadow 0.06s ease, filter 0.08s ease;
 }
-.tile.nav-tile:hover { filter: brightness(1.4); }
-.tile.nav-tile:active { transform: translateY(2px); }
-.tile.nav-tile .tile-label {
-  color: var(--ink);
+.push-btn:hover { filter: brightness(1.2); }
+.push-btn:active {
+  transform: translateY(3px);
+  box-shadow:
+    0 0 0 var(--bezel-lo),
+    0 1px 2px rgba(0,0,0,0.5),
+    inset 0 1px 2px rgba(0,0,0,0.5),
+    0 0 9px 1px var(--btn-glow);
+}
+.push-btn.square { border-radius: 4px; }
+.push-btn.round  { border-radius: 50%; }
+
+/* nav tile — a labeled keycap in place of a bare link. The pilot
+   light stacks above the label as a normal flex item (not an
+   absolute overlay, so it never collides with the last letter, and
+   not beside it, so it doesn't add width the narrowest phones
+   don't have to spare). */
+.nav-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-width: clamp(40px, 9vw, 80px);
+  padding: 5px 6px;
   font-weight: 700;
-  font-size: clamp(0.44rem, 2vw, 0.62rem);
+  font-size: clamp(0.4rem, 1.7vw, 0.58rem);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-align: center;
+  line-height: 1.15;
+  white-space: nowrap;
 }
 
 .nav-lamp {
@@ -154,35 +195,17 @@
   border-radius: 2px;
 }
 
-/* toggle tile */
-.toggle {
-  width: 15px; height: 22px;
-  border-radius: 3px;
-  background: var(--bezel-lo);
-  border: 1px solid var(--bezel);
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.7);
-  position: relative;
-  cursor: pointer;
+/* toggle tile — a round illuminated pushbutton: press to latch on,
+   press again to release. The cap itself lights up on --btn-glow
+   rather than a separate lamp, like a real backlit switch cap. */
+.toggle-btn {
+  width: clamp(20px, 5.5vw, 28px);
+  height: clamp(20px, 5.5vw, 28px);
 }
-.toggle-lever {
-  position: absolute;
-  left: 2px; right: 2px;
-  height: 8px;
-  border-radius: 2px;
-  background: linear-gradient(var(--light-angle), var(--spec), var(--metal-lo));
-  box-shadow: 0 2px 3px rgba(0,0,0,0.5);
-  top: 2px;
-  transition: top 0.12s ease;
+.toggle-btn.is-on {
+  --btn-glow: var(--green-glow);
+  filter: brightness(1.15);
 }
-.toggle.is-on .toggle-lever { top: 12px; }
-
-.toggle-led {
-  width: 4px; height: 4px;
-  border-radius: 50%;
-  background: var(--bezel-lo);
-  box-shadow: inset 0 0 2px rgba(0,0,0,0.8);
-}
-.tile.is-on .toggle-led { background: var(--led-green); box-shadow: 0 0 5px var(--green-glow); }
 
 /* horizontal bar tile — 2 columns wide */
 .tile.bar { grid-column: span 4; width: 100%; }

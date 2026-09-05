@@ -16,6 +16,13 @@
   --bezel:        #17161a;
   --bezel-lo:     #08080a;
 
+  /* matte injection-molded plastic — the pushbutton caps (nav
+     keys, toggle buttons), a duller/flatter material than the
+     polished metal knobs so buttons read as a distinct part */
+  --plastic-hi:   #33373d;
+  --plastic:      #1c1f24;
+  --plastic-lo:   #0d0f12;
+
   --ink:          #ccd2d8;
   --ink-soft:     #838a92;
 

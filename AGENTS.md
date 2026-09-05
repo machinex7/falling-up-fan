@@ -83,18 +83,51 @@ alignment. `grid-auto-flow: dense` lets items pack into gaps rather than
 forcing new rows.
 
 Each control is a `.tile` — just a layout wrapper (control + caption),
-deliberately *not* a styled card/box. Adding visible per-item backgrounds,
-borders, or uniform sizing has been explicitly rejected twice by the user;
-the goal is "a dense console full of mysterious controls," closer to a
-cluttered real instrument panel than a UI component grid. Widget types
-established so far (readout, gauge, nav link, equalizer, knob, toggle,
-horizontal bar, alert light, throttle lever) each have their own minimal
-"face" styling but share the same plain wrapper pattern — follow that
-pattern for new widget types rather than reintroducing a card look.
+deliberately *not* a styled card/box, with one deliberate exception: the
+`.push-btn` pushbutton face (see below) is a real visible box by explicit
+user request, used for the nav keys and the toggles. Everything else —
+readouts, gauges, knobs, the bar, alert lights, the throttle — stays a bare
+face with no card/background, since uniform per-item boxing for *those* has
+been explicitly rejected by the user; the goal for them is still "a dense
+console full of mysterious controls," closer to a cluttered real instrument
+panel than a UI component grid. Widget types established so far (readout,
+gauge, nav pushbutton, equalizer, knob, toggle pushbutton, horizontal bar,
+alert light, throttle lever) each have their own "face" styling but share
+the same plain `.tile` wrapper pattern (control + caption below) — follow
+that pattern for new widget types, and reach for `.push-btn` only when a
+control is genuinely meant to look like a physical button, not as a
+default card look for everything.
 
-Widgets that are actual navigation (the Members/Tracks/Connections links)
-are visually no more prominent than decorative ones — that's intentional,
-not an oversight.
+The nav links (Members/Tracks/Connections) are now visually prominent
+labeled pushbuttons — a deliberate reversal of an earlier "no more
+prominent than decorative" rule, changed by explicit user request. Toggles
+(Auto/Beacon/Shield/etc.) are also `.push-btn`s now: a round illuminated
+pushbutton cap you click to latch on/off (state shown by a colored glow,
+via `--btn-glow`), not the sliding lever-in-a-slot design from earlier —
+also an explicit user request, not an oversight if you see it differ from
+older screenshots or commit history.
+
+`.push-btn` is hard, matte plastic (`--plastic-*` in base.css), a duller
+material than the polished metal knobs/bolts, with a hard-edged "skirt"
+shadow (not a soft blur) for its raised look and a flush, shadow-collapsed
+`:active` state for the press. `.square` and `.round` are its two shape
+modifiers (nav keys vs toggles respectively) — reach for one of those
+before inventing a third shape unless a new control genuinely needs it.
+Its specular highlight and glow both key off the same `--light-pos` /
+`--light-angle` variables as the rest of the panel (see the light-source
+comment in base.css) — keep new pushbutton variants on that system rather
+than hardcoding a highlight position.
+
+Watch button chrome (padding/gap) on the nav keys specifically: at the
+narrowest supported phone widths the deck-grid's per-column budget is
+already tight (the three-column hull + tilted console leave surprisingly
+little width for 16 grid columns), and the row holding the nav buttons is
+already crowded with other tiles. Extra padding/gap here is exactly what
+caused two real bugs during this rework — text visually overlapping into
+the next pushbutton, and (separately) an absolutely-positioned pilot light
+overlapping a label's last letter — both invisible at desktop width and
+only obvious in a narrow-phone screenshot. If you touch `.nav-btn` sizing,
+re-check the narrow-phone breakpoint, not just desktop.
 
 ## A real gotcha: 3D transforms break naive click targeting
 
