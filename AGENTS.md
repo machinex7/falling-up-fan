@@ -163,6 +163,30 @@ there first if this needs adjusting, and always judge it on the real
 `#console` at its real size, not an isolated swatch at a different size —
 this material's visual weight doesn't transfer between the two.
 
+## Selling "a room," not just a panel: light spill + glass
+
+The window and console/walls used to be visually independent boxes — same
+material language, but nothing tied them together as one lit space. Fix:
+a shared `--spill` color (base.css, a cool starlight blue-white) washed
+onto the surfaces nearest the window — `#console::before` (a `z-index:-1`
+radial gradient anchored top-center, so it sits over `.hull`'s texture but
+under the deck-grid controls) and a second `background-image` layer added
+to each `.wall::before`, brightest at the edge facing the window. All
+`mix-blend-mode: screen` so they only ever lighten, never fight the hull
+texture or flatten it into a solid tint. Separately, `.window-glass` is an
+inert (`pointer-events: none`) top layer inside `#window`, `z-index:5` —
+above the canvas, HUD, reticle, *and* the corner bolts, deliberately: a
+reflection lives on the outermost glass surface, in front of everything
+behind it, including a HUD that's meant to be projected onto that same
+glass. It's just two soft diagonal `screen`-blended gradients, not a real
+reflection of anything in the scene — don't over-invest trying to make it
+"reflect" the console below; it reads fine as ambient glass character.
+
+If you push this further (more spill sources, reflections that track
+something), keep reusing `--spill` and `screen` rather than inventing a
+second lighting vocabulary — the point was one consistent light source,
+not per-surface tinting.
+
 ## A real gotcha: 3D transforms break naive click targeting
 
 Because the console is tilted in 3D, a small control's *rendered* position

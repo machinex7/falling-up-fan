@@ -14,6 +14,21 @@
   transform-origin: bottom center;
 }
 
+/* the window sits directly above this panel — a soft cool wash of
+   the same --spill starlight on its top edge (z-index:-1 so it sits
+   over the .hull texture but under the deck-grid controls) sells
+   the two as one lit room instead of two separate boxes */
+#console::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(ellipse 70% 55% at 50% 0%, var(--spill), transparent 70%);
+  mix-blend-mode: screen;
+}
+
 /* ── the deck: a fine-grained CSS Grid, not a table.
    A real <table> was tempting for row/colspan, but table columns
    share one width across every row (widest cell in that column

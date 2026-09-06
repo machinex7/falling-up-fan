@@ -92,14 +92,27 @@
 .wall.left  { transform-origin: right center; transform: rotateY(var(--wall-tilt)); }
 .wall.right { transform-origin: left center;  transform: rotateY(calc(-1 * var(--wall-tilt))); }
 
-/* depth-shading so the receding edge reads even darker */
+/* depth-shading so the receding edge reads even darker, plus a
+   cool wash of the same --spill starlight on the near edge (the one
+   facing the window) so the walls read as lit by it, not just
+   independently dim */
 .wall::before {
   content: '';
   position: absolute; inset: 0;
   pointer-events: none;
 }
-.wall.left::before  { background: linear-gradient(90deg, rgba(0,0,0,0.55), transparent 70%); }
-.wall.right::before { background: linear-gradient(270deg, rgba(0,0,0,0.55), transparent 70%); }
+.wall.left::before {
+  background-image:
+    linear-gradient(90deg, rgba(0,0,0,0.55), transparent 70%),
+    linear-gradient(90deg, transparent 55%, var(--spill) 100%);
+  background-blend-mode: normal, screen;
+}
+.wall.right::before {
+  background-image:
+    linear-gradient(270deg, rgba(0,0,0,0.55), transparent 70%),
+    linear-gradient(270deg, transparent 55%, var(--spill) 100%);
+  background-blend-mode: normal, screen;
+}
 
 .conduit {
   width: 7px;

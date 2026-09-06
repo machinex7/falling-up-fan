@@ -54,6 +54,11 @@
   --light-pos:    50% 20%;  /* radial highlight center: top, dead-center */
   --light-angle:  180deg;   /* linear gradient angle: brightest at top */
 
+  /* cool starlight bleeding out of the window onto the console top
+     and the inner wall edges nearest it (see cockpit.css) — one
+     shared color so the whole room reads as lit by the same window */
+  --spill:        rgba(150,180,222,0.4);
+
   --font-label:   'Barlow Semi Condensed', sans-serif;
   --font-led:     'VT323', monospace;
 }

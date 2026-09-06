@@ -62,3 +62,19 @@
   width: clamp(40px, 12vw, 70px);
   height: auto;
 }
+
+/* a physical pane of glass in front of the stars/HUD/reticle/bolts —
+   the topmost layer in the window, on purpose: a real reflection
+   sits on the outer surface, in front of everything behind it. Two
+   soft diagonal streaks, screen-blended so they only ever brighten
+   and never fight the HUD's legibility. */
+.window-glass {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background:
+    linear-gradient(122deg, transparent 30%, rgba(255,255,255,0.05) 45%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.04) 55%, transparent 68%),
+    linear-gradient(200deg, rgba(255,255,255,0.06), transparent 32%);
+  mix-blend-mode: screen;
+}
