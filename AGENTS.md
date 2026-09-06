@@ -171,11 +171,20 @@ reference photo of a grungy panel and asked for that realism/depth, not a
 freshly-painted surface. It's layered entirely in CSS, no image assets:
 two inline-SVG `feTurbulence` filters (one isotropic for fine grain, one
 squashed almost flat on one axis via an anisotropic `baseFrequency` so it
-reads as brushed-metal streaks) blended `overlay`, plus a few radial
-gradients blended `multiply` for dark/rust stain blotches. `#console` also
-got four corner `.bolt`s (reusing the same fastener element `window.css`
-defines for the star window) to read as screwed into the hull, per the same
-reference photo.
+reads as brushed-metal streaks) blended `overlay`; a third inline SVG of a
+handful of explicit `<line>` strokes (real scratches read as discrete
+catches of light, not just noise) blended `screen`, tiled at a large,
+irregular size so the repeat isn't obvious at a glance; and several radial
+gradients blended `multiply` for rust/oil stain blotches, a thin elongated
+one among them standing in for a drip stain, plus a large soft radial
+vignette darkening/browning the plate's edges for accumulated grime.
+`#console` also got four corner `.bolt`s (reusing the same fastener
+element `window.css` defines for the star window) to read as screwed into
+the hull, per the same reference photo — the lower bolt on each of
+`#window` and `#console` (`.bolt.bl`/`.bolt.br`) additionally gets a small
+rust-stain halo behind it (`::after`, one offset differently from the
+other so both don't look identical) since fasteners are where rust
+actually forms first on real hardware.
 
 Getting the texture strength right took real iteration: the first pass
 used a contrast-boosted `feColorMatrix` on the turbulence output, which
@@ -185,10 +194,15 @@ than the swatch did, and `overlay` blend is strongest near mid-gray, so the
 same texture read as blown-out brushed aluminum instead of subtle wear,
 and hurt label legibility. Landed on a plain `feColorMatrix type="saturate"
 values="0"` (no added contrast) with the strength controlled by the SVG
-rect's own `opacity` (0.12 grain / 0.1 streaks) instead — tune strength
-there first if this needs adjusting, and always judge it on the real
-`#console` at its real size, not an isolated swatch at a different size —
-this material's visual weight doesn't transfer between the two.
+rect's own `opacity` (grain/streaks) instead — tune strength there first if
+this needs adjusting, and always judge it on the real `#console` at its
+real size, not an isolated swatch at a different size — this material's
+visual weight doesn't transfer between the two. The scratch layer's first
+pass used a small tile (~220px), which looked fine in isolation but read as
+an obviously-repeating wallpaper pattern across the wide desktop console;
+landed on a bigger, sparser, less symmetric tile instead — if this needs
+more wear, add more rust blotches or lengthen the vignette before shrinking
+the scratch tile back down.
 
 ## Selling "a room," not just a panel: light spill + glass
 

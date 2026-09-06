@@ -36,6 +36,22 @@
 .bolt.bl { bottom: 6px; left: 6px; }
 .bolt.br { bottom: 6px; right: 6px; }
 
+/* a fastener that's been leaking rust into the surrounding hull for
+   a long time — a soft stain bleeding out from under the bolt head,
+   sat behind it. Only the lower two per panel (the ones that see the
+   most condensation/grime over a long haul) get it, so it reads as
+   wear on specific hardware rather than a uniform reused halo. */
+.bolt.bl::after, .bolt.br::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(120,58,20,0.4), transparent 72%);
+  z-index: -1;
+  pointer-events: none;
+}
+.bolt.br::after { inset: -3px -3px -6px -7px; }
+
 .hud {
   position: absolute;
   font-family: var(--font-led);

@@ -45,25 +45,32 @@
   perspective: 500px;
 }
 
-/* shared hull-plate skin — worn, not freshly painted: fine grain,
-   a brushed-metal scratch layer, and a few dark/rust stains sit on
-   top of the same lighting gradient as before. Both textures are an
-   inline SVG turbulence filter (grain = isotropic noise, scratches
-   = the same noise stretched almost flat on one axis so it streaks),
-   desaturated to grayscale and strength-limited by the SVG rect's
-   own opacity — no image assets, still no build step. See the "Hull
+/* shared hull-plate skin — worn, not freshly painted: fine grain, a
+   brushed-metal scratch layer, a handful of individual scuff scratches,
+   several rust/oil/grime stains, and an edge grime vignette all sit on
+   top of the same lighting gradient as before. Grain/streaks are an
+   inline SVG turbulence filter (grain = isotropic noise, streaks = the
+   same noise stretched almost flat on one axis), desaturated to
+   grayscale; the scuff layer is a few explicit SVG line strokes (real
+   scratches read as discrete catches of light, not just noise) —
+   strength on every noise/scratch layer is limited by the SVG rect/line
+   opacity, no image assets, still no build step. See the "Hull
    material" note further down before changing these opacity values. */
 .hull {
   background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.12'/%3E%3C/svg%3E"),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.008 0.25' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23s)' opacity='0.1'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.14'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.008 0.25' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23s)' opacity='0.12'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='360' viewBox='0 0 360 360'%3E%3Cg stroke='%23fff' fill='none' stroke-linecap='round'%3E%3Cline x1='18' y1='34' x2='96' y2='10' stroke-width='1' opacity='0.4'/%3E%3Cline x1='250' y1='64' x2='330' y2='118' stroke-width='0.7' opacity='0.26'/%3E%3Cline x1='70' y1='158' x2='40' y2='232' stroke-width='1.1' opacity='0.32'/%3E%3Cline x1='300' y1='210' x2='236' y2='260' stroke-width='0.6' opacity='0.22'/%3E%3Cline x1='150' y1='8' x2='172' y2='72' stroke-width='0.5' opacity='0.2'/%3E%3Cline x1='6' y1='260' x2='42' y2='224' stroke-width='0.8' opacity='0.24'/%3E%3Cline x1='196' y1='300' x2='260' y2='330' stroke-width='0.6' opacity='0.2'/%3E%3Cline x1='120' y1='320' x2='96' y2='352' stroke-width='0.9' opacity='0.28'/%3E%3C/g%3E%3C/svg%3E"),
     radial-gradient(ellipse 200px 110px at 12% 82%, rgba(90,58,20,0.22), transparent 70%),
     radial-gradient(ellipse 150px 90px at 88% 15%, rgba(0,0,0,0.35), transparent 70%),
     radial-gradient(ellipse 120px 160px at 70% 90%, rgba(60,40,15,0.16), transparent 70%),
+    radial-gradient(ellipse 170px 95px at 30% 6%, rgba(133,64,24,0.2), transparent 70%),
+    radial-gradient(ellipse 30px 140px at 56% 38%, rgba(107,58,22,0.17), transparent 75%),
+    radial-gradient(ellipse 140% 120% at 50% 50%, transparent 55%, rgba(15,12,9,0.32) 100%),
     linear-gradient(var(--light-angle), var(--metal-hi) 0%, var(--metal) 45%, var(--metal-lo) 100%);
-  background-size: 130px 130px, 280px 280px, auto, auto, auto, auto;
-  background-repeat: repeat, repeat, no-repeat, no-repeat, no-repeat, no-repeat;
-  background-blend-mode: overlay, overlay, multiply, multiply, multiply, normal;
+  background-size: 130px 130px, 280px 280px, 360px 360px, auto, auto, auto, auto, auto, auto, auto;
+  background-repeat: repeat, repeat, repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat;
+  background-blend-mode: overlay, overlay, screen, multiply, multiply, multiply, multiply, multiply, multiply, normal;
 }
 
 /* ── seams between plates ── */
