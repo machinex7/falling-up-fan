@@ -174,17 +174,37 @@ squashed almost flat on one axis via an anisotropic `baseFrequency` so it
 reads as brushed-metal streaks) blended `overlay`; a third inline SVG of a
 handful of explicit `<line>` strokes (real scratches read as discrete
 catches of light, not just noise) blended `screen`, tiled at a large,
-irregular size so the repeat isn't obvious at a glance; and several radial
-gradients blended `multiply` for rust/oil stain blotches, a thin elongated
-one among them standing in for a drip stain, plus a large soft radial
-vignette darkening/browning the plate's edges for accumulated grime.
+irregular size so the repeat isn't obvious at a glance and kept faint —
+scratches are meant to be a subtle catch of light, not the dominant
+feature; and several radial gradients for rust/oil stain blotches, a thin
+elongated one among them standing in for a drip stain, plus a large soft
+radial vignette darkening the plate's edges for accumulated grime.
 `#console` also got four corner `.bolt`s (reusing the same fastener
 element `window.css` defines for the star window) to read as screwed into
-the hull, per the same reference photo — the lower bolt on each of
-`#window` and `#console` (`.bolt.bl`/`.bolt.br`) additionally gets a small
-rust-stain halo behind it (`::after`, one offset differently from the
-other so both don't look identical) since fasteners are where rust
-actually forms first on real hardware.
+the hull, per the same reference photo.
+
+**Rust stains must be `normal`-blended, not `multiply`.** The first pass
+blended every stain `multiply`, which is wrong on this hull's dark,
+fairly desaturated palette: multiplying an already-dark, low-chroma stain
+color into an already-dark, low-chroma backdrop barely shifts either
+channel, so the stains were essentially invisible even at real console
+size — this was reported back as "I don't see any wear/rust." Switched
+every colored stain to plain alpha compositing (`normal`), which actually
+mixes the warm stain hue into the backdrop instead of just trying (and
+failing) to darken it further. The one exception: the pure-black
+grease/oil blotch and the edge grime vignette keep `multiply`, because
+darkening-only is exactly what a black stain or a vignette should do —
+only *colored* stains need `normal`. If a future stain still doesn't show
+up, check its blend mode before touching its opacity or color.
+
+Every corner fastener gets its own rust strength via a `--bolt-rust`
+custom property set per corner class (`.bolt.tl`/`.tr`/`.bl`/`.br`) rather
+than one halo style reused identically on all four — real hardware on the
+same panel doesn't age evenly, so the four corners of any one `#window`
+or `#console` read as different ages/exposure rather than a matched,
+deliberate set. Keep that spread (one clearly heavier, one clearly
+fainter, two in between) if you add more fasteners elsewhere, rather than
+giving every bolt the same halo.
 
 Getting the texture strength right took real iteration: the first pass
 used a contrast-boosted `feColorMatrix` on the turbulence output, which
@@ -201,8 +221,8 @@ visual weight doesn't transfer between the two. The scratch layer's first
 pass used a small tile (~220px), which looked fine in isolation but read as
 an obviously-repeating wallpaper pattern across the wide desktop console;
 landed on a bigger, sparser, less symmetric tile instead — if this needs
-more wear, add more rust blotches or lengthen the vignette before shrinking
-the scratch tile back down.
+more wear, add more rust blotches or lengthen the vignette before growing
+the scratch layer back up.
 
 ## Selling "a room," not just a panel: light spill + glass
 

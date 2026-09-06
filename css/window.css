@@ -36,21 +36,25 @@
 .bolt.bl { bottom: 6px; left: 6px; }
 .bolt.br { bottom: 6px; right: 6px; }
 
-/* a fastener that's been leaking rust into the surrounding hull for
-   a long time — a soft stain bleeding out from under the bolt head,
-   sat behind it. Only the lower two per panel (the ones that see the
-   most condensation/grime over a long haul) get it, so it reads as
-   wear on specific hardware rather than a uniform reused halo. */
-.bolt.bl::after, .bolt.br::after {
+/* every fastener leaks a little rust into the surrounding hull over a
+   long haul, but not evenly — each corner gets its own stain strength
+   and reach via --bolt-rust/--bolt-rust-inset (set per corner below)
+   instead of one uniform halo copy-pasted four times, so the four
+   corners of a panel read as four different pieces of hardware aging
+   at different rates rather than a matched, deliberate set. */
+.bolt::after {
   content: '';
   position: absolute;
-  inset: -4px;
+  inset: var(--bolt-rust-inset, -3px);
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(120,58,20,0.4), transparent 72%);
+  background: radial-gradient(circle, rgba(120,58,20, var(--bolt-rust, 0)), transparent 72%);
   z-index: -1;
   pointer-events: none;
 }
-.bolt.br::after { inset: -3px -3px -6px -7px; }
+.bolt.tl { --bolt-rust: 0.55; --bolt-rust-inset: -6px; }
+.bolt.tr { --bolt-rust: 0.18; --bolt-rust-inset: -2px; }
+.bolt.bl { --bolt-rust: 0.35; --bolt-rust-inset: -4px; }
+.bolt.br { --bolt-rust: 0.46; --bolt-rust-inset: -3px -3px -6px -7px; }
 
 .hud {
   position: absolute;
