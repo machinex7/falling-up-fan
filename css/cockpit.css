@@ -45,25 +45,41 @@
   perspective: 500px;
 }
 
-/* shared hull-plate skin — worn, not freshly painted: fine grain,
-   a brushed-metal scratch layer, and a few dark/rust stains sit on
-   top of the same lighting gradient as before. Both textures are an
-   inline SVG turbulence filter (grain = isotropic noise, scratches
-   = the same noise stretched almost flat on one axis so it streaks),
-   desaturated to grayscale and strength-limited by the SVG rect's
-   own opacity — no image assets, still no build step. See the "Hull
-   material" note further down before changing these opacity values. */
+/* shared hull-plate skin — worn, not freshly painted: fine grain, a
+   brushed-metal scratch layer, a handful of individual scuff scratches,
+   several rust/oil/grime stains, and an edge grime vignette all sit on
+   top of the same lighting gradient as before. Grain/streaks are an
+   inline SVG turbulence filter (grain = isotropic noise, streaks = the
+   same noise stretched almost flat on one axis), desaturated to
+   grayscale; the scuff layer is a few explicit SVG line strokes (real
+   scratches read as discrete catches of light, not just noise) —
+   strength on every noise/scratch layer is limited by the SVG rect/line
+   opacity, no image assets, still no build step. See the "Hull
+   material" note further down before changing these opacity values.
+
+   The color stains (rust/oil) are `normal`-blended, semi-transparent
+   color, NOT `multiply` — this hull's base palette is already dark and
+   fairly desaturated, and multiplying a dark, low-chroma stain color
+   into an already-dark, low-chroma backdrop barely moves either
+   channel, so the stains were effectively invisible. Plain alpha
+   compositing actually mixes the warm stain hue into the backdrop.
+   Pure-black stains (the grease/oil blotch, the edge grime vignette)
+   keep `multiply` since darkening-only is exactly what they're for. */
 .hull {
   background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.12'/%3E%3C/svg%3E"),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.008 0.25' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23s)' opacity='0.1'/%3E%3C/svg%3E"),
-    radial-gradient(ellipse 200px 110px at 12% 82%, rgba(90,58,20,0.22), transparent 70%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.14'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.008 0.25' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23s)' opacity='0.12'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='360' viewBox='0 0 360 360'%3E%3Cg stroke='%23fff' fill='none' stroke-linecap='round'%3E%3Cline x1='18' y1='34' x2='96' y2='10' stroke-width='1' opacity='0.18'/%3E%3Cline x1='250' y1='64' x2='330' y2='118' stroke-width='0.7' opacity='0.12'/%3E%3Cline x1='70' y1='158' x2='40' y2='232' stroke-width='1.1' opacity='0.14'/%3E%3Cline x1='300' y1='210' x2='236' y2='260' stroke-width='0.6' opacity='0.1'/%3E%3Cline x1='150' y1='8' x2='172' y2='72' stroke-width='0.5' opacity='0.09'/%3E%3Cline x1='6' y1='260' x2='42' y2='224' stroke-width='0.8' opacity='0.11'/%3E%3Cline x1='196' y1='300' x2='260' y2='330' stroke-width='0.6' opacity='0.09'/%3E%3Cline x1='120' y1='320' x2='96' y2='352' stroke-width='0.9' opacity='0.12'/%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(ellipse 220px 130px at 12% 82%, rgba(150,80,28,0.32), transparent 70%),
     radial-gradient(ellipse 150px 90px at 88% 15%, rgba(0,0,0,0.35), transparent 70%),
-    radial-gradient(ellipse 120px 160px at 70% 90%, rgba(60,40,15,0.16), transparent 70%),
+    radial-gradient(ellipse 140px 180px at 70% 90%, rgba(140,70,25,0.25), transparent 70%),
+    radial-gradient(ellipse 190px 105px at 30% 6%, rgba(150,75,26,0.24), transparent 70%),
+    radial-gradient(ellipse 34px 150px at 56% 38%, rgba(130,65,22,0.24), transparent 75%),
+    radial-gradient(ellipse 140% 120% at 50% 50%, transparent 55%, rgba(15,12,9,0.4) 100%),
     linear-gradient(var(--light-angle), var(--metal-hi) 0%, var(--metal) 45%, var(--metal-lo) 100%);
-  background-size: 130px 130px, 280px 280px, auto, auto, auto, auto;
-  background-repeat: repeat, repeat, no-repeat, no-repeat, no-repeat, no-repeat;
-  background-blend-mode: overlay, overlay, multiply, multiply, multiply, normal;
+  background-size: 130px 130px, 280px 280px, 360px 360px, auto, auto, auto, auto, auto, auto, auto;
+  background-repeat: repeat, repeat, repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat;
+  background-blend-mode: overlay, overlay, screen, normal, multiply, normal, normal, normal, multiply, normal;
 }
 
 /* ── seams between plates ── */
@@ -95,7 +111,12 @@
 /* depth-shading so the receding edge reads even darker, plus a
    cool wash of the same --spill starlight on the near edge (the one
    facing the window) so the walls read as lit by it, not just
-   independently dim */
+   independently dim. A third, deliberately mismatched grime patch
+   near the floor of each wall (boots/gear brush past here far more
+   than the wall's upper reaches) — different position, size, and
+   strength per side, not a mirrored copy of the other, since two
+   identically-worn walls would read as manufactured rather than two
+   sides of the same room that just happened to wear differently. */
 .wall::before {
   content: '';
   position: absolute; inset: 0;
@@ -103,15 +124,17 @@
 }
 .wall.left::before {
   background-image:
+    radial-gradient(ellipse 90% 30% at 35% 94%, rgba(75,48,22,0.32), transparent 72%),
     linear-gradient(90deg, rgba(0,0,0,0.55), transparent 70%),
     linear-gradient(90deg, transparent 55%, var(--spill) 100%);
-  background-blend-mode: normal, screen;
+  background-blend-mode: normal, normal, screen;
 }
 .wall.right::before {
   background-image:
+    radial-gradient(ellipse 70% 22% at 68% 97%, rgba(85,52,24,0.24), transparent 72%),
     linear-gradient(270deg, rgba(0,0,0,0.55), transparent 70%),
     linear-gradient(270deg, transparent 55%, var(--spill) 100%);
-  background-blend-mode: normal, screen;
+  background-blend-mode: normal, normal, screen;
 }
 
 .conduit {
@@ -158,4 +181,124 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
+}
+
+/* ── sticky notes: someone's been living here ──
+   Personal clutter reads as "lived in" in a way no amount of hull
+   grime can — a scrap of paper someone actually stuck to the dash.
+   `pointer-events: none` throughout so a note never blocks the real
+   control underneath it; a little overlap onto a tile's corner is the
+   point (that's exactly where someone would slap a note), not a bug
+   to route around. Two variants: `.on-console` hangs off #console's
+   own top edge (negative `top`, since #console has no overflow
+   clipping) so it reads as stuck right at the seam between the dash
+   and the window above it; `.on-wall` sits inside `.wall.right`'s own
+   box instead, since the wall DOES clip overflow — it also picks up
+   the wall's `filter: brightness(0.62)` for free, so it reads as
+   sitting in the dimmer, out-of-window-light side of the room without
+   any extra work. Deliberately only two, deliberately not matching
+   colors — a fresher yellow one and an older `.faded` one — since a
+   drawer full of identical, evenly-aged notes would read as a prop
+   department, not a person's actual habit of grabbing whatever scrap
+   was nearby. */
+.sticky-note {
+  position: absolute;
+  width: clamp(30px, 7.5vw, 46px);
+  height: clamp(28px, 7vw, 42px);
+  z-index: 6;
+  pointer-events: none;
+  background: linear-gradient(165deg, #ecdb7c 0%, #dbc75d 55%, #cbb64d 100%);
+  box-shadow: 1px 3px 6px rgba(0,0,0,0.5);
+}
+.sticky-note::before {
+  /* a few scribbled lines — nobody can read them, they just need to
+     read as handwriting from across a room */
+  content: '';
+  position: absolute;
+  inset: 26% 16% 18%;
+  background: repeating-linear-gradient(0deg, rgba(0,0,0,0.24) 0 1.4px, transparent 1.4px 7px);
+}
+.sticky-note::after {
+  /* a peeling corner — sells "paper" far more than a flat rectangle does */
+  content: '';
+  position: absolute;
+  right: 0; bottom: 0;
+  width: 42%; height: 42%;
+  background: linear-gradient(135deg, transparent 50%, rgba(0,0,0,0.28) 50%);
+}
+.sticky-note.faded {
+  background: linear-gradient(165deg, #a6c1c4 0%, #87a5a9 55%, #6d8b8f 100%);
+}
+.sticky-note.faded::before { background: repeating-linear-gradient(0deg, rgba(0,0,0,0.16) 0 1.2px, transparent 1.2px 7px); }
+
+.sticky-note.on-console {
+  top: -10px;
+  left: 5%;
+  transform: rotate(-8deg);
+}
+.sticky-note.on-wall {
+  width: clamp(24px, 6vw, 34px);
+  height: clamp(22px, 5.5vw, 30px);
+  top: 60%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(6deg);
+}
+
+/* ── the pilot's chair: armrests in the foreground ──
+   Everything so far has been the ship itself; this is the one element
+   that's the VIEWER's, not the ship's — a hint that you're sitting in
+   a seat looking out, not floating in front of a panel. Fixed to the
+   viewport's own bottom corners (not #cockpit or #console — the chair
+   doesn't move if the console layout reflows), narrow and tall (a
+   slender post, not a wide slab) so it protrudes well up into frame
+   without reading as a footer bar, and rotated in from each bottom
+   corner — `transform-origin` pinned to that exact corner so the
+   hinge point stays anchored there while the top leans in over the
+   console. This is meant to overlap the control panel more than a
+   typical UI chrome element would tolerate; that's intentional here,
+   not a z-index bug to fix later (the user plans to mount the ship's
+   panel controls physically in front of a real chair eventually, at
+   which point this overlap becomes literal). `pointer-events: none`
+   so it still never blocks a control it happens to lean over. Same
+   worn-touch-point language as the throttle/knobs (a dulled,
+   off-center patch, not just added shine) on the pad, since forearms
+   rest here more than on anything else on the ship. */
+.armrest {
+  position: fixed;
+  bottom: 0;
+  width: clamp(42px, 11vw, 110px);
+  height: clamp(110px, 30vw, 280px);
+  z-index: 20;
+  pointer-events: none;
+  background: linear-gradient(160deg, #3d3128 0%, #241c16 55%, #130f0b 100%);
+  box-shadow: 0 -10px 26px rgba(0,0,0,0.55), inset 0 2px 3px rgba(255,255,255,0.07);
+}
+.armrest::before {
+  /* soft sheen along the padded top curve */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 85% 22% at 50% 0%, rgba(255,255,255,0.1), transparent 70%);
+  border-radius: inherit;
+}
+.armrest::after {
+  /* the worn patch — same warm, hue-contrasting treatment as the
+     throttle/knobs, not more shine, so it reads as separate wear */
+  content: '';
+  position: absolute;
+  inset: 14% 20% 40%;
+  background: radial-gradient(ellipse 70% 55% at 50% 40%, rgba(150,128,100,0.4), transparent 70%);
+  border-radius: inherit;
+}
+.armrest.left {
+  left: 0;
+  border-top-right-radius: 80% 46px;
+  transform-origin: bottom left;
+  transform: rotate(10deg);
+}
+.armrest.right {
+  right: 0;
+  border-top-left-radius: 80% 46px;
+  transform-origin: bottom right;
+  transform: rotate(-10deg);
 }

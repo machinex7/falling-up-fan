@@ -29,6 +29,23 @@
   mix-blend-mode: screen;
 }
 
+/* the forearm-rest zone — low and center, right where a pilot leans in
+   to work the throttle and the row of knobs above it for days at a
+   time. A broad, soft lightening of the .hull texture underneath (NOT
+   a stain — the opposite: grime worn back down to duller bare metal
+   by constant contact), same z-index trick as ::before so it stays
+   under the deck-grid tiles rather than washing them out. */
+#console::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(ellipse 55% 30% at 48% 96%, rgba(200,195,188,0.16), transparent 75%);
+  mix-blend-mode: soft-light;
+}
+
 /* ── the deck: a fine-grained CSS Grid, not a table.
    A real <table> was tempting for row/colspan, but table columns
    share one width across every row (widest cell in that column
@@ -158,6 +175,23 @@
 .push-btn.square { border-radius: 5px; }
 .push-btn.round  { border-radius: 50%; }
 
+/* a button pressed thousands of times over a long service life scuffs
+   the matte plastic to a faint gray sheen — but the lens (56% of the
+   button, dead center) covers most of the bezel, so a centered smudge
+   just hides behind it. Placed in one corner of the exposed ring
+   instead, clear of the lens circle, the way a thumb actually brushes
+   the edge reaching for the button rather than landing dead center.
+   `::before` so it stays under the real .btn-lens child. */
+.push-btn.worn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle at 23% 25%, rgba(160,157,150,0.65), transparent 58%);
+  mix-blend-mode: normal;
+  pointer-events: none;
+}
+
 /* the lens: recessed into the bezel, dark glass until lit. Color
    comes from --lens-hi/--lens/--lens-lo and its glow from
    --btn-glow — override those three on a variant instead of
@@ -232,6 +266,26 @@
   background: var(--bezel);
   transform: translateX(-50%);
   border-radius: 2px;
+}
+
+/* a knob that gets turned constantly over a long haul (nav heading
+   checks, comm tuning) wears unevenly where thumb and finger actually
+   grip it — a warm, dulled, slightly-worn-bare-metal patch, distinct
+   in hue from the knob's own cool specular shine rather than just more
+   of the same shine (which would blend in and read as nothing), at two
+   off-center spots since a real grip isn't symmetric. `::before` so it
+   paints under the real .knob-pointer child and never obscures the
+   heading indicator. */
+.knob.worn::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 26% 70%, rgba(196,182,150,0.55), transparent 42%),
+    radial-gradient(circle at 78% 30%, rgba(196,182,150,0.32), transparent 38%);
+  mix-blend-mode: normal;
+  pointer-events: none;
 }
 
 /* toggle tile — a round pushbutton: press to latch on, press again
@@ -322,4 +376,18 @@
   background: repeating-linear-gradient(180deg, var(--bezel) 0 1.5px, transparent 1.5px 4px);
   opacity: 0.6;
   border-radius: 1px;
+}
+/* the single most-handled control on the whole deck — every course
+   correction goes through this grip for days at a time — so it's the
+   one place a bare-metal polish shine earns being the most obvious
+   wear on the panel. Sits on `::after`, on top of the ribbed grip
+   texture, the way a real grip polishes down its own ridges first. */
+.throttle-handle::after {
+  content: '';
+  position: absolute;
+  inset: 2px 8px;
+  border-radius: 2px;
+  background: radial-gradient(ellipse 70% 65% at 50% 45%, rgba(210,198,168,0.6), transparent 68%);
+  mix-blend-mode: normal;
+  pointer-events: none;
 }

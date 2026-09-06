@@ -34,7 +34,7 @@
       <div class="side-label">Pwr</div>
       <div class="wall-extra tier2">
         <div class="knob-unit">
-          <div class="knob"><div class="knob-pointer" style="transform:rotate(-35deg)"></div></div>
+          <div class="knob worn"><div class="knob-pointer" style="transform:rotate(-35deg)"></div></div>
           <div class="side-label">Main</div>
         </div>
       </div>
@@ -77,6 +77,7 @@
         <div class="bolt tr"></div>
         <div class="bolt bl"></div>
         <div class="bolt br"></div>
+        <div class="sticky-note on-console"></div>
         <div id="deck-grid">
 
           <!-- row 1: readouts + gauges -->
@@ -152,11 +153,11 @@
 
           <!-- row 3: knobs -->
           <div class="tile">
-            <div class="knob"><div class="knob-pointer" style="transform:rotate(10deg)"></div></div>
+            <div class="knob worn"><div class="knob-pointer" style="transform:rotate(10deg)"></div></div>
             <div class="tile-label">Nav</div>
           </div>
           <div class="tile">
-            <div class="knob"><div class="knob-pointer" style="transform:rotate(-70deg)"></div></div>
+            <div class="knob worn"><div class="knob-pointer" style="transform:rotate(-70deg)"></div></div>
             <div class="tile-label">Comm</div>
           </div>
           <div class="tile">
@@ -174,7 +175,7 @@
 
           <!-- row 4: toggles -->
           <div class="tile is-on">
-            <div class="push-btn round toggle-btn is-on"><div class="btn-lens"></div></div>
+            <div class="push-btn round toggle-btn is-on worn"><div class="btn-lens"></div></div>
             <div class="tile-label">Auto</div>
           </div>
           <div class="tile">
@@ -182,11 +183,11 @@
             <div class="tile-label">Beacon</div>
           </div>
           <div class="tile is-on">
-            <div class="push-btn round toggle-btn is-on"><div class="btn-lens"></div></div>
+            <div class="push-btn round toggle-btn is-on worn"><div class="btn-lens"></div></div>
             <div class="tile-label">Shield</div>
           </div>
           <div class="tile is-on">
-            <div class="push-btn round toggle-btn is-on"><div class="btn-lens"></div></div>
+            <div class="push-btn round toggle-btn is-on worn"><div class="btn-lens"></div></div>
             <div class="tile-label">Cabin Lt</div>
           </div>
           <div class="tile">
@@ -248,9 +249,14 @@
       </div>
       <div class="conduit"></div>
       <div class="wall-light" style="animation-delay:2.1s;"></div>
+      <div class="sticky-note faded on-wall"></div>
     </div>
 
   </div><!-- /#shell -->
+
+  <!-- ═══ PILOT'S CHAIR: armrests overlaying the view ═══ -->
+  <div class="armrest left"></div>
+  <div class="armrest right"></div>
 
 </div><!-- /#cockpit -->
 

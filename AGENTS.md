@@ -171,11 +171,40 @@ reference photo of a grungy panel and asked for that realism/depth, not a
 freshly-painted surface. It's layered entirely in CSS, no image assets:
 two inline-SVG `feTurbulence` filters (one isotropic for fine grain, one
 squashed almost flat on one axis via an anisotropic `baseFrequency` so it
-reads as brushed-metal streaks) blended `overlay`, plus a few radial
-gradients blended `multiply` for dark/rust stain blotches. `#console` also
-got four corner `.bolt`s (reusing the same fastener element `window.css`
-defines for the star window) to read as screwed into the hull, per the same
-reference photo.
+reads as brushed-metal streaks) blended `overlay`; a third inline SVG of a
+handful of explicit `<line>` strokes (real scratches read as discrete
+catches of light, not just noise) blended `screen`, tiled at a large,
+irregular size so the repeat isn't obvious at a glance and kept faint —
+scratches are meant to be a subtle catch of light, not the dominant
+feature; and several radial gradients for rust/oil stain blotches, a thin
+elongated one among them standing in for a drip stain, plus a large soft
+radial vignette darkening the plate's edges for accumulated grime.
+`#console` also got four corner `.bolt`s (reusing the same fastener
+element `window.css` defines for the star window) to read as screwed into
+the hull, per the same reference photo.
+
+**Rust stains must be `normal`-blended, not `multiply`.** The first pass
+blended every stain `multiply`, which is wrong on this hull's dark,
+fairly desaturated palette: multiplying an already-dark, low-chroma stain
+color into an already-dark, low-chroma backdrop barely shifts either
+channel, so the stains were essentially invisible even at real console
+size — this was reported back as "I don't see any wear/rust." Switched
+every colored stain to plain alpha compositing (`normal`), which actually
+mixes the warm stain hue into the backdrop instead of just trying (and
+failing) to darken it further. The one exception: the pure-black
+grease/oil blotch and the edge grime vignette keep `multiply`, because
+darkening-only is exactly what a black stain or a vignette should do —
+only *colored* stains need `normal`. If a future stain still doesn't show
+up, check its blend mode before touching its opacity or color.
+
+Every corner fastener gets its own rust strength via a `--bolt-rust`
+custom property set per corner class (`.bolt.tl`/`.tr`/`.bl`/`.br`) rather
+than one halo style reused identically on all four — real hardware on the
+same panel doesn't age evenly, so the four corners of any one `#window`
+or `#console` read as different ages/exposure rather than a matched,
+deliberate set. Keep that spread (one clearly heavier, one clearly
+fainter, two in between) if you add more fasteners elsewhere, rather than
+giving every bolt the same halo.
 
 Getting the texture strength right took real iteration: the first pass
 used a contrast-boosted `feColorMatrix` on the turbulence output, which
@@ -185,10 +214,95 @@ than the swatch did, and `overlay` blend is strongest near mid-gray, so the
 same texture read as blown-out brushed aluminum instead of subtle wear,
 and hurt label legibility. Landed on a plain `feColorMatrix type="saturate"
 values="0"` (no added contrast) with the strength controlled by the SVG
-rect's own `opacity` (0.12 grain / 0.1 streaks) instead — tune strength
-there first if this needs adjusting, and always judge it on the real
-`#console` at its real size, not an isolated swatch at a different size —
-this material's visual weight doesn't transfer between the two.
+rect's own `opacity` (grain/streaks) instead — tune strength there first if
+this needs adjusting, and always judge it on the real `#console` at its
+real size, not an isolated swatch at a different size — this material's
+visual weight doesn't transfer between the two. The scratch layer's first
+pass used a small tile (~220px), which looked fine in isolation but read as
+an obviously-repeating wallpaper pattern across the wide desktop console;
+landed on a bigger, sparser, less symmetric tile instead — if this needs
+more wear, add more rust blotches or lengthen the vignette before growing
+the scratch layer back up.
+
+## Worn touch points: wear isn't uniform
+
+`.hull` gives the console and both walls the same generated grime/rust
+everywhere — realistic for a surface nobody touches, but a ship someone
+has piloted for days at a time also shows *where hands actually go*:
+specific controls worn lighter/duller from repeated contact, contrasting
+against the grimy hull around them, plus a broad forearm-rest sheen low
+on the console where a pilot leans in to work the throttle and the row of
+knobs above it. This is layered on top of everything in the "Hull
+material" section above, not a replacement for it — uniform grime plus
+pointed wear is what reads as lived-in; either alone doesn't.
+
+Two reusable modifier classes carry this: `.knob.worn` and
+`.push-btn.worn` (console.css, near each control's base rule), applied in
+the markup only to controls the story treats as constantly handled — the
+Nav/Comm console knobs and the wall's main power knob, and the toggles
+that stay engaged day-to-day (Auto, Shield, Cabin Lt) — not every knob or
+button on the deck. The throttle handle gets its own one-off treatment on
+`.throttle-handle::after` rather than a shared class, since it's the
+single most-handled control on the whole panel (every course correction
+goes through it) and earns being the most obvious wear on the deck.
+
+Two things worth knowing if you add more worn controls:
+- **The wear color must contrast in hue, not just add shine.** The first
+  pass used a white highlight blended `soft-light`, which just added more
+  of the same cool specular shine these controls already have baked into
+  their base gradient — it disappeared into the existing highlight
+  instead of reading as separate wear. What actually shows up: a warm,
+  slightly desaturated tone blended `normal` at real opacity — visually a
+  *different material* (bare/dulled metal, worn plastic) rather than more
+  polish on the same material.
+- **Check what's actually visible before placing it.** `.push-btn`'s lens
+  (`.btn-lens`) covers the center ~56% of the button — a centered worn
+  patch mostly hides behind it and reads as nothing. The fix was moving
+  the patch fully into the exposed ring outside the lens circle (do the
+  distance-vs-radius math, don't eyeball it), off to one corner, the way
+  a thumb brushes the bezel's edge reaching for the button rather than
+  landing dead center on the lens.
+
+The two side walls also stopped being mirror copies of each other: each
+now gets an extra grime patch low near the floor (per `.wall.left::before`
+/ `.wall.right::before` in cockpit.css) at a different position, size, and
+strength — asymmetric on purpose, since two walls that wore identically
+over the same missions would read as a matched, manufactured set rather
+than two sides of a room that happened to age differently.
+
+## Human presence: sticky notes and the pilot's chair
+
+Everything above this section is wear on the *ship* — grime, rust, worn
+touch points. None of it, by itself, proves anyone actually lives here.
+Two more elements (both in cockpit.css, near the end) exist purely to put
+a person in the room:
+
+`.sticky-note` is personal clutter — scraps of paper someone actually
+stuck to the dash, which reads as "lived in" faster than any amount of
+hull texture. Two on purpose, deliberately not matching (`.on-console` is
+a fresh yellow one hanging off `#console`'s own top edge into the gap
+toward the window; `.on-wall`, inside `.wall.right`, is a smaller
+`.faded` blue-gray one that also inherits the wall's own
+`filter: brightness(0.62)` for free) — a whole drawer of identically-worn
+notes would read as set dressing, not a habit. Every note is
+`pointer-events: none` and deliberately allowed to overlap a tile's
+corner slightly — that's where a real note would actually get stuck, not
+a bug to route around. `.on-console` relies on `#console` having no
+`overflow` clipping (unlike `.wall`, which does — that's why `.on-wall`
+stays inside its box instead of also hanging off an edge).
+
+`.armrest` (`.left`/`.right`) is different in kind from everything else
+in this file: it belongs to the *viewer*, not the ship. Two shapes fixed
+to the viewport's own bottom corners (not `#cockpit` or `#console` — the
+chair doesn't move if the console layout reflows), deliberately
+overlapping the hull/console a little at every breakpoint, since a real
+armrest photographed from a seated POV would partially occlude whatever's
+directly behind it. `pointer-events: none` so they never block a control
+they happen to sit in front of. The worn patch on each pad reuses the
+exact worn-touch-point language from the section above (a warm,
+hue-contrasting patch, not more shine) since forearms rest here more than
+on anything else on the ship — keep reaching for that shared language
+rather than inventing a third way to render "worn" if this area grows.
 
 ## Selling "a room," not just a panel: light spill + glass
 
