@@ -328,6 +328,40 @@ something), keep reusing `--spill` and `screen` rather than inventing a
 second lighting vocabulary — the point was one consistent light source,
 not per-surface tinting.
 
+## Selling depth: the console has a front face, armrests reach forward
+
+Two follow-ups after the room started reading as "flat" despite the 3D
+transforms already in place: the console's `rotateX` was only 9deg (too
+subtle to read as an angled dash rather than a picture of a slightly-
+tilted wall), and `.armrest` was a tall, narrow rectangle merely leaned a
+few degrees — it read as a post standing up in the corner, not an arm
+extending forward.
+
+`#console` is now tilted to 18deg (see the comment on that rule for why
+not further — a real ceiling from the click-hit-testing gotcha below,
+not just eyeballing it) and gained a sibling, `.console-riser`
+(`console.css`, markup in `index.html` right after `#console` closes): a
+short vertical "kick panel" that picks up exactly where the angled top's
+bottom edge sits on screen (that edge doesn't move under `rotateX`
+around `transform-origin: bottom center`, so no explicit positioning
+math is needed) and renders with NO rotation of its own — flat, facing
+the pilot. One tilted plane plus one flat plane sharing a lit crease
+reads as a wedge with real thickness; one tilted plane alone reads as a
+picture of a tilted plane. It reuses `.hull` for the same worn-metal
+material, dimmed like the side walls.
+
+`.armrest` went from a single flat, leaned rectangle to a small 3D
+construction: `.armrest` is now just the fixed-corner stage (it owns the
+`perspective`), and a child `.armrest-pad` is the actual visible
+surface — wide and short rather than tall and narrow (a wide low shape
+reads as "reaching out," a tall narrow one reads as "upright"), tapered
+with `clip-path` into a wedge wide at the seat and narrower toward the
+console, and tilted back with its own `rotateX` around the corner
+pinned to the seat — the same "flat sibling below a hinge that doesn't
+move" logic as `.console-riser`, just used to foreshorten a receding
+surface instead of add a front face. The outer `rotate()` then points
+that already-foreshortened plane diagonally in toward the console.
+
 ## A real gotcha: 3D transforms break naive click targeting
 
 Because the console is tilted in 3D, a small control's *rendered* position

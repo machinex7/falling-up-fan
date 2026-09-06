@@ -246,59 +246,93 @@
 
 /* ── the pilot's chair: armrests in the foreground ──
    Everything so far has been the ship itself; this is the one element
-   that's the VIEWER's, not the ship's — a hint that you're sitting in
-   a seat looking out, not floating in front of a panel. Fixed to the
+   that's the VIEWER's, not the ship's — a hint that you're sitting in a
+   seat looking out, not floating in front of a panel. Fixed to the
    viewport's own bottom corners (not #cockpit or #console — the chair
-   doesn't move if the console layout reflows), narrow and tall (a
-   slender post, not a wide slab) so it protrudes well up into frame
-   without reading as a footer bar, and rotated in from each bottom
-   corner — `transform-origin` pinned to that exact corner so the
-   hinge point stays anchored there while the top leans in over the
-   console. This is meant to overlap the control panel more than a
-   typical UI chrome element would tolerate; that's intentional here,
-   not a z-index bug to fix later (the user plans to mount the ship's
-   panel controls physically in front of a real chair eventually, at
-   which point this overlap becomes literal). `pointer-events: none`
-   so it still never blocks a control it happens to lean over. Same
-   worn-touch-point language as the throttle/knobs (a dulled,
-   off-center patch, not just added shine) on the pad, since forearms
-   rest here more than on anything else on the ship. */
+   doesn't move if the console layout reflows). This is meant to overlap
+   the control panel more than a typical UI chrome element would
+   tolerate; that's intentional here, not a z-index bug to fix later
+   (the user plans to mount the ship's panel controls physically in
+   front of a real chair eventually, at which point this overlap
+   becomes literal). `pointer-events: none` so it still never blocks a
+   control it happens to lean over.
+
+   Built as a real foreshortened 3D surface, not a flat painted card. A
+   first pass just leaned a tall, narrow rectangle a few degrees off
+   vertical — it read as a slender post standing up in the corner, not
+   an arm extending forward. `.armrest` is now just the 3D stage — the
+   fixed corner box with its own `perspective` — and `.armrest-pad` is
+   the actual resting surface: wide and short (a wide low shape reads
+   as "reaching out," a tall narrow one reads as "upright"), tapered
+   with `clip-path` into a wedge that's wide at the seat and narrows
+   toward the console, and tilted back with `rotateX` around its NEAR
+   edge (the corner pinned to the seat) — the same technique
+   `.console-riser` uses in reverse — so it reads as a plane genuinely
+   receding away from the eye rather than a picture of one. The outer
+   `rotate()` on top of that points the whole tilted plane diagonally
+   in toward the console instead of straight ahead. Same worn-touch-
+   point language as the throttle/knobs (a dulled, off-center patch,
+   not just added shine) on `.armrest-pad::after`, since forearms rest
+   here more than on anything else on the ship. */
 .armrest {
   position: fixed;
   bottom: 0;
-  width: clamp(42px, 11vw, 110px);
-  height: clamp(110px, 30vw, 280px);
+  width: clamp(140px, 30vw, 270px);
+  height: clamp(120px, 22vw, 190px);
   z-index: 20;
   pointer-events: none;
-  background: linear-gradient(160deg, #3d3128 0%, #241c16 55%, #130f0b 100%);
-  box-shadow: 0 -10px 26px rgba(0,0,0,0.55), inset 0 2px 3px rgba(255,255,255,0.07);
+  perspective: 600px;
 }
-.armrest::before {
-  /* soft sheen along the padded top curve */
+.armrest-pad {
+  position: absolute;
+  inset: 0;
+  box-shadow: 0 -10px 26px rgba(0,0,0,0.55);
+}
+.armrest-pad::before {
+  /* soft sheen: an elongated streak along the taper, brightest near
+     the viewer and fading toward the far tip — a highlight foreshortening
+     along a surface that recedes, not one sitting flat facing the eye */
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse 85% 22% at 50% 0%, rgba(255,255,255,0.1), transparent 70%);
-  border-radius: inherit;
 }
-.armrest::after {
+.armrest-pad::after {
   /* the worn patch — same warm, hue-contrasting treatment as the
-     throttle/knobs, not more shine, so it reads as separate wear */
+     throttle/knobs, not more shine, so it reads as separate wear.
+     Sits in the wide near portion of the wedge, where the taper
+     actually leaves room for it. */
   content: '';
   position: absolute;
-  inset: 14% 20% 40%;
-  background: radial-gradient(ellipse 70% 55% at 50% 40%, rgba(150,128,100,0.4), transparent 70%);
-  border-radius: inherit;
+  inset: 30% 24% 8%;
+  background: radial-gradient(ellipse 70% 55% at 50% 60%, rgba(150,128,100,0.4), transparent 70%);
 }
 .armrest.left {
   left: 0;
-  border-top-right-radius: 80% 46px;
-  transform-origin: bottom left;
-  transform: rotate(10deg);
 }
 .armrest.right {
   right: 0;
-  border-top-left-radius: 80% 46px;
+}
+.armrest.left .armrest-pad {
+  transform-origin: bottom left;
+  transform: rotate(9deg) rotateX(40deg);
+  clip-path: polygon(0% 100%, 0% 20%, 58% 0%, 100% 42%, 100% 100%);
+  background:
+    linear-gradient(112deg, transparent 42%, rgba(0,0,0,0.55) 100%),
+    linear-gradient(160deg, #3d3128 0%, #241c16 55%, #130f0b 100%);
+}
+.armrest.right .armrest-pad {
   transform-origin: bottom right;
-  transform: rotate(-10deg);
+  transform: rotate(-9deg) rotateX(40deg);
+  clip-path: polygon(100% 100%, 100% 20%, 42% 0%, 0% 42%, 0% 100%);
+  background:
+    linear-gradient(248deg, transparent 42%, rgba(0,0,0,0.55) 100%),
+    linear-gradient(160deg, #3d3128 0%, #241c16 55%, #130f0b 100%);
+}
+.armrest.left .armrest-pad::before {
+  background: linear-gradient(52deg, rgba(255,255,255,0.16) 0%, transparent 32%),
+    radial-gradient(ellipse 60% 90% at 12% 88%, rgba(255,255,255,0.14), transparent 60%);
+}
+.armrest.right .armrest-pad::before {
+  background: linear-gradient(128deg, rgba(255,255,255,0.16) 0%, transparent 32%),
+    radial-gradient(ellipse 60% 90% at 88% 88%, rgba(255,255,255,0.14), transparent 60%);
 }

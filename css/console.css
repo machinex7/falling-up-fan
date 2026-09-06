@@ -5,13 +5,68 @@
 #console {
   flex: 1 1 46%;
   min-height: 0;
-  margin: 0 8px 8px;
+  margin: 0 8px 0;
   padding: 9px;
-  border-radius: 8px;
+  border-radius: 8px 8px 2px 2px;
   /* .hull supplies the same base gradient as the side walls — this is the front of that material */
-  box-shadow: inset 0 2px 10px rgba(0,0,0,0.4), 0 14px 18px rgba(0,0,0,0.5);
-  transform: perspective(2000px) rotateX(9deg);
+  box-shadow: inset 0 2px 10px rgba(0,0,0,0.4), 0 20px 24px rgba(0,0,0,0.55);
+  /* 18deg, not more: past ~20deg the per-row keystoning shears each
+     tile's rendered position far enough from its untransformed layout
+     box that a tile's own computed center (what naive point-based hit-
+     testing, incl. Playwright's default .click(), aims at) lands in a
+     NEIGHBORING tile instead — checked with elementFromPoint at every
+     interactive tile's own center per the testing note near the bottom
+     of this file; 18deg was the largest angle that still resolved
+     clean on knobs/toggles/alerts/nav-links at phone, tablet, and
+     desktop widths. Raising this again means re-running that check,
+     not just eyeballing the tilt. */
+  transform: perspective(1600px) rotateX(18deg);
   transform-origin: bottom center;
+}
+
+/* the desk's front face — a short vertical kick panel picking up right
+   where #console's rotated bottom edge sits (that edge doesn't move on
+   screen: rotateX around `transform-origin: bottom center` pins it), so
+   this sits flush underneath with zero gap or explicit positioning math.
+   It gets NO rotation of its own — rendering flat/vertical, facing the
+   pilot dead-on, is exactly what reads as "the near face of a wedge"
+   next to the angled top receding above it. Without this, #console was
+   one flat tilted plate — a picture of an angled dash, not a dash with
+   actual thickness. Reuses .hull (via the class list in index.html) for
+   the same worn-metal material as the top, dimmed like the side walls
+   since it faces down and away from the window's light. */
+.console-riser {
+  flex: 0 0 auto;
+  height: clamp(20px, 4.4vw, 34px);
+  margin: 0 8px 8px;
+  border-radius: 0 0 8px 8px;
+  position: relative;
+  filter: brightness(0.68);
+  box-shadow: inset 0 4px 8px rgba(0,0,0,0.75), 0 10px 14px rgba(0,0,0,0.55);
+}
+
+/* a bottom rim-light: the one edge of this face closest to the viewer,
+   the way a physical panel's nearest edge picks up a sliver of ambient
+   light even in shadow — without it the riser reads as a shadow
+   gradient rather than a lit, separate piece of metal */
+.console-riser::after {
+  content: '';
+  position: absolute;
+  inset: auto 10% 0 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(200,210,222,0.22) 50%, transparent);
+}
+
+/* the crease: a thin catch-light exactly at the fold where the angled
+   top meets this vertical face — the one cue that reads as "these are
+   two different planes of the same object," not two stacked boxes */
+.console-riser::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.55) 50%, transparent);
+  z-index: 1;
 }
 
 /* the window sits directly above this panel — a soft cool wash of
