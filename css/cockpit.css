@@ -249,19 +249,25 @@
    that's the VIEWER's, not the ship's — a hint that you're sitting in
    a seat looking out, not floating in front of a panel. Fixed to the
    viewport's own bottom corners (not #cockpit or #console — the chair
-   doesn't move if the console layout reflows) and deliberately
-   overlapping the hull/console a little at every breakpoint, since a
-   real armrest in a real cockpit photo would partially occlude
-   whatever's directly behind it. `pointer-events: none` so they never
-   block a control they happen to sit in front of. Same worn-touch-point
-   language as the throttle/knobs (a dulled, off-center patch, not just
-   added shine) on the pad, since forearms rest here more than on
-   anything else on the ship. */
+   doesn't move if the console layout reflows), narrow and tall (a
+   slender post, not a wide slab) so it protrudes well up into frame
+   without reading as a footer bar, and rotated in from each bottom
+   corner — `transform-origin` pinned to that exact corner so the
+   hinge point stays anchored there while the top leans in over the
+   console. This is meant to overlap the control panel more than a
+   typical UI chrome element would tolerate; that's intentional here,
+   not a z-index bug to fix later (the user plans to mount the ship's
+   panel controls physically in front of a real chair eventually, at
+   which point this overlap becomes literal). `pointer-events: none`
+   so it still never blocks a control it happens to lean over. Same
+   worn-touch-point language as the throttle/knobs (a dulled,
+   off-center patch, not just added shine) on the pad, since forearms
+   rest here more than on anything else on the ship. */
 .armrest {
   position: fixed;
   bottom: 0;
-  width: clamp(70px, 20vw, 200px);
-  height: clamp(46px, 13vw, 120px);
+  width: clamp(42px, 11vw, 110px);
+  height: clamp(110px, 30vw, 280px);
   z-index: 20;
   pointer-events: none;
   background: linear-gradient(160deg, #3d3128 0%, #241c16 55%, #130f0b 100%);
@@ -272,7 +278,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(255,255,255,0.09), transparent 70%);
+  background: radial-gradient(ellipse 85% 22% at 50% 0%, rgba(255,255,255,0.1), transparent 70%);
   border-radius: inherit;
 }
 .armrest::after {
@@ -280,9 +286,19 @@
      throttle/knobs, not more shine, so it reads as separate wear */
   content: '';
   position: absolute;
-  inset: 28% 22% 16%;
-  background: radial-gradient(ellipse 70% 55% at 50% 55%, rgba(150,128,100,0.4), transparent 70%);
+  inset: 14% 20% 40%;
+  background: radial-gradient(ellipse 70% 55% at 50% 40%, rgba(150,128,100,0.4), transparent 70%);
   border-radius: inherit;
 }
-.armrest.left  { left: 0;  border-top-right-radius: 65% 100%; }
-.armrest.right { right: 0; border-top-left-radius: 65% 100%; }
+.armrest.left {
+  left: 0;
+  border-top-right-radius: 80% 46px;
+  transform-origin: bottom left;
+  transform: rotate(10deg);
+}
+.armrest.right {
+  right: 0;
+  border-top-left-radius: 80% 46px;
+  transform-origin: bottom right;
+  transform: rotate(-10deg);
+}
