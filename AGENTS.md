@@ -224,6 +224,52 @@ landed on a bigger, sparser, less symmetric tile instead — if this needs
 more wear, add more rust blotches or lengthen the vignette before growing
 the scratch layer back up.
 
+## Worn touch points: wear isn't uniform
+
+`.hull` gives the console and both walls the same generated grime/rust
+everywhere — realistic for a surface nobody touches, but a ship someone
+has piloted for days at a time also shows *where hands actually go*:
+specific controls worn lighter/duller from repeated contact, contrasting
+against the grimy hull around them, plus a broad forearm-rest sheen low
+on the console where a pilot leans in to work the throttle and the row of
+knobs above it. This is layered on top of everything in the "Hull
+material" section above, not a replacement for it — uniform grime plus
+pointed wear is what reads as lived-in; either alone doesn't.
+
+Two reusable modifier classes carry this: `.knob.worn` and
+`.push-btn.worn` (console.css, near each control's base rule), applied in
+the markup only to controls the story treats as constantly handled — the
+Nav/Comm console knobs and the wall's main power knob, and the toggles
+that stay engaged day-to-day (Auto, Shield, Cabin Lt) — not every knob or
+button on the deck. The throttle handle gets its own one-off treatment on
+`.throttle-handle::after` rather than a shared class, since it's the
+single most-handled control on the whole panel (every course correction
+goes through it) and earns being the most obvious wear on the deck.
+
+Two things worth knowing if you add more worn controls:
+- **The wear color must contrast in hue, not just add shine.** The first
+  pass used a white highlight blended `soft-light`, which just added more
+  of the same cool specular shine these controls already have baked into
+  their base gradient — it disappeared into the existing highlight
+  instead of reading as separate wear. What actually shows up: a warm,
+  slightly desaturated tone blended `normal` at real opacity — visually a
+  *different material* (bare/dulled metal, worn plastic) rather than more
+  polish on the same material.
+- **Check what's actually visible before placing it.** `.push-btn`'s lens
+  (`.btn-lens`) covers the center ~56% of the button — a centered worn
+  patch mostly hides behind it and reads as nothing. The fix was moving
+  the patch fully into the exposed ring outside the lens circle (do the
+  distance-vs-radius math, don't eyeball it), off to one corner, the way
+  a thumb brushes the bezel's edge reaching for the button rather than
+  landing dead center on the lens.
+
+The two side walls also stopped being mirror copies of each other: each
+now gets an extra grime patch low near the floor (per `.wall.left::before`
+/ `.wall.right::before` in cockpit.css) at a different position, size, and
+strength — asymmetric on purpose, since two walls that wore identically
+over the same missions would read as a matched, manufactured set rather
+than two sides of a room that happened to age differently.
+
 ## Selling "a room," not just a panel: light spill + glass
 
 The window and console/walls used to be visually independent boxes — same
