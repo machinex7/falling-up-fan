@@ -7,7 +7,7 @@
 // ═══════════════════════════════════════════════════════
 (function () {
   document.querySelectorAll('.tile').forEach(tile => {
-    const toggle = tile.querySelector('.toggle');
+    const toggle = tile.querySelector('.toggle-btn');
     if (toggle) {
       tile.addEventListener('click', () => {
         toggle.classList.toggle('is-on');

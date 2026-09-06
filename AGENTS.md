@@ -82,19 +82,137 @@ capability via utility classes (`.span-*`, `.rowspan-*`) without that forced
 alignment. `grid-auto-flow: dense` lets items pack into gaps rather than
 forcing new rows.
 
-Each control is a `.tile` — just a layout wrapper (control + caption),
-deliberately *not* a styled card/box. Adding visible per-item backgrounds,
-borders, or uniform sizing has been explicitly rejected twice by the user;
-the goal is "a dense console full of mysterious controls," closer to a
-cluttered real instrument panel than a UI component grid. Widget types
-established so far (readout, gauge, nav link, equalizer, knob, toggle,
-horizontal bar, alert light, throttle lever) each have their own minimal
-"face" styling but share the same plain wrapper pattern — follow that
-pattern for new widget types rather than reintroducing a card look.
+Each control is a `.tile` — a layout wrapper (control + caption) that is
+now ALSO its own small mount plate (background + 2 corner screws), per a
+second reference photo: every real component in it sat on its own little
+plate bolted to the dashboard, not straight onto it. This is a full
+reversal of an *earlier* rule recorded in this file ("deliberately not a
+styled card/box... uniform per-item boxing has been explicitly rejected
+twice") — that rule is gone now, superseded by explicit user request, so
+don't "fix" tiles back to bare/boxless if you find old screenshots or
+history suggesting otherwise. What's preserved from the old goal: the
+plate still hugs whatever control it holds rather than imposing one fixed
+card size — a bare readout's plate is short and wide, the throttle's is
+tall, a knob's is small and square — so the deck still reads as cluttered/
+uneven hardware, not a spreadsheet of identical cards. Widget types
+established so far (readout, gauge, nav pushbutton, equalizer, knob,
+toggle pushbutton, horizontal bar, alert light, throttle lever) each have
+their own "face" styling on top of that shared plate — follow that pattern
+for new widget types: a `.tile` for the plate, then whatever face the
+control needs inside it.
 
-Widgets that are actual navigation (the Members/Tracks/Connections links)
-are visually no more prominent than decorative ones — that's intentional,
-not an oversight.
+The nav links (Members/Tracks/Connections) are now visually prominent
+pushbuttons — a deliberate reversal of an earlier "no more prominent than
+decorative" rule, changed by explicit user request. Toggles
+(Auto/Beacon/Shield/etc.) are also `.push-btn`s now: a round pushbutton you
+click to latch on/off, not the sliding lever-in-a-slot design from earlier
+— also an explicit user request, not an oversight if you see it differ
+from older screenshots or commit history.
+
+`.push-btn` models a real panel-mount pushbutton/indicator as two parts,
+per a reference photo the user pointed to: a raised black plastic bezel
+(hard, near-black — `--plastic-*` in base.css, distinct from the polished
+knob metal and the bluish `--bezel` tokens) socketing a smaller, separate
+`.btn-lens` — the only part that carries color and glow. Reach for that
+same two-part shape for any future pushbutton-style control instead of
+inventing a one-piece colored button; `.square` and `.round` are `.push-btn`'s
+two bezel shapes (nav keys vs toggles), and `.btn-lens` follows automatically
+via `.push-btn.round .btn-lens`. A lens's color/glow come from three
+custom properties — `--lens-hi`/`--lens`/`--lens-lo` (gradient) and
+`--btn-glow` (the light escaping the socket) — set together on a variant
+class or state selector (`.btn-lens.amber`, `.toggle-btn.is-on .btn-lens`)
+rather than redeclaring the gradient/shadow stack. Both the bezel's and the
+lens's specular highlights key off the shared `--light-pos` / `--light-angle`
+variables (see the light-source comment in base.css) — keep new pushbutton
+variants on that system rather than hardcoding a highlight position.
+
+The nav keys' caption went back to a plain `.tile-label` below the button
+(matching every other control) rather than text printed on the button face
+— the lens replaced the old pilot-light dot instead, and the bezel is too
+small at phone widths to hold a word like "Connections" without crowding
+its neighbors. `.tile.nav-tile` spans 3 grid columns (not the default 2,
+not the old 4) specifically to give that caption enough room; the row
+holding the nav buttons is one of the most crowded on the whole deck at the
+narrowest supported phone widths (the three-column hull + tilted console
+leave surprisingly little width for 16 grid columns), and this rework hit
+two real, desktop-invisible overlap bugs there before landing on span 3 —
+re-check a narrow-phone screenshot, not just desktop, if you touch nav-tile
+sizing or spans again.
+
+## Every tile is a mount plate now
+
+`.tile`'s own background/padding/box-shadow *is* the mount plate — no
+wrapper element, no per-widget-type CSS. `.tile::before`/`::after` are the
+2 corner screws (top-left/top-right), added once on the shared selector so
+every current and future widget type gets them for free. The plate is
+deliberately a plainer, cleaner metal gradient (plain `--metal-hi`/`--metal`/
+`--metal-lo`, no grain/scratch texture) than `.hull` underneath it — it
+reads as a separate, less-weathered part bolted onto the dash, which is
+also just cheaper (no repeated SVG turbulence backgrounds on ~25 tiles).
+If a new widget needs to opt out of the plate look entirely, that's a
+one-off override on that widget's selector, not a reason to touch the
+shared `.tile` rule.
+
+This ate the old "invisible touch-target padding" hack
+(`.tile:has(.knob)`/`.tile:has(.toggle-btn)`/`.tile.nav-tile`/`.tile.alert`
+used to get `padding` cancelled out by an equal negative `margin`, so the
+hit area was bigger than the visible box with no visual size change). The
+plate's own padding is bigger than that hack's was and is no longer
+cancelled — it's supposed to be visible now — so those selectors were
+trimmed back to just `cursor: pointer`. Don't re-add the negative-margin
+trick on top of the plate; it would just make the plate crooked relative
+to its own content.
+
+## Hull material: worn metal, not clean paint
+
+`.hull` (the console face and both side walls) carries a generated worn/
+scratched texture on top of its lighting gradient — the user pointed to a
+reference photo of a grungy panel and asked for that realism/depth, not a
+freshly-painted surface. It's layered entirely in CSS, no image assets:
+two inline-SVG `feTurbulence` filters (one isotropic for fine grain, one
+squashed almost flat on one axis via an anisotropic `baseFrequency` so it
+reads as brushed-metal streaks) blended `overlay`, plus a few radial
+gradients blended `multiply` for dark/rust stain blotches. `#console` also
+got four corner `.bolt`s (reusing the same fastener element `window.css`
+defines for the star window) to read as screwed into the hull, per the same
+reference photo.
+
+Getting the texture strength right took real iteration: the first pass
+used a contrast-boosted `feColorMatrix` on the turbulence output, which
+looked right in an isolated test swatch but washed out the actual console
+— its lit `--metal-hi` zone covers much more of the panel's visible area
+than the swatch did, and `overlay` blend is strongest near mid-gray, so the
+same texture read as blown-out brushed aluminum instead of subtle wear,
+and hurt label legibility. Landed on a plain `feColorMatrix type="saturate"
+values="0"` (no added contrast) with the strength controlled by the SVG
+rect's own `opacity` (0.12 grain / 0.1 streaks) instead — tune strength
+there first if this needs adjusting, and always judge it on the real
+`#console` at its real size, not an isolated swatch at a different size —
+this material's visual weight doesn't transfer between the two.
+
+## Selling "a room," not just a panel: light spill + glass
+
+The window and console/walls used to be visually independent boxes — same
+material language, but nothing tied them together as one lit space. Fix:
+a shared `--spill` color (base.css, a cool starlight blue-white) washed
+onto the surfaces nearest the window — `#console::before` (a `z-index:-1`
+radial gradient anchored top-center, so it sits over `.hull`'s texture but
+under the deck-grid controls) and a second `background-image` layer added
+to each `.wall::before`, brightest at the edge facing the window. All
+`mix-blend-mode: screen` so they only ever lighten, never fight the hull
+texture or flatten it into a solid tint. Separately, `.window-glass` is an
+inert (`pointer-events: none`) top layer inside `#window`, `z-index:5` —
+above the canvas, HUD, reticle, *and* the corner bolts, deliberately: a
+reflection lives on the outermost glass surface, in front of everything
+behind it, including a HUD that's meant to be projected onto that same
+glass. It's just two soft diagonal `screen`-blended gradients, not a real
+reflection of anything in the scene — don't over-invest trying to make it
+"reflect" the console below; it reads fine as ambient glass character.
+
+If you push this further (more spill sources, reflections that track
+something), keep reusing `--spill` and `screen` rather than inventing a
+second lighting vocabulary — the point was one consistent light source,
+not per-surface tinting.
 
 ## A real gotcha: 3D transforms break naive click targeting
 
