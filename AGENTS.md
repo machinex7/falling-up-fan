@@ -82,21 +82,24 @@ capability via utility classes (`.span-*`, `.rowspan-*`) without that forced
 alignment. `grid-auto-flow: dense` lets items pack into gaps rather than
 forcing new rows.
 
-Each control is a `.tile` — just a layout wrapper (control + caption),
-deliberately *not* a styled card/box, with one deliberate exception: the
-`.push-btn` pushbutton face (see below) is a real visible box by explicit
-user request, used for the nav keys and the toggles. Everything else —
-readouts, gauges, knobs, the bar, alert lights, the throttle — stays a bare
-face with no card/background, since uniform per-item boxing for *those* has
-been explicitly rejected by the user; the goal for them is still "a dense
-console full of mysterious controls," closer to a cluttered real instrument
-panel than a UI component grid. Widget types established so far (readout,
-gauge, nav pushbutton, equalizer, knob, toggle pushbutton, horizontal bar,
-alert light, throttle lever) each have their own "face" styling but share
-the same plain `.tile` wrapper pattern (control + caption below) — follow
-that pattern for new widget types, and reach for `.push-btn` only when a
-control is genuinely meant to look like a physical button, not as a
-default card look for everything.
+Each control is a `.tile` — a layout wrapper (control + caption) that is
+now ALSO its own small mount plate (background + 2 corner screws), per a
+second reference photo: every real component in it sat on its own little
+plate bolted to the dashboard, not straight onto it. This is a full
+reversal of an *earlier* rule recorded in this file ("deliberately not a
+styled card/box... uniform per-item boxing has been explicitly rejected
+twice") — that rule is gone now, superseded by explicit user request, so
+don't "fix" tiles back to bare/boxless if you find old screenshots or
+history suggesting otherwise. What's preserved from the old goal: the
+plate still hugs whatever control it holds rather than imposing one fixed
+card size — a bare readout's plate is short and wide, the throttle's is
+tall, a knob's is small and square — so the deck still reads as cluttered/
+uneven hardware, not a spreadsheet of identical cards. Widget types
+established so far (readout, gauge, nav pushbutton, equalizer, knob,
+toggle pushbutton, horizontal bar, alert light, throttle lever) each have
+their own "face" styling on top of that shared plate — follow that pattern
+for new widget types: a `.tile` for the plate, then whatever face the
+control needs inside it.
 
 The nav links (Members/Tracks/Connections) are now visually prominent
 pushbuttons — a deliberate reversal of an earlier "no more prominent than
@@ -135,6 +138,30 @@ leave surprisingly little width for 16 grid columns), and this rework hit
 two real, desktop-invisible overlap bugs there before landing on span 3 —
 re-check a narrow-phone screenshot, not just desktop, if you touch nav-tile
 sizing or spans again.
+
+## Every tile is a mount plate now
+
+`.tile`'s own background/padding/box-shadow *is* the mount plate — no
+wrapper element, no per-widget-type CSS. `.tile::before`/`::after` are the
+2 corner screws (top-left/top-right), added once on the shared selector so
+every current and future widget type gets them for free. The plate is
+deliberately a plainer, cleaner metal gradient (plain `--metal-hi`/`--metal`/
+`--metal-lo`, no grain/scratch texture) than `.hull` underneath it — it
+reads as a separate, less-weathered part bolted onto the dash, which is
+also just cheaper (no repeated SVG turbulence backgrounds on ~25 tiles).
+If a new widget needs to opt out of the plate look entirely, that's a
+one-off override on that widget's selector, not a reason to touch the
+shared `.tile` rule.
+
+This ate the old "invisible touch-target padding" hack
+(`.tile:has(.knob)`/`.tile:has(.toggle-btn)`/`.tile.nav-tile`/`.tile.alert`
+used to get `padding` cancelled out by an equal negative `margin`, so the
+hit area was bigger than the visible box with no visual size change). The
+plate's own padding is bigger than that hack's was and is no longer
+cancelled — it's supposed to be visible now — so those selectors were
+trimmed back to just `cursor: pointer`. Don't re-add the negative-margin
+trick on top of the plate; it would just make the plate crooked relative
+to its own content.
 
 ## Hull material: worn metal, not clean paint
 

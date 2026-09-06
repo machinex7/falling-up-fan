@@ -59,9 +59,14 @@
 .rowspan-2 { grid-row: span 2; }
 .rowspan-3 { grid-row: span 3; }
 
-/* just a layout wrapper now (control + caption) — sized to its
-   own content, not a uniform card, so the deck stays cluttered
-   and uneven rather than reading as a spreadsheet of tiles */
+/* a layout wrapper (control + caption) that is now ALSO its own
+   small mount plate — a distinct, cleaner metal than the dash's
+   worn/scratched .hull (a separately-sourced part bolted on, not
+   original to the panel), screwed down with the 2 bolts in
+   ::before/::after. Sized to its own content, not a uniform card
+   size, so the deck stays cluttered/uneven rather than reading as a
+   spreadsheet of identical tiles — the plate hugs whatever control
+   it holds instead of imposing a fixed footprint. */
 .tile {
   display: flex;
   flex-direction: column;
@@ -71,18 +76,35 @@
   grid-column: span 2;
   text-decoration: none;
   color: inherit;
+  position: relative;
+  padding: 8px 7px 5px;
+  border-radius: 3px;
+  background: linear-gradient(var(--light-angle), var(--metal-hi), var(--metal) 60%, var(--metal-lo));
+  box-shadow:
+    0 2px 3px rgba(0,0,0,0.45),
+    inset 0 0 0 1px var(--bezel-lo),
+    inset 0 1px 0 rgba(255,255,255,0.14);
 }
+
+/* the 2 mounting screws — corners, small, reusing the same bolt
+   look as the window/console fasteners */
+.tile::before, .tile::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: radial-gradient(circle at var(--light-pos), var(--spec), var(--metal-lo) 70%, var(--bezel-lo) 100%);
+  box-shadow: 0 0 0 1px var(--bezel-lo);
+}
+.tile::before { left: 3px; }
+.tile::after  { right: 3px; }
 
 .tile.readout { grid-column: span 4; }
 .tile.nav-tile { grid-column: span 3; }
 
-/* invisible touch-target padding — bigger hit area than the visible
-   control, since the 3D tilt shifts a small control's rendered
-   position enough that a tight box can miss its own click point */
 .tile:has(.knob), .tile:has(.toggle-btn), .tile.nav-tile {
   cursor: pointer;
-  padding: 6px 7px;
-  margin: -6px -7px;
 }
 
 .tile-label {
@@ -250,7 +272,7 @@
   border: 1px solid var(--bezel);
   box-shadow: inset 0 0 3px rgba(0,0,0,0.85);
 }
-.tile.alert { cursor: pointer; padding: 6px 7px; margin: -6px -7px; }
+.tile.alert { cursor: pointer; }
 .tile.alert.is-alert .alert-lamp {
   background: var(--red);
   border-color: var(--red);
