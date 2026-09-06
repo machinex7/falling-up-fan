@@ -270,6 +270,40 @@ strength — asymmetric on purpose, since two walls that wore identically
 over the same missions would read as a matched, manufactured set rather
 than two sides of a room that happened to age differently.
 
+## Human presence: sticky notes and the pilot's chair
+
+Everything above this section is wear on the *ship* — grime, rust, worn
+touch points. None of it, by itself, proves anyone actually lives here.
+Two more elements (both in cockpit.css, near the end) exist purely to put
+a person in the room:
+
+`.sticky-note` is personal clutter — scraps of paper someone actually
+stuck to the dash, which reads as "lived in" faster than any amount of
+hull texture. Two on purpose, deliberately not matching (`.on-console` is
+a fresh yellow one hanging off `#console`'s own top edge into the gap
+toward the window; `.on-wall`, inside `.wall.right`, is a smaller
+`.faded` blue-gray one that also inherits the wall's own
+`filter: brightness(0.62)` for free) — a whole drawer of identically-worn
+notes would read as set dressing, not a habit. Every note is
+`pointer-events: none` and deliberately allowed to overlap a tile's
+corner slightly — that's where a real note would actually get stuck, not
+a bug to route around. `.on-console` relies on `#console` having no
+`overflow` clipping (unlike `.wall`, which does — that's why `.on-wall`
+stays inside its box instead of also hanging off an edge).
+
+`.armrest` (`.left`/`.right`) is different in kind from everything else
+in this file: it belongs to the *viewer*, not the ship. Two shapes fixed
+to the viewport's own bottom corners (not `#cockpit` or `#console` — the
+chair doesn't move if the console layout reflows), deliberately
+overlapping the hull/console a little at every breakpoint, since a real
+armrest photographed from a seated POV would partially occlude whatever's
+directly behind it. `pointer-events: none` so they never block a control
+they happen to sit in front of. The worn patch on each pad reuses the
+exact worn-touch-point language from the section above (a warm,
+hue-contrasting patch, not more shine) since forearms rest here more than
+on anything else on the ship — keep reaching for that shared language
+rather than inventing a third way to render "worn" if this area grows.
+
 ## Selling "a room," not just a panel: light spill + glass
 
 The window and console/walls used to be visually independent boxes — same

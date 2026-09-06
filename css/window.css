@@ -51,10 +51,10 @@
   z-index: -1;
   pointer-events: none;
 }
-.bolt.tl { --bolt-rust: 0.55; --bolt-rust-inset: -6px; }
-.bolt.tr { --bolt-rust: 0.18; --bolt-rust-inset: -2px; }
-.bolt.bl { --bolt-rust: 0.35; --bolt-rust-inset: -4px; }
-.bolt.br { --bolt-rust: 0.46; --bolt-rust-inset: -3px -3px -6px -7px; }
+.bolt.tl { --bolt-rust: 0.44; --bolt-rust-inset: -6px; }
+.bolt.tr { --bolt-rust: 0.14; --bolt-rust-inset: -2px; }
+.bolt.bl { --bolt-rust: 0.28; --bolt-rust-inset: -4px; }
+.bolt.br { --bolt-rust: 0.37; --bolt-rust-inset: -3px -3px -6px -7px; }
 
 .hud {
   position: absolute;
