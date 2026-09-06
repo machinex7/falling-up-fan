@@ -45,9 +45,25 @@
   perspective: 500px;
 }
 
-/* shared hull-plate skin */
+/* shared hull-plate skin — worn, not freshly painted: fine grain,
+   a brushed-metal scratch layer, and a few dark/rust stains sit on
+   top of the same lighting gradient as before. Both textures are an
+   inline SVG turbulence filter (grain = isotropic noise, scratches
+   = the same noise stretched almost flat on one axis so it streaks),
+   desaturated to grayscale and strength-limited by the SVG rect's
+   own opacity — no image assets, still no build step. See the "Hull
+   material" note further down before changing these opacity values. */
 .hull {
-  background: linear-gradient(var(--light-angle), var(--metal-hi) 0%, var(--metal) 45%, var(--metal-lo) 100%);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.12'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.008 0.25' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23s)' opacity='0.1'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse 200px 110px at 12% 82%, rgba(90,58,20,0.22), transparent 70%),
+    radial-gradient(ellipse 150px 90px at 88% 15%, rgba(0,0,0,0.35), transparent 70%),
+    radial-gradient(ellipse 120px 160px at 70% 90%, rgba(60,40,15,0.16), transparent 70%),
+    linear-gradient(var(--light-angle), var(--metal-hi) 0%, var(--metal) 45%, var(--metal-lo) 100%);
+  background-size: 130px 130px, 280px 280px, auto, auto, auto, auto;
+  background-repeat: repeat, repeat, no-repeat, no-repeat, no-repeat, no-repeat;
+  background-blend-mode: overlay, overlay, multiply, multiply, multiply, normal;
 }
 
 /* ── seams between plates ── */
