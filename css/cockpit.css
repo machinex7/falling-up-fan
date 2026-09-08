@@ -382,7 +382,13 @@
 }
 .armrest.left .armrest-pad {
   transform: rotateX(46deg);
-  clip-path: polygon(0% 60%, 0% 20%, 58% 0%, 100% 42%, 100% 60%);
+  /* the far tip (where the two long edges used to meet in one sharp
+     58%/0% point) is now several points tracing a short curve instead —
+     a `clip-path` polygon can't take a border-radius, so "rounding" a
+     corner here means swapping the single vertex for a handful of
+     points sampled along the quadratic curve that corner would follow,
+     cut back a fixed distance along each original edge */
+  clip-path: polygon(0% 60%, 0% 20%, 46.7% 3.9%, 52.2% 2.7%, 57.3% 3.1%, 62.1% 5%, 66.5% 8.5%, 100% 42%, 100% 60%);
   background:
     linear-gradient(112deg, transparent 42%, rgba(0,0,0,0.4) 100%),
     linear-gradient(160deg, #4a3c30 0%, #2c2219 55%, #1a140e 100%);
@@ -396,7 +402,8 @@
 }
 .armrest.right .armrest-pad {
   transform: rotateX(46deg);
-  clip-path: polygon(100% 60%, 100% 20%, 42% 0%, 0% 42%, 0% 60%);
+  /* mirror of .armrest.left .armrest-pad's rounded tip, x-flipped */
+  clip-path: polygon(100% 60%, 100% 20%, 53.3% 3.9%, 47.8% 2.7%, 42.7% 3.1%, 37.9% 5%, 33.5% 8.5%, 0% 42%, 0% 60%);
   background:
     linear-gradient(248deg, transparent 42%, rgba(0,0,0,0.4) 100%),
     linear-gradient(160deg, #4a3c30 0%, #2c2219 55%, #1a140e 100%);
