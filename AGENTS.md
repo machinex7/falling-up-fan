@@ -44,6 +44,10 @@ js/
   controls.js        toggle/knob/alert click handling on .tile
   readouts.js        readout drift (setInterval) + cargo bar fill-in
   throttle.js        pointer-based drag on .throttle-track
+  parallax.js        device-tilt drift on stars/console/armrests via
+                     DeviceOrientation; also owns the #motion-enable
+                     iOS-permission pill (button lives in index.html,
+                     styled in cockpit.css)
 ```
 
 Split for size/readability, not for reuse or bundling — there's still no

@@ -9,6 +9,35 @@
   padding-top: env(safe-area-inset-top);
 }
 
+/* ── tilt-parallax permission pill (js/parallax.js) ──
+   iOS Safari won't hand over DeviceOrientation data without an explicit
+   tap first, so this exists purely to catch that tap — styled as a
+   small HUD-style pill (amber glow, same font/letter-spacing as the
+   plaque) rather than a default browser button, so it reads as part of
+   the dash instead of a web-page permission banner. `[hidden]` by
+   default; parallax.js only un-hides it on the one platform that
+   actually needs it, and hides it again the moment it's tapped. */
+#motion-enable {
+  position: fixed;
+  top: calc(env(safe-area-inset-top) + 30px);
+  left: 50%;
+  z-index: 30;
+  transform: translateX(-50%);
+  padding: 7px 16px;
+  font-family: var(--font-label);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--led-amber);
+  background: rgba(8,8,10,0.85);
+  border: 1px solid var(--amber);
+  border-radius: 999px;
+  box-shadow: 0 0 10px 1px var(--amber-glow), 0 4px 10px rgba(0,0,0,0.5);
+  cursor: pointer;
+}
+#motion-enable[hidden] { display: none; }
+
 /* ── thin mission plaque ── */
 #plaque-bar {
   flex: 0 0 22px;

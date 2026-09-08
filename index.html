@@ -18,6 +18,10 @@
 
 <div id="cockpit">
 
+  <!-- shown only on iOS Safari, which gates DeviceOrientation behind an
+       explicit tap — see js/parallax.js. Hidden everywhere else. -->
+  <button id="motion-enable" type="button" hidden>Enable Motion</button>
+
   <!-- ═══ PLAQUE BAR ═══ -->
   <div id="plaque-bar">
     <div class="rivet"></div>
@@ -269,5 +273,6 @@
 <script src="js/controls.js"></script>
 <script src="js/readouts.js"></script>
 <script src="js/throttle.js"></script>
+<script src="js/parallax.js"></script>
 </body>
 </html>
