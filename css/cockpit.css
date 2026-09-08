@@ -257,23 +257,38 @@
    becomes literal). `pointer-events: none` so it still never blocks a
    control it happens to lean over.
 
-   Built as a real foreshortened 3D surface, not a flat painted card. A
-   first pass just leaned a tall, narrow rectangle a few degrees off
-   vertical — it read as a slender post standing up in the corner, not
-   an arm extending forward. `.armrest` is now just the 3D stage — the
-   fixed corner box with its own `perspective` — and `.armrest-pad` is
-   the actual resting surface: wide and short (a wide low shape reads
-   as "reaching out," a tall narrow one reads as "upright"), tapered
-   with `clip-path` into a wedge that's wide at the seat and narrows
-   toward the console, and tilted back with `rotateX` around its NEAR
-   edge (the corner pinned to the seat) — the same technique
-   `.console-riser` uses in reverse — so it reads as a plane genuinely
-   receding away from the eye rather than a picture of one. The outer
-   `rotate()` on top of that points the whole tilted plane diagonally
-   in toward the console instead of straight ahead. Same worn-touch-
-   point language as the throttle/knobs (a dulled, off-center patch,
-   not just added shine) on `.armrest-pad::after`, since forearms rest
-   here more than on anything else on the ship. */
+   Built as a real two-faced 3D volume, not one flat plane doing all the
+   work with a gradient. A first pass leaned a tall rectangle a few
+   degrees — a post, not an arm. A second pass turned it into a single
+   tapered, foreshortened plane (`.armrest-pad` alone) — better, but
+   still one face lit by one gradient trying to fake both "the pad you
+   rest your arm on" and "the side you can see because you're above and
+   in front of it." A single flat surface reads as a flat surface no
+   matter how convincing its gradient is; what actually sells a corner
+   is TWO real faces meeting at a seam, each catching the shared
+   `--light-angle` light differently, the same principle `.tile`'s
+   bezel or `.console-riser` already lean on.
+
+   `.armrest` is the fixed-corner stage (owns the `perspective`).
+   `.armrest-wedge` carries the outer `rotate()` that points the whole
+   thing diagonally toward the console, pivoting at the exact corner so
+   it stays pinned to the seat. Inside that shared rotation,
+   `.armrest-pad` (the far/upper half of the wedge) and `.armrest-side`
+   (the near/lower half) are two independent flat pieces that split the
+   SAME tapered `clip-path` silhouette at one horizontal seam
+   (`transform-origin: 50% 60%` on both) — exactly how `.console-riser`
+   hinges below `#console`, just used twice on one shape instead of
+   once. `.armrest-pad` gets a real `rotateX` and reads as the
+   foreshortened resting surface, tilted back and lit; `.armrest-side`
+   gets NO rotation at all (flat, facing the viewer, same idiom as
+   `.console-riser`) and a darker gradient, since a face turned to face
+   the camera rather than tilted up toward the overhead light
+   necessarily catches less of it — reads as the arm's near vertical
+   side. Because both share the same seam origin, they meet with no
+   gap regardless of how the outer taper/rotation change. Same worn-
+   touch-point language as the throttle/knobs (a dulled, off-center
+   patch, not just added shine) on `.armrest-pad::after`, since
+   forearms rest on the pad more than on anything else on the ship. */
 .armrest {
   position: fixed;
   bottom: 0;
@@ -283,10 +298,15 @@
   pointer-events: none;
   perspective: 600px;
 }
-.armrest-pad {
+.armrest-wedge {
   position: absolute;
   inset: 0;
-  box-shadow: 0 -10px 26px rgba(0,0,0,0.55);
+  transform-style: preserve-3d;
+}
+.armrest-pad, .armrest-side {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 60%;
 }
 .armrest-pad::before {
   /* soft sheen: an elongated streak along the taper, brightest near
@@ -299,12 +319,23 @@
 .armrest-pad::after {
   /* the worn patch — same warm, hue-contrasting treatment as the
      throttle/knobs, not more shine, so it reads as separate wear.
-     Sits in the wide near portion of the wedge, where the taper
-     actually leaves room for it. */
+     Sits centered in the pad's own visible band (y 0–60% of the box,
+     tapering to a point above), not the old single-face wedge's. */
   content: '';
   position: absolute;
-  inset: 30% 24% 8%;
-  background: radial-gradient(ellipse 70% 55% at 50% 60%, rgba(150,128,100,0.4), transparent 70%);
+  inset: 36% 30% 40%;
+  background: radial-gradient(ellipse 70% 55% at 50% 50%, rgba(150,128,100,0.4), transparent 70%);
+}
+.armrest-side::before {
+  /* a thin rim-light along the seam: the one edge of this shadowed
+     face that catches a sliver of the pad's own light spilling down
+     over the fold, the way `.console-riser`'s bottom edge does */
+  content: '';
+  position: absolute;
+  inset: 0 8% auto 8%;
+  height: 1px;
+  top: 0;
+  background: linear-gradient(90deg, transparent, rgba(210,196,168,0.3) 50%, transparent);
 }
 .armrest.left {
   left: 0;
@@ -312,27 +343,47 @@
 .armrest.right {
   right: 0;
 }
-.armrest.left .armrest-pad {
+.armrest.left .armrest-wedge {
   transform-origin: bottom left;
-  transform: rotate(9deg) rotateX(40deg);
-  clip-path: polygon(0% 100%, 0% 20%, 58% 0%, 100% 42%, 100% 100%);
+  transform: rotate(9deg);
+}
+.armrest.right .armrest-wedge {
+  transform-origin: bottom right;
+  transform: rotate(-9deg);
+}
+.armrest.left .armrest-pad {
+  transform: rotateX(46deg);
+  clip-path: polygon(0% 60%, 0% 20%, 58% 0%, 100% 42%, 100% 60%);
   background:
-    linear-gradient(112deg, transparent 42%, rgba(0,0,0,0.55) 100%),
-    linear-gradient(160deg, #3d3128 0%, #241c16 55%, #130f0b 100%);
+    linear-gradient(112deg, transparent 42%, rgba(0,0,0,0.4) 100%),
+    linear-gradient(160deg, #4a3c30 0%, #2c2219 55%, #1a140e 100%);
+}
+.armrest.left .armrest-side {
+  clip-path: polygon(0% 100%, 0% 60%, 100% 60%, 100% 100%);
+  background:
+    linear-gradient(100deg, rgba(0,0,0,0.35), transparent 55%),
+    linear-gradient(190deg, #221a13 0%, #150f0a 60%, #0b0705 100%);
+  box-shadow: 0 -10px 26px rgba(0,0,0,0.55);
 }
 .armrest.right .armrest-pad {
-  transform-origin: bottom right;
-  transform: rotate(-9deg) rotateX(40deg);
-  clip-path: polygon(100% 100%, 100% 20%, 42% 0%, 0% 42%, 0% 100%);
+  transform: rotateX(46deg);
+  clip-path: polygon(100% 60%, 100% 20%, 42% 0%, 0% 42%, 0% 60%);
   background:
-    linear-gradient(248deg, transparent 42%, rgba(0,0,0,0.55) 100%),
-    linear-gradient(160deg, #3d3128 0%, #241c16 55%, #130f0b 100%);
+    linear-gradient(248deg, transparent 42%, rgba(0,0,0,0.4) 100%),
+    linear-gradient(160deg, #4a3c30 0%, #2c2219 55%, #1a140e 100%);
+}
+.armrest.right .armrest-side {
+  clip-path: polygon(100% 100%, 100% 60%, 0% 60%, 0% 100%);
+  background:
+    linear-gradient(260deg, rgba(0,0,0,0.35), transparent 55%),
+    linear-gradient(170deg, #221a13 0%, #150f0a 60%, #0b0705 100%);
+  box-shadow: 0 -10px 26px rgba(0,0,0,0.55);
 }
 .armrest.left .armrest-pad::before {
-  background: linear-gradient(52deg, rgba(255,255,255,0.16) 0%, transparent 32%),
-    radial-gradient(ellipse 60% 90% at 12% 88%, rgba(255,255,255,0.14), transparent 60%);
+  background: linear-gradient(52deg, rgba(255,255,255,0.18) 0%, transparent 32%),
+    radial-gradient(ellipse 60% 90% at 12% 88%, rgba(255,255,255,0.16), transparent 60%);
 }
 .armrest.right .armrest-pad::before {
-  background: linear-gradient(128deg, rgba(255,255,255,0.16) 0%, transparent 32%),
-    radial-gradient(ellipse 60% 90% at 88% 88%, rgba(255,255,255,0.14), transparent 60%);
+  background: linear-gradient(128deg, rgba(255,255,255,0.18) 0%, transparent 32%),
+    radial-gradient(ellipse 60% 90% at 88% 88%, rgba(255,255,255,0.16), transparent 60%);
 }
