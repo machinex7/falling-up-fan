@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/cockpit.css">
   <link rel="stylesheet" href="css/window.css">
+  <link rel="stylesheet" href="css/scenes.css">
   <link rel="stylesheet" href="css/console.css">
   <link rel="stylesheet" href="css/animations.css">
   <link rel="stylesheet" href="css/responsive.css">
@@ -57,7 +58,45 @@
         <div class="bolt bl"></div>
         <div class="bolt br"></div>
 
-        <canvas id="starfield"></canvas>
+        <!-- SCENE LAYER — the view through the window: a stack of
+             swappable backgrounds (js/window-scenes.js, css/scenes.css),
+             not one fixed starfield. #scene-ascent is the silo interior
+             at rest; it scrolls up through ground/sky/atmosphere on
+             launch, then hands off to #scene-space (the starfield
+             canvas, unchanged from before) for the rest of the flight.
+             Future views (other ships, constellations, effects) are
+             just another .scene added here. -->
+        <div id="scene-layer">
+          <div class="scene scene-ascent is-active" id="scene-ascent" data-scene="ascent">
+            <div class="ascent-strip" id="ascent-strip">
+              <div class="ascent-band band-space"></div>
+              <div class="ascent-band band-upper"></div>
+              <div class="ascent-band band-sky">
+                <div class="cloud-layer">
+                  <div class="cloud" style="top: 14%; left: 8%; width: 32%; animation-delay: -2s;"></div>
+                  <div class="cloud" style="top: 42%; left: 52%; width: 24%; animation-delay: -8s;"></div>
+                  <div class="cloud" style="top: 68%; left: 22%; width: 30%; animation-delay: -14s;"></div>
+                  <div class="cloud" style="top: 30%; left: 78%; width: 20%; animation-delay: -5s;"></div>
+                </div>
+              </div>
+              <div class="ascent-band band-ground">
+                <svg class="tree-line" viewBox="0 0 400 60" preserveAspectRatio="none">
+                  <polygon points="24,60 40,14 56,60"/>
+                  <polygon points="70,60 84,26 98,60"/>
+                  <polygon points="130,60 150,6 170,60"/>
+                  <polygon points="210,60 226,22 242,60"/>
+                  <polygon points="270,60 282,32 294,60"/>
+                  <polygon points="330,60 350,10 370,60"/>
+                </svg>
+              </div>
+              <div class="ascent-band band-silo hull"></div>
+            </div>
+          </div>
+
+          <div class="scene scene-space" id="scene-space" data-scene="space">
+            <canvas id="starfield"></canvas>
+          </div>
+        </div>
 
         <div class="hud tl">Heading 227.4&deg;<br>Drift 0.001 AU/HR</div>
         <div class="hud tr">Range: Deep Field<br>Signal: Locked</div>
@@ -283,6 +322,7 @@
 <script src="js/readouts.js"></script>
 <script src="js/throttle.js"></script>
 <script src="js/parallax.js"></script>
+<script src="js/window-scenes.js"></script>
 <script src="js/power.js"></script>
 </body>
 </html>

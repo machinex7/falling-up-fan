@@ -4,6 +4,11 @@
 // clickable control until pressed. Tap it to flip #cockpit to
 // "powered" and everything else flickers to life (css/*.css own
 // the actual dimming/flicker rules, keyed off these three classes).
+// The very first power-on also fires 'ship:launch' for
+// js/window-scenes.js to play the silo-to-space ascent — later
+// power toggles (if the ship is powered back down and up again)
+// don't replay it, since re-launching on every toggle wouldn't
+// make sense once the ship is already in space.
 // ═══════════════════════════════════════════════════════
 (function () {
   const cockpit = document.getElementById('cockpit');
@@ -13,6 +18,7 @@
 
   const FLICKER_MS = 1150;
   let flickerTimer = null;
+  let hasLaunched = false;
 
   launch.addEventListener('click', () => {
     clearTimeout(flickerTimer);
@@ -32,5 +38,10 @@
     launch.setAttribute('aria-pressed', 'true');
     label.textContent = 'Launched';
     flickerTimer = setTimeout(() => cockpit.classList.remove('flicker'), FLICKER_MS);
+
+    if (!hasLaunched) {
+      hasLaunched = true;
+      document.dispatchEvent(new CustomEvent('ship:launch'));
+    }
   });
 })();

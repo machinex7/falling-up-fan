@@ -33,14 +33,22 @@ css/
                      reticle, canvas sizing
   console.css        the widget deck: #deck-grid, .tile and every
                      widget "face" (readout, gauge, nav-tile, knob,
-                     toggle, bar, alert light, throttle, equalizer)
+                     toggle, bar, alert light, throttle, equalizer,
+                     LAUNCH)
+  scenes.css         the window's swappable backgrounds — #scene-layer,
+                     .scene, and every scene's own art (currently just
+                     .scene-ascent's silo/ground/sky/space strip;
+                     .scene-space is just a plain wrapper around the
+                     existing starfield canvas)
   animations.css     all @keyframes, shared across the files above
   responsive.css     the >=900px media query — kept last on purpose,
                      since it overrides rules defined in the files
                      above and CSS source order decides that fight
 js/
   starfield.js       canvas starfield IIFE, sized to #window via
-                     ResizeObserver
+                     ResizeObserver — now mounted inside #scene-space
+                     rather than being #window's only background, but
+                     otherwise unchanged
   controls.js        toggle/knob/alert click handling on .tile
   readouts.js        readout drift (setInterval) + cargo bar fill-in
   throttle.js        pointer-based drag on .throttle-track
@@ -48,6 +56,13 @@ js/
                      DeviceOrientation; also owns the #motion-enable
                      iOS-permission pill (button lives in index.html,
                      styled in cockpit.css)
+  window-scenes.js   the scene switch (crossfades .scene elements via
+                     .is-active) plus the one scene transition that
+                     exists so far — silo -> ascent -> space, played
+                     once on the 'ship:launch' DOM event
+  power.js           the ship's powered/unpowered state (LAUNCH
+                     button); dispatches 'ship:launch' the first time
+                     the ship powers on
 ```
 
 Split for size/readability, not for reuse or bundling — there's still no
@@ -365,6 +380,55 @@ pinned to the seat — the same "flat sibling below a hinge that doesn't
 move" logic as `.console-riser`, just used to foreshorten a receding
 surface instead of add a front face. The outer `rotate()` then points
 that already-foreshortened plane diagonally in toward the console.
+
+## The window's scene system
+
+The view through `#window` is not one fixed starfield — it's a stack of
+swappable **scenes**, since the plan is for it to eventually show all kinds
+of different backgrounds (other ships, constellations, effects) as the
+site's fiction develops, not just the launch. `#scene-layer` holds every
+`.scene`, each an absolutely-positioned full-bleed layer; `js/window-scenes.js`
+shows one at a time by toggling `.is-active`, which crossfades via a plain
+CSS `opacity` transition. A future scene is just another element added to
+`#scene-layer` plus whatever code decides to call `showScene()` on it —
+this file doesn't need to know about it in advance, the same way `.tile`
+widgets on the deck don't need console.css to know about every future
+widget type.
+
+The one scene transition that exists so far — `.scene-ascent`'s silo
+interior scrolling up into `.scene-space`'s starfield on launch — is built
+as **one continuous tall strip** (`.ascent-strip`, `height: 600%` of the
+scene's own box, so it scales with `#window` at any breakpoint with zero
+JS measurement) rather than several separately-timed effects. Reading it
+bottom-to-top: silo shaft, ground/treeline, sky+clouds, upper atmosphere,
+space+stars. A single `translateY` scroll animation (`ascent-scroll` in
+animations.css) is the whole sequence — "gradually brighter," "trees pass
+below," and "clouds pass below" all fall straight out of scrolling past
+different painted bands of one world, not out of separately animating
+brightness/position for each element. If a future scene needs its own
+multi-stage transition, prefer this "one strip, bands do the work" trick
+over hand-timing a pile of individual elements — it's what kept this one
+from turning into a mess of `setTimeout`s.
+
+The strip is **bottom-anchored** (`bottom: 0`), so it shows the silo at
+rest with no transform needed, and scrolls **down** (positive `translateY`)
+as the ship climbs — the ground sliding down and out of the window while
+the sky above stays in place is what an ascending window view actually
+looks like, and matches the "scroll down" the user originally described.
+Getting the sign of that transform backwards was the one real bug during
+development: it looked like the scene just went to black and stayed there,
+because the strip scrolled UP off the top of its own artwork into empty
+space instead of down through it — if a future scene's scroll transition
+seems to "do nothing," check the transform's sign against which edge the
+strip is anchored to before anything else.
+
+`js/power.js` triggers the sequence by dispatching a plain `'ship:launch'`
+DOM event on `document` (once, the first time the ship powers on — not on
+every power toggle) rather than calling into window-scenes.js directly,
+the same loose, no-shared-state coupling every other feature file in this
+codebase already uses. Reach for that same event-dispatch pattern for any
+future cross-file trigger instead of adding direct references between
+`js/*.js` files.
 
 ## A real gotcha: 3D transforms break naive click targeting
 

@@ -34,6 +34,33 @@
   to   { stroke-dasharray: 99.2 64.2; }
 }
 
+/* launch — the pre-scroll rumble (silo-shake) and the long climb
+   through the ascent strip's bands (ascent-scroll); see the
+   .scene-ascent/.ascent-strip comment in css/scenes.css for why the
+   scroll distance is a fixed -83.333% regardless of viewport size */
+@keyframes silo-shake {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-3px, 1px); }
+  20% { transform: translate(2px, -2px); }
+  30% { transform: translate(-2px, 2px); }
+  40% { transform: translate(3px, -1px); }
+  50% { transform: translate(-2px, -1px); }
+  60% { transform: translate(2px, 2px); }
+  70% { transform: translate(-3px, 0); }
+  80% { transform: translate(2px, -1px); }
+  90% { transform: translate(-1px, 1px); }
+}
+
+@keyframes ascent-scroll {
+  from { transform: translateY(0); }
+  to   { transform: translateY(83.333%); }
+}
+
+@keyframes cloud-drift {
+  from { transform: translateX(-6%); }
+  to   { transform: translateX(6%); }
+}
+
 /* power-up flicker — plays once on #cockpit.flicker (see console.css/
    cockpit.css/window.css .flicker rules and js/power.js), settling on
    brightness(1) so removing .flicker afterward is seamless */
