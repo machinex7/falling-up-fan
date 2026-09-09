@@ -18,6 +18,10 @@
 
 <div id="cockpit">
 
+  <!-- shown only on iOS Safari, which gates DeviceOrientation behind an
+       explicit tap — see js/parallax.js. Hidden everywhere else. -->
+  <button id="motion-enable" type="button" hidden>Enable Motion</button>
+
   <!-- ═══ PLAQUE BAR ═══ -->
   <div id="plaque-bar">
     <div class="rivet"></div>
@@ -233,6 +237,11 @@
 
         </div>
       </div>
+
+      <!-- the console's own front face: a vertical kick panel below the
+           angled top, so the dash reads as a wedge with real thickness
+           instead of one flat tilted plate. See console.css. -->
+      <div class="console-riser hull"></div>
     </div>
 
     <div class="seam"></div>
@@ -255,8 +264,8 @@
   </div><!-- /#shell -->
 
   <!-- ═══ PILOT'S CHAIR: armrests overlaying the view ═══ -->
-  <div class="armrest left"></div>
-  <div class="armrest right"></div>
+  <div class="armrest left"><div class="armrest-wedge"><div class="armrest-pad"></div><div class="armrest-side"></div></div></div>
+  <div class="armrest right"><div class="armrest-wedge"><div class="armrest-pad"></div><div class="armrest-side"></div></div></div>
 
 </div><!-- /#cockpit -->
 
@@ -264,5 +273,6 @@
 <script src="js/controls.js"></script>
 <script src="js/readouts.js"></script>
 <script src="js/throttle.js"></script>
+<script src="js/parallax.js"></script>
 </body>
 </html>
