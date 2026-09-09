@@ -36,16 +36,16 @@
   // reading as one continuous surface instead of shearing apart at
   // their seam.
   const layers = [
-    { el: document.getElementById('starfield'), mx: 10, my: 7 },
-    { el: document.querySelector('.armrest.left'), mx: 16, my: 10 },
-    { el: document.querySelector('.armrest.right'), mx: 16, my: 10 },
-    { el: document.getElementById('console'), mx: 3, my: 2 },
-    { el: document.querySelector('.console-riser'), mx: 3, my: 2 },
+    { el: document.getElementById('starfield'), mx: 16, my: 11 },
+    { el: document.querySelector('.armrest.left'), mx: 26, my: 16 },
+    { el: document.querySelector('.armrest.right'), mx: 26, my: 16 },
+    { el: document.getElementById('console'), mx: 4, my: 2.5 },
+    { el: document.querySelector('.console-riser'), mx: 4, my: 2.5 },
   ].filter(layer => layer.el);
 
   if (!layers.length) return;
 
-  const MAX_DEG = 22; // tilt range (either axis, off the calibrated neutral pose) mapped to full parallax travel
+  const MAX_DEG = 18; // tilt range (either axis, off the calibrated neutral pose) mapped to full parallax travel — lower than a full comfortable tilt so the effect reaches full travel without needing an extreme angle
   const SMOOTHING = 0.08; // exponential smoothing factor per frame — low-pass filters sensor jitter
 
   let baseGamma = null;
