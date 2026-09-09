@@ -390,75 +390,51 @@
 }
 .tile.alert.is-alert .tile-label { color: var(--red); }
 
-/* LAUNCH — a big centered pushbutton, explicitly placed (not
-   auto-flowed) so it always lands in the middle of the deck; dense
-   packing routes every other tile around this reserved block. Round
-   plastic bezel like the toggle .push-btns, but the whole face is the
-   "lens" here since there's no separate small button+caption pairing
-   to protect — the label sits right on the button. */
+/* LAUNCH — same .push-btn/.btn-lens component as every other
+   pushbutton on the deck (round bezel, .tile-label caption below —
+   see the push-btn note in AGENTS.md), just explicitly grid-placed
+   so dense packing routes every other tile around this reserved
+   center block, and sized up (.launch-btn, plus a bigger
+   .tile-label) so it reads as the one control on the whole panel.
+   Its lens starts on the shared idle `.amber` pulse (same as the nav
+   buttons) instead of off, since it's the only thing still lit while
+   #cockpit is unpowered — js/power.js flips it to a steady green
+   glow once pressed instead of dimming like everything else does. */
 .tile.launch {
   grid-column: 7 / 11;
   grid-row: 2 / 5;
-  padding: 0;
+  appearance: none;
+  -webkit-appearance: none;
   border: none;
-  background: none;
-  box-shadow: none;
-  cursor: pointer;
   font: inherit;
-  color: inherit;
-  justify-content: center;
-}
-.tile.launch::before, .tile.launch::after { content: none; }
-
-.launch-ring {
-  position: absolute;
-  inset: 8%;
-  border-radius: 50%;
-  background: radial-gradient(circle at var(--light-pos), var(--plastic-hi), var(--plastic) 55%, var(--plastic-lo) 100%);
-  border: 2px solid #000;
-  box-shadow:
-    0 5px 0 #000,
-    0 8px 14px rgba(0,0,0,0.6),
-    inset 0 2px 2px rgba(255,255,255,0.16),
-    inset 0 -3px 6px rgba(0,0,0,0.6),
-    0 0 0 6px var(--bezel-lo),
-    0 0 20px 3px var(--amber-glow);
-  animation: lamp-pulse 2.2s ease-in-out infinite;
-  transition: transform 0.06s ease, box-shadow 0.06s ease;
-}
-.tile.launch:hover .launch-ring { filter: brightness(1.15); }
-.tile.launch:active .launch-ring {
-  transform: translateY(4px);
-  box-shadow: 0 1px 0 #000, inset 0 2px 4px rgba(0,0,0,0.7), 0 0 0 6px var(--bezel-lo);
+  cursor: pointer;
 }
 
-.launch-label {
-  position: relative;
-  z-index: 1;
-  font-family: var(--font-label);
+.push-btn.launch-btn {
+  width: clamp(60px, 15vw, 100px);
+  height: clamp(60px, 15vw, 100px);
+}
+
+.tile.launch .tile-label {
+  font-size: clamp(0.5rem, 2.4vw, 0.78rem);
   font-weight: 700;
-  letter-spacing: 0.12em;
-  font-size: clamp(0.55rem, 2.6vw, 0.85rem);
-  text-transform: uppercase;
+  letter-spacing: 0.1em;
   color: var(--led-amber);
-  text-shadow: 0 0 8px var(--amber-glow);
+  text-shadow: 0 0 6px var(--amber-glow);
 }
 
 /* powered: the one control that goes from idle-pulsing TO a steadier
    "systems nominal" glow instead of dimming like everything else does */
-#cockpit.powered .launch-ring {
+#cockpit.powered .tile.launch .btn-lens {
+  --lens-hi: var(--led-green);
+  --lens: var(--green);
+  --lens-lo: #0d2417;
+  --btn-glow: var(--green-glow);
   animation: none;
-  box-shadow:
-    0 5px 0 #000,
-    0 8px 14px rgba(0,0,0,0.6),
-    inset 0 2px 2px rgba(255,255,255,0.16),
-    inset 0 -3px 6px rgba(0,0,0,0.6),
-    0 0 0 6px var(--bezel-lo),
-    0 0 20px 3px var(--green-glow);
 }
-#cockpit.powered .launch-label {
+#cockpit.powered .tile.launch .tile-label {
   color: var(--led-green);
-  text-shadow: 0 0 10px var(--green-glow);
+  text-shadow: 0 0 8px var(--green-glow);
 }
 
 /* UNPOWERED — every deck tile but LAUNCH itself goes dark and

@@ -121,12 +121,12 @@
           </div>
 
           <!-- LAUNCH — powers the whole console on/off (js/power.js).
-               The only tile still lit while the ship is unpowered, so it
-               opts out of the shared .tile mount-plate look for its own
-               big pushbutton face instead. -->
+               Same push-btn/btn-lens component as the toggles below,
+               just bigger, and the only tile still lit while the ship
+               is unpowered. -->
           <button type="button" id="launch-tile" class="tile launch" aria-pressed="false">
-            <span class="launch-ring"></span>
-            <span class="launch-label" id="launch-label">Launch</span>
+            <div class="push-btn round launch-btn"><div class="btn-lens amber"></div></div>
+            <div class="tile-label" id="launch-label">Launch</div>
           </button>
 
           <!-- row 2: the real links + more instruments -->
