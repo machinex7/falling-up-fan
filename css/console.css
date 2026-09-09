@@ -402,7 +402,7 @@
    glow once pressed instead of dimming like everything else does. */
 .tile.launch {
   grid-column: 7 / 11;
-  grid-row: 2 / 5;
+  grid-row: 2 / 4;
   appearance: none;
   -webkit-appearance: none;
   border: none;
@@ -411,8 +411,8 @@
 }
 
 .push-btn.launch-btn {
-  width: clamp(60px, 15vw, 100px);
-  height: clamp(60px, 15vw, 100px);
+  width: clamp(44px, 11vw, 68px);
+  height: clamp(44px, 11vw, 68px);
 }
 
 .tile.launch .tile-label {
