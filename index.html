@@ -16,7 +16,7 @@
 </head>
 <body>
 
-<div id="cockpit">
+<div id="cockpit" class="unpowered">
 
   <!-- shown only on iOS Safari, which gates DeviceOrientation behind an
        explicit tap — see js/parallax.js. Hidden everywhere else. -->
@@ -119,6 +119,15 @@
             </svg>
             <div class="tile-label">O2</div>
           </div>
+
+          <!-- LAUNCH — powers the whole console on/off (js/power.js).
+               The only tile still lit while the ship is unpowered, so it
+               opts out of the shared .tile mount-plate look for its own
+               big pushbutton face instead. -->
+          <button type="button" id="launch-tile" class="tile launch" aria-pressed="false">
+            <span class="launch-ring"></span>
+            <span class="launch-label" id="launch-label">Launch</span>
+          </button>
 
           <!-- row 2: the real links + more instruments -->
           <a href="members.html" class="tile nav-tile">
@@ -274,5 +283,6 @@
 <script src="js/readouts.js"></script>
 <script src="js/throttle.js"></script>
 <script src="js/parallax.js"></script>
+<script src="js/power.js"></script>
 </body>
 </html>

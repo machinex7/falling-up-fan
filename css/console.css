@@ -390,6 +390,91 @@
 }
 .tile.alert.is-alert .tile-label { color: var(--red); }
 
+/* LAUNCH — a big centered pushbutton, explicitly placed (not
+   auto-flowed) so it always lands in the middle of the deck; dense
+   packing routes every other tile around this reserved block. Round
+   plastic bezel like the toggle .push-btns, but the whole face is the
+   "lens" here since there's no separate small button+caption pairing
+   to protect — the label sits right on the button. */
+.tile.launch {
+  grid-column: 7 / 11;
+  grid-row: 2 / 5;
+  padding: 0;
+  border: none;
+  background: none;
+  box-shadow: none;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  justify-content: center;
+}
+.tile.launch::before, .tile.launch::after { content: none; }
+
+.launch-ring {
+  position: absolute;
+  inset: 8%;
+  border-radius: 50%;
+  background: radial-gradient(circle at var(--light-pos), var(--plastic-hi), var(--plastic) 55%, var(--plastic-lo) 100%);
+  border: 2px solid #000;
+  box-shadow:
+    0 5px 0 #000,
+    0 8px 14px rgba(0,0,0,0.6),
+    inset 0 2px 2px rgba(255,255,255,0.16),
+    inset 0 -3px 6px rgba(0,0,0,0.6),
+    0 0 0 6px var(--bezel-lo),
+    0 0 20px 3px var(--amber-glow);
+  animation: lamp-pulse 2.2s ease-in-out infinite;
+  transition: transform 0.06s ease, box-shadow 0.06s ease;
+}
+.tile.launch:hover .launch-ring { filter: brightness(1.15); }
+.tile.launch:active .launch-ring {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 #000, inset 0 2px 4px rgba(0,0,0,0.7), 0 0 0 6px var(--bezel-lo);
+}
+
+.launch-label {
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-label);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  font-size: clamp(0.55rem, 2.6vw, 0.85rem);
+  text-transform: uppercase;
+  color: var(--led-amber);
+  text-shadow: 0 0 8px var(--amber-glow);
+}
+
+/* powered: the one control that goes from idle-pulsing TO a steadier
+   "systems nominal" glow instead of dimming like everything else does */
+#cockpit.powered .launch-ring {
+  animation: none;
+  box-shadow:
+    0 5px 0 #000,
+    0 8px 14px rgba(0,0,0,0.6),
+    inset 0 2px 2px rgba(255,255,255,0.16),
+    inset 0 -3px 6px rgba(0,0,0,0.6),
+    0 0 0 6px var(--bezel-lo),
+    0 0 20px 3px var(--green-glow);
+}
+#cockpit.powered .launch-label {
+  color: var(--led-green);
+  text-shadow: 0 0 10px var(--green-glow);
+}
+
+/* UNPOWERED — every deck tile but LAUNCH itself goes dark and
+   unresponsive (dimmed + desaturated via filter rather than hunting
+   down every lit color individually, and unclickable so a dead
+   console can't be operated). js/power.js owns the
+   unpowered/powered/flicker classes on #cockpit; .flicker briefly
+   plays power-flicker (animations.css) as things come back on. */
+#cockpit.unpowered #deck-grid > .tile:not(.launch) {
+  filter: brightness(0.3) saturate(0.4);
+  pointer-events: none;
+}
+#cockpit.flicker #deck-grid > .tile:not(.launch) {
+  animation: power-flicker 1.1s steps(1, jump-none) 1;
+}
+
 /* throttle tile — vertical drag lever, 2 columns wide */
 .tile.throttle { grid-column: span 4; }
 .throttle-track {
