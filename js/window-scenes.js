@@ -17,9 +17,12 @@
   if (!layer || !ascent || !strip || !space) return;
 
   // keep in sync with the silo-shake/ascent-scroll durations in
-  // css/scenes.css
-  const SHAKE_MS = 1400;
-  const SCROLL_MS = 30000;
+  // css/scenes.css: SCROLL_MS is when ascent-scroll's own last stop
+  // (translateY(90%), solid black) is reached, not the strip's true
+  // top — the crossfade to the real starfield fires right there
+  // instead of waiting for the strip's own now-blank final stretch
+  const SHAKE_MS = 1000;
+  const SCROLL_MS = 23000;
 
   function showScene(scene) {
     layer.querySelectorAll('.scene').forEach(s => s.classList.toggle('is-active', s === scene));

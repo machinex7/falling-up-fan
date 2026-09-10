@@ -51,26 +51,41 @@
   90% { transform: translate(-1px, 1px); }
 }
 
-/* the ascent's acceleration curve: 5 stops (not from/to) so distance
-   covered per equal time slice grows at each one — slow at first
-   (0%->30% of the time covers just the first 6% of the climb, roughly
-   LEVEL 6 into LEVEL 5 — see the .level-marker positions in
-   scenes.css), then steadily faster the rest of the way. Playing
-   under `animation-timing-function: linear` (scenes.css) matters:
-   that keeps interpolation BETWEEN each pair of stops straight, so
-   these percentages are the exact intended time/distance mapping —
-   an eased timing-function here would distort them further. To make
-   the slow start last longer or shorter, move the early stops (e.g.
-   30%/6%); to change how hard the finish accelerates, adjust the
-   spacing of the later ones — each stop only needs to keep both its
-   time% and its translateY% increasing from the previous one. */
+/* the ascent's acceleration curve, on a 23s total (js/window-scenes.js
+   SCROLL_MS). Each stop pairs a moment in real time with how far the
+   strip has scrolled at that moment (as a translateY %, always against
+   the strip's own height); playing under `animation-timing-function:
+   linear` (scenes.css) keeps interpolation BETWEEN any two stops
+   straight, so these numbers ARE the intended time/distance mapping —
+   an eased timing-function here would distort them further.
+
+   The first 6 interior stops are exact, given per-level durations
+   (deepest level first): LEVEL 6 takes 3.5s to pass, LEVEL 5 3s,
+   LEVEL 4 2.5s, LEVEL 3 2s, LEVEL 2 1.5s, LEVEL 1 1s — "a level passes"
+   is defined as the moment its .level-marker (scenes.css) scrolls out
+   the BOTTOM of the window, i.e. translateY% = 100 - (that level's
+   absolute strip position, (2L-1)/12*100 mapped into .band-silo's
+   54%-100% range). The remaining 3 stops are hand-picked pacing after
+   the silo ends (not given as exact numbers): ~1.5s to clear the
+   ground/treeline, ~6s flying against the sky, ~2s fading through the
+   upper atmosphere to solid black.
+
+   To retune a level's duration: change ONLY that stop's time% (its
+   translateY% is fixed by the level's actual position); to retune the
+   post-silo pacing, move the last 3 stops' time%s. Every stop must
+   keep both its time% and its translateY% increasing from the one
+   before it. */
 @keyframes ascent-scroll {
-  0%   { transform: translateY(0%); }
-  30%  { transform: translateY(6%); }
-  55%  { transform: translateY(20%); }
-  75%  { transform: translateY(41%); }
-  90%  { transform: translateY(70%); }
-  100% { transform: translateY(91.667%); }
+  0%      { transform: translateY(0%); }      /* rest: LEVEL 6 in view */
+  15.22%  { transform: translateY(3.83%); }   /* +3.5s: LEVEL 6 passed */
+  28.26%  { transform: translateY(11.5%); }   /* +3.0s: LEVEL 5 passed */
+  39.13%  { transform: translateY(19.17%); }  /* +2.5s: LEVEL 4 passed */
+  47.83%  { transform: translateY(26.83%); }  /* +2.0s: LEVEL 3 passed */
+  54.35%  { transform: translateY(34.5%); }   /* +1.5s: LEVEL 2 passed */
+  58.70%  { transform: translateY(42.17%); }  /* +1.0s: LEVEL 1 passed, silo done */
+  65.22%  { transform: translateY(54%); }     /* +1.5s: ground/trees cleared */
+  91.30%  { transform: translateY(82%); }     /* +6.0s: sky cleared */
+  100%    { transform: translateY(90%); }     /* +2.0s: solid black — crossfade to real stars fires here */
 }
 
 @keyframes cloud-drift {

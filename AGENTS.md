@@ -402,7 +402,7 @@ scene's own box, so it scales with `#window` at any breakpoint with zero
 JS measurement) rather than several separately-timed effects. Reading it
 bottom-to-top: silo shaft, ground/treeline, sky+clouds, upper atmosphere,
 space+stars. A single `translateY` scroll animation (`ascent-scroll` in
-animations.css, `30s`) is the whole sequence — "gradually brighter,"
+animations.css, `23s`) is most of the sequence — "gradually brighter,"
 "trees pass below," and "clouds pass below" all fall straight out of
 scrolling past different painted bands of one world, not out of
 separately animating brightness/position for each element. If a future
@@ -411,37 +411,58 @@ do the work" trick over hand-timing a pile of individual elements — it's
 what kept this one from turning into a mess of `setTimeout`s.
 
 `ascent-scroll` plays under `animation-timing-function: linear`
-(scenes.css), but the keyframe itself is NOT a plain from/to — it has 5
-explicit stops whose spacing is what gives the climb its "slow through the
-first level or two, faster from there" acceleration (per user feedback;
-an earlier version used a plain linear from/to and felt too uniform).
-Because the timing-function is linear, interpolation BETWEEN each pair of
-stops is straight, so a stop's (time%, distance%) pair is exactly when
-that much of the strip has scrolled — no timing-function easing further
-distorting it. To retune the curve: move a stop's time% to make that
-segment last longer/shorter, or its distance% to cover more/less ground
-in that segment; each stop just needs both values to keep increasing from
-the previous one. Reach for this same "explicit keyframe stops under a
-linear timing-function" trick for any future scene that needs a
-hand-shaped pace curve — it keeps the stops' numbers meaning exactly what
-they say, which a bezier easing on top would quietly break.
+(scenes.css), but the keyframe itself is NOT a plain from/to — it has 9
+explicit stops, 6 of them pinned to an exact per-level duration the user
+gave directly (LEVEL 6 passes in 3.5s, LEVEL 5 in 3s, down to LEVEL 1 in
+1s — "passing" defined as that level's `.level-marker` scrolling out the
+window's bottom edge, i.e. `translateY% = 100 - <that level's absolute
+strip position>`), with 3 more hand-picked stops pacing what comes after
+(ground, sky, fade-to-black). Because the timing-function is linear,
+interpolation BETWEEN each pair of stops is straight, so a stop's
+(time%, distance%) pair is exactly when that much of the strip has
+scrolled — no timing-function easing further distorting it. To retune a
+level's own duration, change only that stop's time% (its translateY% is
+fixed by the level's actual position, not a free choice); to retune
+post-silo pacing, move the last 3 stops' time%s. Every stop just needs
+both its time% and its translateY% to keep increasing from the one
+before it. Reach for this same "explicit keyframe stops under a linear
+timing-function" trick for any future scene that needs a hand-shaped pace
+curve — it keeps the stops' numbers meaning exactly what they say, which
+a bezier easing on top would quietly break.
+
+The scroll deliberately does NOT run all the way to the strip's true top
+(`translateY(91.667%)`, where `.band-space`'s baked art would be fully
+revealed) — it stops at `90%`, the moment the view is solid black, per
+explicit feedback that painted-in stars sliding past at ascent speed
+looks wrong: real stars are far enough away that they shouldn't
+noticeably move at all on this timescale. `.band-space` is now just flat
+black (`#05060a`), never meant to be fully scrolled into view; instead,
+`js/window-scenes.js`'s `SCROLL_MS` timeout (kept equal to this
+animation's total duration) fires right as that final stop is reached,
+and crossfades to `.scene-space` — the REAL starfield canvas — over the
+existing `.scene` opacity transition, reading as stars gradually becoming
+visible once it's dark enough, not a scene cut. If a future scene needs a
+similar "painted approximation hands off to a live/real element" moment,
+trigger the handoff at the exact time the painted version stops adding
+anything (here: "already solid black"), not at the animation's literal
+end — the two aren't the same thing once the strip's own final stretch
+is blank.
 
 Band sizing (the height% values) is a separate knob from this curve and
 still works the same way it always did: it sets how much of the strip's
 total DISTANCE each band covers, not directly how much time — with a
-non-uniform curve, a band's share of time now depends on where its
-distance range falls across the stops above, not purely on its own
-height%. Silo depth isn't sold by darkness alone: six `.level-marker`
-labels ("LEVEL 1"–"LEVEL 6")
-are spaced through `.band-silo` at fixed intervals (`(2L-1)/12 * 100%`,
-independent of the strip's overall scale) so the descent has a legible
-sense of scale, not just an abstractly-long dark scroll. Similarly,
-`.band-ground` layers two tree SVGs instead of one — `.tree-line.far`
-(short, hazy, desaturated) behind `.tree-line.near` (tall, near-black,
-tall enough to poke past `.band-ground`'s own edge into the sky band
-above via `overflow: visible`) — since a single distant tree line reads
-as "flying over a forest," while the near layer is what sells "hidden
-close in the woods."
+non-uniform curve, a band's share of time depends on where its distance
+range falls across the stops above, not purely on its own height%. Silo
+depth isn't sold by darkness alone: six `.level-marker` labels ("LEVEL
+1"–"LEVEL 6") are spaced through `.band-silo` at fixed intervals
+(`(2L-1)/12 * 100%`, independent of the strip's overall scale) so the
+descent has a legible sense of scale, not just an abstractly-long dark
+scroll. Similarly, `.band-ground` layers two tree SVGs instead of one —
+`.tree-line.far` (short, hazy, desaturated) behind `.tree-line.near`
+(tall, near-black, tall enough to poke past `.band-ground`'s own edge
+into the sky band above via `overflow: visible`) — since a single
+distant tree line reads as "flying over a forest," while the near layer
+is what sells "hidden close in the woods."
 
 The strip is **bottom-anchored** (`bottom: 0`), so it shows the silo at
 rest with no transform needed, and scrolls **down** (positive `translateY`)

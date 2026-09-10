@@ -54,18 +54,22 @@
    transform needed) and scrolls DOWN (positive translateY) as the
    ship climbs — the ground/sky sliding down and out of frame while
    the sky above stays put is what an ascending window view actually
-   looks like. translateY(91.667%) = (1200% - 100%) / 1200% of the
-   strip's OWN height, i.e. "scroll until the strip's top 1 window-
-   height is in view" — recompute this fraction if the strip's total
-   height (1200%) ever changes.
+   looks like.
 
    The animation-timing-function here is `linear`, but the ACCELERATION
-   ("slow through the first level or two, faster from there") lives in
-   ascent-scroll's own keyframe stops (animations.css), not in this
-   timing-function — see the comment there before tuning the curve. */
-.scene-ascent.is-shaking { animation: silo-shake 1.4s ease-in-out; }
+   (an explicit, decreasing per-level duration — see ascent-scroll's own
+   comment in animations.css) lives entirely in ascent-scroll's keyframe
+   stops, not in this timing-function. Note the scroll no longer runs
+   all the way to translateY(91.667%) (the strip's true top/space band):
+   it stops at 90%, right as the view reaches solid black, because
+   js/window-scenes.js crossfades to the real starfield scene (see
+   .scene-space below) at that same moment rather than waiting for the
+   strip's fake, baked-in stars to finish scrolling into view — distant
+   stars shouldn't visibly slide past at ascent speed the way foreground
+   scenery does. */
+.scene-ascent.is-shaking { animation: silo-shake 1s ease-in-out; }
 .ascent-strip.is-launching {
-  animation: ascent-scroll 30s linear forwards;
+  animation: ascent-scroll 23s linear forwards;
 }
 
 .ascent-band {
@@ -83,14 +87,13 @@
 .band-space {
   top: 0%;
   height: 6%;
-  background:
-    radial-gradient(1.4px 1.4px at 12% 22%, #fff, transparent),
-    radial-gradient(1px 1px at 32% 64%, #fff, transparent),
-    radial-gradient(1.6px 1.6px at 68% 34%, #fff, transparent),
-    radial-gradient(1px 1px at 84% 78%, #fff, transparent),
-    radial-gradient(1.2px 1.2px at 48% 12%, #fff, transparent),
-    radial-gradient(1px 1px at 91% 46%, #fff, transparent),
-    #05060a;
+  /* plain black, not painted stars: real stars are far enough away that
+     they shouldn't visibly slide past at ascent speed the way the
+     ground/sky do, so this band is never meant to be scrolled through —
+     the scroll stops just before it (see .ascent-strip.is-launching
+     above) and js/window-scenes.js crossfades in the real starfield
+     scene (.scene-space) instead of ever fully revealing this one */
+  background: #05060a;
 }
 .band-upper {
   top: 6%;
