@@ -624,10 +624,19 @@ lives inside `#forward` (which needed `position: relative` added in
 cockpit.css for this to anchor to), sized via `position: absolute; inset:
 0`, so it automatically covers exactly the window+console box at any
 breakpoint with zero measurement — the same trick `.console-riser` and
-`.armrest` use elsewhere in this file. It's parked at `translateX(106%)`
-until `.is-open` slides it to `translateX(0)` (css/monitor.css); `pointer-
-events` are off while parked so a closed, off-screen panel can never
-intercept a click meant for the console underneath it, and the screen's
+`.armrest` use elsewhere in this file. It's parked at
+`translateX(calc(100% + 100vw))` until `.is-open` slides it to
+`translateX(0)` (css/monitor.css) — **not** a flat percentage like
+`106%`: that's relative to `#info-monitor`'s OWN width, which is only
+`#forward`'s width (narrower than the viewport by whatever the side
+walls/seams take up), so a plain `106%` only cleared #forward's own box
+and left a sliver of the parked panel — header text included — visibly
+sitting over the right wall at every breakpoint. The `+ 100vw` term
+guarantees the translated left edge clears the actual viewport regardless
+of how wide the walls are, without hardcoding `--wall-w` or the >=900px
+breakpoint's ratio into this file. `pointer-events` are off while parked
+so a closed, off-screen panel can never intercept a click meant for the
+console underneath it, and the screen's
 own `crt-flicker` animation (below) is scoped to `.is-open` too, so
 nothing is even animating while it's parked — genuinely off, not just
 out of view. Unlike every other tile, `#albums-tile` (and the other two

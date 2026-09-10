@@ -16,13 +16,24 @@
    parent, see cockpit.css), so it naturally covers window+console
    at any breakpoint with no measurement. Parked off the right edge
    until .is-open; pointer-events stay off while parked so it can
-   never eat a click meant for the console/window behind it. */
+   never eat a click meant for the console/window behind it.
+
+   translateX(%) is relative to THIS element's own width, not the
+   viewport's — and #info-monitor is only as wide as #forward (the
+   window+console box), which is narrower than the viewport by
+   however much the side walls/seams/margins take up. A flat 106%
+   only clears #forward's own box, so it left a sliver of the parked
+   panel (header text included) sitting visibly over the right wall
+   at every breakpoint. `+ 100vw` guarantees the translated left edge
+   lands past the actual viewport's right edge regardless of how wide
+   the walls are (--wall-w) or how that ratio shifts at the >=900px
+   breakpoint, without hardcoding either number here. */
 .info-monitor {
   position: absolute;
   inset: 0;
   z-index: 15;
   display: flex;
-  transform: translateX(106%);
+  transform: translateX(calc(100% + 100vw));
   transition: transform 0.55s cubic-bezier(0.65, 0, 0.35, 1);
   pointer-events: none;
 }
