@@ -45,7 +45,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  height: 600%;
+  height: 1200%;
 }
 /* the pre-launch rumble, then the long climb — js/window-scenes.js
    sequences these two classes with matching setTimeouts (SHAKE_MS/
@@ -54,13 +54,17 @@
    transform needed) and scrolls DOWN (positive translateY) as the
    ship climbs — the ground/sky sliding down and out of frame while
    the sky above stays put is what an ascending window view actually
-   looks like. translateY(83.333%) = (600% - 100%) / 600% of the
-   strip's OWN height, i.e. "scroll until the strip's top 1 window-
-   height is in view" — recompute this fraction if the strip's total
-   height (600%) ever changes. */
+   looks like. `linear` (not eased) on purpose: with a straight-line
+   scroll, each band's % share of the strip's height IS its share of
+   the total time, so "more time in the sky" or "deeper underground"
+   is tuned purely by resizing that band below — an eased curve would
+   break that correspondence. translateY(91.667%) = (1200% - 100%) /
+   1200% of the strip's OWN height, i.e. "scroll until the strip's
+   top 1 window-height is in view" — recompute this fraction if the
+   strip's total height (1200%) ever changes. */
 .scene-ascent.is-shaking { animation: silo-shake 1.4s ease-in-out; }
 .ascent-strip.is-launching {
-  animation: ascent-scroll 10s cubic-bezier(0.5, 0, 0.4, 1) forwards;
+  animation: ascent-scroll 26s linear forwards;
 }
 
 .ascent-band {
@@ -69,10 +73,15 @@
   right: 0;
 }
 
-/* percentages of the 600%-tall strip: 15 + 15 + 25 + 7 + 38 = 100 */
+/* percentages of the 1200%-tall strip: 6 + 12 + 28 + 8 + 46 = 100.
+   Silo is now the dominant share (a 1200%-tall strip puts ~5.5 window-
+   heights of shaft below ground, with 6 level markers spaced through
+   it — see .level-marker below — instead of relying on darkness alone
+   to read as "deep"); sky is a bigger share than before per explicit
+   feedback ("more time flying against the sky"). */
 .band-space {
   top: 0%;
-  height: 15%;
+  height: 6%;
   background:
     radial-gradient(1.4px 1.4px at 12% 22%, #fff, transparent),
     radial-gradient(1px 1px at 32% 64%, #fff, transparent),
@@ -83,34 +92,74 @@
     #05060a;
 }
 .band-upper {
-  top: 15%;
-  height: 15%;
+  top: 6%;
+  height: 12%;
   background: linear-gradient(180deg, #05060a 0%, #16233a 55%, #3a6ea5 100%);
 }
 .band-sky {
-  top: 30%;
-  height: 25%;
+  top: 18%;
+  height: 28%;
   overflow: hidden;
   background: linear-gradient(180deg, #3a6ea5 0%, #7fb7de 100%);
 }
 .band-ground {
-  top: 55%;
-  height: 7%;
+  top: 46%;
+  height: 8%;
   /* the horizon line lives inside this one band: sky above it, ground
      below, so "trees pass below us" needs no separate element sizing.
-     Ground stays a lighter olive (not near-black) so the tree
-     silhouettes — visible on their own for a few seconds as the band
-     scrolls through, not just at one ideal mid-scroll frame — keep
-     reading as trees instead of flattening into the background. */
-  background: linear-gradient(180deg, #9fd0ec 0%, #cfe9f7 52%, #3a4a26 52%, #26320f 100%);
+     Ground reads as forest floor (not open field) since the trees
+     below are meant to be a dense woods the silo hides in, not a
+     lone tree line. */
+  background: linear-gradient(180deg, #9fd0ec 0%, #cfe9f7 52%, #2c3a1c 52%, #161f0c 100%);
+  overflow: visible; /* lets .tree-line.near's tall trees poke up past this band's own edge into the sky above, per "trees are taller and closer" */
 }
 .band-silo {
-  top: 62%;
-  height: 38%;
+  top: 54%;
+  height: 46%;
   /* reuses .hull (base.css/cockpit.css) for the same worn-riveted-metal
      material as the rest of the ship, just dimmer — a shaft interior
      gets none of the console's window-light spill */
   filter: brightness(0.4) saturate(0.55);
+}
+/* darkens further toward the shaft's bottom (deepest, visible at rest)
+   and lightens toward its top (nearest the surface) — a depth cue on
+   top of the level markers, so approaching ground reads as "getting
+   less dark" even before the ground band itself comes into view */
+.band-silo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.6) 75%);
+  pointer-events: none;
+}
+
+/* six evenly-spaced level markers through .band-silo, deepest (6) at
+   the bottom — the rest position visible at load — up to shallowest
+   (1) just below the surface. Local top% = (2L-1)/12*100 for level L,
+   independent of the strip's overall scale. Text/color reuse the same
+   HUD font and amber as .hud (window.css) — stenciled shaft signage
+   lit by the same instrument-panel language as the rest of the ship. */
+.level-marker {
+  position: absolute;
+  left: 0;
+  right: 0;
+  transform: translateY(-50%);
+  padding: 0 6%;
+  font-family: var(--font-led);
+  font-size: clamp(0.85rem, 2.2vw, 1.3rem);
+  letter-spacing: 0.1em;
+  color: rgba(217,134,31,0.55);
+  text-shadow: 0 0 4px rgba(217,134,31,0.35);
+}
+.level-marker::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  margin-top: 5px;
+  height: 1px;
+  background: rgba(217,134,31,0.2);
 }
 
 .cloud-layer {
@@ -119,7 +168,12 @@
 }
 .cloud {
   position: absolute;
-  height: 12%;
+  /* .band-sky is a much taller box now (28% of a 1200%-tall strip —
+     more time flying against it), so cloud height is a smaller % of
+     that box than it looks: this still renders at roughly the same
+     on-screen size as before, just spread across more of them over a
+     longer flight instead of a couple of oversized puffs */
+  height: 5%;
   aspect-ratio: 2.6 / 1;
   border-radius: 999px;
   /* a few overlapping puffs instead of one plain pill, so it reads as
@@ -133,13 +187,26 @@
   animation: cloud-drift 40s ease-in-out infinite alternate;
 }
 
+/* two tree layers instead of one, for depth ("hidden in the woods"
+   reads as a dense close forest, not a distant tree line): .far is
+   shorter, hazier, and slightly lighter (a receding tree line behind
+   the clearing); .near is the tall, dark, close forest the silo sits
+   in, tall enough to poke above .band-ground's own edge into the sky
+   (.band-ground's overflow:visible above allows this). */
 .tree-line {
   position: absolute;
   bottom: 0;
   left: 0;
   width: 100%;
-  height: 70%;
-  fill: #050a03;
+}
+.tree-line.far {
+  height: 55%;
+  fill: #34432a;
+  opacity: 0.6;
+}
+.tree-line.near {
+  height: 125%;
+  fill: #030602;
 }
 
 .scene-space {

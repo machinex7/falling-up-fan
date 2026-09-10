@@ -53,7 +53,7 @@
 
 @keyframes ascent-scroll {
   from { transform: translateY(0); }
-  to   { transform: translateY(83.333%); }
+  to   { transform: translateY(91.667%); }
 }
 
 @keyframes cloud-drift {

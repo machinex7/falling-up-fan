@@ -397,18 +397,35 @@ widget type.
 
 The one scene transition that exists so far — `.scene-ascent`'s silo
 interior scrolling up into `.scene-space`'s starfield on launch — is built
-as **one continuous tall strip** (`.ascent-strip`, `height: 600%` of the
+as **one continuous tall strip** (`.ascent-strip`, `height: 1200%` of the
 scene's own box, so it scales with `#window` at any breakpoint with zero
 JS measurement) rather than several separately-timed effects. Reading it
 bottom-to-top: silo shaft, ground/treeline, sky+clouds, upper atmosphere,
 space+stars. A single `translateY` scroll animation (`ascent-scroll` in
-animations.css) is the whole sequence — "gradually brighter," "trees pass
-below," and "clouds pass below" all fall straight out of scrolling past
-different painted bands of one world, not out of separately animating
-brightness/position for each element. If a future scene needs its own
-multi-stage transition, prefer this "one strip, bands do the work" trick
-over hand-timing a pile of individual elements — it's what kept this one
-from turning into a mess of `setTimeout`s.
+animations.css, `26s linear`) is the whole sequence — "gradually
+brighter," "trees pass below," and "clouds pass below" all fall straight
+out of scrolling past different painted bands of one world, not out of
+separately animating brightness/position for each element. If a future
+scene needs its own multi-stage transition, prefer this "one strip, bands
+do the work" trick over hand-timing a pile of individual elements — it's
+what kept this one from turning into a mess of `setTimeout`s.
+
+The timing function is `linear`, not eased, **on purpose**: on a
+straight-line scroll, each band's `height` percentage of the strip IS its
+share of the total 26s, so "spend more time in the sky" or "make the silo
+feel deeper" is tuned purely by resizing that one band's percentage —
+swapping in an eased curve would decouple a band's size from how long it's
+actually on screen and make that tuning unreliable. Silo depth also isn't
+sold by darkness alone: six `.level-marker` labels ("LEVEL 1"–"LEVEL 6")
+are spaced through `.band-silo` at fixed intervals (`(2L-1)/12 * 100%`,
+independent of the strip's overall scale) so the descent has a legible
+sense of scale, not just an abstractly-long dark scroll. Similarly,
+`.band-ground` layers two tree SVGs instead of one — `.tree-line.far`
+(short, hazy, desaturated) behind `.tree-line.near` (tall, near-black,
+tall enough to poke past `.band-ground`'s own edge into the sky band
+above via `overflow: visible`) — since a single distant tree line reads
+as "flying over a forest," while the near layer is what sells "hidden
+close in the woods."
 
 The strip is **bottom-anchored** (`bottom: 0`), so it shows the silo at
 rest with no transform needed, and scrolls **down** (positive `translateY`)

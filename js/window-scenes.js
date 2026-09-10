@@ -19,7 +19,7 @@
   // keep in sync with the silo-shake/ascent-scroll durations in
   // css/scenes.css
   const SHAKE_MS = 1400;
-  const SCROLL_MS = 10000;
+  const SCROLL_MS = 26000;
 
   function showScene(scene) {
     layer.querySelectorAll('.scene').forEach(s => s.classList.toggle('is-active', s === scene));

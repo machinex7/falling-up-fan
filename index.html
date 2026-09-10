@@ -72,24 +72,58 @@
               <div class="ascent-band band-space"></div>
               <div class="ascent-band band-upper"></div>
               <div class="ascent-band band-sky">
+                <!-- spread across the whole (now much taller) sky band,
+                     not clustered near its bottom, so clouds keep passing
+                     below us through the longer flight instead of running
+                     out partway up -->
                 <div class="cloud-layer">
-                  <div class="cloud" style="top: 14%; left: 8%; width: 32%; animation-delay: -2s;"></div>
-                  <div class="cloud" style="top: 42%; left: 52%; width: 24%; animation-delay: -8s;"></div>
-                  <div class="cloud" style="top: 68%; left: 22%; width: 30%; animation-delay: -14s;"></div>
-                  <div class="cloud" style="top: 30%; left: 78%; width: 20%; animation-delay: -5s;"></div>
+                  <div class="cloud" style="top: 6%; left: 10%; width: 30%; animation-delay: -2s;"></div>
+                  <div class="cloud" style="top: 16%; left: 60%; width: 22%; animation-delay: -19s;"></div>
+                  <div class="cloud" style="top: 27%; left: 28%; width: 26%; animation-delay: -8s;"></div>
+                  <div class="cloud" style="top: 38%; left: 74%; width: 20%; animation-delay: -25s;"></div>
+                  <div class="cloud" style="top: 48%; left: 6%; width: 24%; animation-delay: -14s;"></div>
+                  <div class="cloud" style="top: 58%; left: 46%; width: 28%; animation-delay: -31s;"></div>
+                  <div class="cloud" style="top: 69%; left: 18%; width: 22%; animation-delay: -6s;"></div>
+                  <div class="cloud" style="top: 79%; left: 66%; width: 26%; animation-delay: -22s;"></div>
+                  <div class="cloud" style="top: 90%; left: 36%; width: 20%; animation-delay: -11s;"></div>
                 </div>
               </div>
               <div class="ascent-band band-ground">
-                <svg class="tree-line" viewBox="0 0 400 60" preserveAspectRatio="none">
-                  <polygon points="24,60 40,14 56,60"/>
-                  <polygon points="70,60 84,26 98,60"/>
-                  <polygon points="130,60 150,6 170,60"/>
-                  <polygon points="210,60 226,22 242,60"/>
-                  <polygon points="270,60 282,32 294,60"/>
-                  <polygon points="330,60 350,10 370,60"/>
+                <!-- a hazy, smaller tree line behind the close forest, for depth -->
+                <svg class="tree-line far" viewBox="0 0 400 60" preserveAspectRatio="none">
+                  <polygon points="14,60 30,32 46,60"/>
+                  <polygon points="55,60 68,26 81,60"/>
+                  <polygon points="100,60 118,34 136,60"/>
+                  <polygon points="160,60 174,24 188,60"/>
+                  <polygon points="215,60 230,36 245,60"/>
+                  <polygon points="270,60 286,28 302,60"/>
+                  <polygon points="320,60 334,38 348,60"/>
+                  <polygon points="365,60 380,30 395,60"/>
+                </svg>
+                <!-- the close, tall woods the silo is hidden in — tall
+                     enough to poke past the horizon into the sky above
+                     (.band-ground's overflow:visible) -->
+                <svg class="tree-line near" viewBox="0 0 400 60" preserveAspectRatio="none">
+                  <polygon points="8,60 26,7 44,60"/>
+                  <polygon points="34,60 48,24 62,60"/>
+                  <polygon points="72,60 94,3 116,60"/>
+                  <polygon points="104,60 122,29 140,60"/>
+                  <polygon points="152,60 172,9 192,60"/>
+                  <polygon points="178,60 194,31 210,60"/>
+                  <polygon points="232,60 252,5 272,60"/>
+                  <polygon points="262,60 280,27 298,60"/>
+                  <polygon points="312,60 332,2 352,60"/>
+                  <polygon points="342,60 358,25 374,60"/>
                 </svg>
               </div>
-              <div class="ascent-band band-silo hull"></div>
+              <div class="ascent-band band-silo hull">
+                <div class="level-marker" style="top: 8.33%;">LEVEL 1</div>
+                <div class="level-marker" style="top: 25%;">LEVEL 2</div>
+                <div class="level-marker" style="top: 41.67%;">LEVEL 3</div>
+                <div class="level-marker" style="top: 58.33%;">LEVEL 4</div>
+                <div class="level-marker" style="top: 75%;">LEVEL 5</div>
+                <div class="level-marker" style="top: 91.67%;">LEVEL 6</div>
+              </div>
             </div>
           </div>
 
