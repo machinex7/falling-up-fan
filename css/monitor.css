@@ -85,8 +85,11 @@
 /* a rare, very small brightness dip rather than a steady pulse — a
    real CRT holds its brightness almost all the time and only
    occasionally dips, so most of this keyframe (see animations.css)
-   sits flat at 1 with just two brief dips per cycle */
-.monitor-screen {
+   sits flat at 1 with just two brief dips per cycle. Scoped to
+   .is-open (not just .monitor-screen) so the tube is genuinely idle —
+   no animation running at all, not just invisible — while parked
+   off-screen; it only starts once the panel is actually open. */
+.info-monitor.is-open .monitor-screen {
   animation: crt-flicker 7s ease-in-out infinite;
 }
 

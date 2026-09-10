@@ -406,12 +406,15 @@ after the page paints. Three files read that class (and its sibling
 their own corner of the ship, rather than one central place owning every
 dimmed element directly:
 
-- `console.css`: `#cockpit.unpowered #deck-grid > .tile:not(.launch)`
+- `console.css`: `#cockpit.unpowered #deck-grid > .tile:not(.launch):not(.nav-tile)`
   gets `filter: brightness(0.3) saturate(0.4)` and `pointer-events: none`
   — every deck control goes dark AND stops responding to clicks (a dead
-  console shouldn't be operable), except `.tile.launch` itself, which
-  is excluded from the selector so it's the one thing still lit and
-  clickable.
+  console shouldn't be operable), except `.tile.launch` and the three
+  `.nav-tile`s (Members/Albums/Connections — explicit user call: reading
+  about the band shouldn't require launching the ship first, since
+  that's "the point of the site"), which stay lit and clickable at
+  every power state. `.nav-tile` still plays the `.flicker` power-up
+  animation below, purely decorative since it was never actually dimmed.
 - `cockpit.css`: `.wall-light` goes fully dark (`background:
   var(--bezel-lo)`, animation stopped) instead of just dimming — it's a
   bare glowing dot with no surrounding material to fade, so a dimmed
@@ -624,10 +627,14 @@ breakpoint with zero measurement — the same trick `.console-riser` and
 `.armrest` use elsewhere in this file. It's parked at `translateX(106%)`
 until `.is-open` slides it to `translateX(0)` (css/monitor.css); `pointer-
 events` are off while parked so a closed, off-screen panel can never
-intercept a click meant for the console underneath it. Being inside
-`#deck-grid`'s power state indirectly (the button that opens it is a
-`.tile`) means Albums is dark/inert while `#cockpit` is unpowered, same as
-every other nav button — no separate wiring needed for that.
+intercept a click meant for the console underneath it, and the screen's
+own `crt-flicker` animation (below) is scoped to `.is-open` too, so
+nothing is even animating while it's parked — genuinely off, not just
+out of view. Unlike every other tile, `#albums-tile` (and the other two
+`.nav-tile`s) is explicitly EXCLUDED from `#cockpit.unpowered`'s
+dimming/`pointer-events:none` rule in console.css — explicit user call:
+band info shouldn't require launching the ship first, so the monitor
+opens at any power state, not just once `#cockpit` is `.powered`.
 
 **Why the panel's own screen looks nothing like the rest of the ship:**
 originally this was styled as a plain light "traditional website," then
@@ -646,9 +653,11 @@ the ship's instrument family) plus `var(--font-led)` (VT323) and
 `text-transform: uppercase` throughout `.monitor-screen`, a
 `repeating-linear-gradient` + radial vignette on `.monitor-screen::after`
 for scanlines (opacity kept low — "faint" was explicit), and a
-`crt-flicker` keyframe (animations.css) that sits at full brightness
-almost the whole cycle with just two brief ~5% dips, not a steady pulse —
-a real tube holds steady far more than it flickers. Selection/hover on
+`crt-flicker` keyframe (animations.css, applied only via
+`.info-monitor.is-open .monitor-screen` so it's not running at all while
+closed) that sits at full brightness almost the whole cycle with just two
+brief ~5% dips, not a steady pulse — a real tube holds steady far more
+than it flickers. Selection/hover on
 `.album-card`/`.monitor-back`/`.monitor-close` inverts to solid green on
 near-black rather than just changing a border color, matching how a real
 terminal highlights the selected line. The `.monitor-flag` data-accuracy
