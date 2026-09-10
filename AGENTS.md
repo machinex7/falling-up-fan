@@ -624,22 +624,21 @@ lives inside `#forward` (which needed `position: relative` added in
 cockpit.css for this to anchor to), sized via `position: absolute; inset:
 0`, so it automatically covers exactly the window+console box at any
 breakpoint with zero measurement — the same trick `.console-riser` and
-`.armrest` use elsewhere in this file. It's parked at
-`translateX(calc(100% + 100vw))` until `.is-open` slides it to
-`translateX(0)` (css/monitor.css) — **not** a flat percentage like
-`106%`: that's relative to `#info-monitor`'s OWN width, which is only
-`#forward`'s width (narrower than the viewport by whatever the side
-walls/seams take up), so a plain `106%` only cleared #forward's own box
-and left a sliver of the parked panel — header text included — visibly
-sitting over the right wall at every breakpoint. The `+ 100vw` term
-guarantees the translated left edge clears the actual viewport regardless
-of how wide the walls are, without hardcoding `--wall-w` or the >=900px
-breakpoint's ratio into this file. `pointer-events` are off while parked
-so a closed, off-screen panel can never intercept a click meant for the
-console underneath it, and the screen's
-own `crt-flicker` animation (below) is scoped to `.is-open` too, so
-nothing is even animating while it's parked — genuinely off, not just
-out of view. Unlike every other tile, `#albums-tile` (and the other two
+`.armrest` use elsewhere in this file. It's parked at `translateX(106%)`
+until `.is-open` slides it to `translateX(0)` (css/monitor.css) —
+deliberately NOT far enough to fully clear the viewport: `106%` is
+relative to `#info-monitor`'s own width, which is only `#forward`'s width
+(narrower than the viewport by whatever the side walls/seams take up), so
+a chunk of the parked panel sits visibly past the right wall at every
+breakpoint. An earlier pass "fixed" this into a full off-screen park
+(`translateX(calc(100% + 100vw))`) on the assumption the sliver was a
+bug; explicit follow-up feedback reversed that — the sliver peeking out
+is the point, it's what sells "there's a second screen tucked in over
+there" — so this stayed at `106%` and the actual fix went into making
+that visible sliver render as an inert, powered-off black rectangle
+instead (below), not into hiding it. `pointer-events` are off while
+parked so that sliver can never intercept a click meant for the console
+underneath it. Unlike every other tile, `#albums-tile` (and the other two
 `.nav-tile`s) is explicitly EXCLUDED from `#cockpit.unpowered`'s
 dimming/`pointer-events:none` rule in console.css — explicit user call:
 band info shouldn't require launching the ship first, so the monitor
@@ -673,6 +672,22 @@ terminal highlights the selected line. The `.monitor-flag` data-accuracy
 warning stays on the amber/`--led-amber` language instead of green, so it
 reads as a distinct system warning rather than blending into the normal
 green readout.
+
+**The screen is "powered off" whenever `#info-monitor` isn't `.is-open`,**
+not just repositioned — this matters because the parked panel is
+partially visible (see above), so what that visible sliver shows is a
+real design decision, not dead CSS. `.info-monitor:not(.is-open)
+.monitor-screen` swaps the background to flat `#000` (plain
+`var(--led-bg)` alone still reads as a lit, if dark, LED panel — not
+"off") and sets every direct child to `visibility: hidden` (not
+`display: none`, so the header/list/track-view keep their real layout
+and measurements for the moment the panel opens, rather than having to
+re-flow from nothing). The `::after` scanline/vignette layer isn't a
+child, so it needs its own `content: none` override in the same rule.
+Any new direct child added to `.monitor-screen` gets this "off" state
+for free via the `> *` selector; a future non-child decoration (another
+pseudo-element, or something appended straight to `.monitor-bezel`)
+would need the same explicit treatment the scanline layer got.
 
 **A `[hidden]`-vs-`display` gotcha worth knowing before adding a third
 view here:** `.album-list` and `.track-view` each need their own

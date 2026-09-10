@@ -14,26 +14,22 @@
 
 /* the whole overlay: sized to #forward (its position:relative
    parent, see cockpit.css), so it naturally covers window+console
-   at any breakpoint with no measurement. Parked off the right edge
-   until .is-open; pointer-events stay off while parked so it can
-   never eat a click meant for the console/window behind it.
-
-   translateX(%) is relative to THIS element's own width, not the
-   viewport's — and #info-monitor is only as wide as #forward (the
-   window+console box), which is narrower than the viewport by
-   however much the side walls/seams/margins take up. A flat 106%
-   only clears #forward's own box, so it left a sliver of the parked
-   panel (header text included) sitting visibly over the right wall
-   at every breakpoint. `+ 100vw` guarantees the translated left edge
-   lands past the actual viewport's right edge regardless of how wide
-   the walls are (--wall-w) or how that ratio shifts at the >=900px
-   breakpoint, without hardcoding either number here. */
+   at any breakpoint with no measurement. Parked at translateX(106%)
+   until .is-open — NOT far enough to fully clear the viewport (that's
+   deliberate, explicit user call: a sliver of the parked monitor
+   peeking out past the right wall reads as "there's a second screen
+   tucked in over there," which is the point). pointer-events stay off
+   while parked so that sliver can never eat a click meant for the
+   console/window behind it. Since the sliver is visible, it has to
+   actually look off — see .monitor-screen below for how the screen
+   itself goes solid black/empty while parked rather than showing a
+   fragment of the lit terminal. */
 .info-monitor {
   position: absolute;
   inset: 0;
   z-index: 15;
   display: flex;
-  transform: translateX(calc(100% + 100vw));
+  transform: translateX(106%);
   transition: transform 0.55s cubic-bezier(0.65, 0, 0.35, 1);
   pointer-events: none;
 }
@@ -71,6 +67,26 @@
   flex-direction: column;
   overflow: hidden;
   box-shadow: inset 0 0 0 1px #000, inset 0 0 40px rgba(0, 0, 0, 0.8);
+}
+
+/* powered off: while not .is-open, the screen shows nothing — solid
+   black, no header/warning/list content, no scanlines — rather than a
+   fragment of the lit green terminal peeking out with the parked
+   sliver above. `visibility: hidden` on the children (not `display:
+   none`) so layout/measurements inside stay untouched for when the
+   panel opens; the real background swap to solid black is what
+   actually sells "off" since var(--led-bg) alone still reads as a lit
+   (if dark) LED panel. The scanline/vignette pseudo-element has no
+   content to inherit visibility from a parent rule, so it's turned
+   off explicitly. */
+.info-monitor:not(.is-open) .monitor-screen {
+  background: #000;
+}
+.info-monitor:not(.is-open) .monitor-screen > * {
+  visibility: hidden;
+}
+.info-monitor:not(.is-open) .monitor-screen::after {
+  content: none;
 }
 
 /* scanlines + a soft edge vignette, both on one inert overlay above
