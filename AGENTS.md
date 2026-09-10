@@ -61,8 +61,8 @@ js/
                      exists so far — silo -> ascent -> space, played
                      once on the 'ship:launch' DOM event
   power.js           the ship's powered/unpowered state (LAUNCH
-                     button); dispatches 'ship:launch' the first time
-                     the ship powers on
+                     button, a one-way press that disables itself);
+                     dispatches 'ship:launch' on that press
 ```
 
 Split for size/readability, not for reuse or bundling — there's still no
@@ -381,6 +381,69 @@ move" logic as `.console-riser`, just used to foreshorten a receding
 surface instead of add a front face. The outer `rotate()` then points
 that already-foreshortened plane diagonally in toward the console.
 
+## The ship's power state
+
+The ship boots **unpowered**: `#cockpit` carries an `unpowered` class in
+the raw HTML (not added by JS) so the dimmed look is what a `file://`
+open or a JS-disabled load shows too, not something that flashes on
+after the page paints. Three files read that class (and its sibling
+`powered`/`flicker` classes, all toggled only by `js/power.js`) to dim
+their own corner of the ship, rather than one central place owning every
+dimmed element directly:
+
+- `console.css`: `#cockpit.unpowered #deck-grid > .tile:not(.launch)`
+  gets `filter: brightness(0.3) saturate(0.4)` and `pointer-events: none`
+  — every deck control goes dark AND stops responding to clicks (a dead
+  console shouldn't be operable), except `.tile.launch` itself, which
+  is excluded from the selector so it's the one thing still lit and
+  clickable.
+- `cockpit.css`: `.wall-light` goes fully dark (`background:
+  var(--bezel-lo)`, animation stopped) instead of just dimming — it's a
+  bare glowing dot with no surrounding material to fade, so a dimmed
+  version would just look like a smaller glow, not "off."
+- `window.css`: `.hud` and `#reticle` drop to `opacity: 0.04` — the
+  window's own projected instrument overlay, not the view of space
+  itself (the starfield canvas is deliberately NOT dimmed here — see
+  its own comment in window.css — space doesn't need the ship's power).
+
+`#cockpit.flicker` plays `power-flicker` (animations.css) on those same
+selectors for ~1.15s when power comes on, before the classes settle into
+their final `powered` state — the one-time "systems coming online"
+moment. All three files independently keying off the same three classes
+is the pattern to follow for any future ship-wide state (e.g. a "red
+alert" mode): pick the class names once, add them in one place
+(`js/power.js` here), and let each file that owns a dimmable element
+react to them locally rather than centralizing the dimming logic
+somewhere that would need to know about every other file's elements.
+
+**LAUNCH** (console.css, markup in index.html's `#deck-grid`) is the
+one control still lit and clickable while unpowered. It's deliberately
+the SAME `.push-btn.round` + `.btn-lens` component every toggle button
+uses (explicit user request — an earlier version was a bespoke button
+shape, which was reverted), just sized up (`.launch-btn`) with a bigger
+`.tile-label` caption, and explicitly `grid-column`/`grid-row` placed
+so `#deck-grid`'s dense auto-flow routes every other tile around this
+one reserved block instead of needing manual placement for the rest of
+the deck (its footprint went from a 3-row block to today's 2-row one
+after the first version read as too large). Its lens starts on the
+shared idle `.btn-lens.amber` pulse (the same idle language as the nav
+buttons) rather than off, since it's the only lit thing in the whole
+cockpit at rest; `#cockpit.powered .tile.launch .btn-lens` overrides
+that to a steady green glow (the `.toggle-btn.is-on` "systems nominal"
+color), and the caption switches from "Launch" to "Launched" to match.
+
+Pressing it is **one-way**: `js/power.js` sets the button's own
+`disabled` attribute right after the first press, rather than toggling
+back to an unpowered state on a second press (an earlier version did
+toggle both ways). There's nothing yet for a second press to do —
+revisit this once shutdown/relaunch or some other post-launch action
+is actually wired up, rather than re-adding a toggle with no real
+second state behind it. `disabled` also is what makes power.js's
+`ship:launch` dispatch (below) safe to fire unconditionally on click,
+with no "did this already happen" guard needed in JS: the browser
+itself won't deliver a second `click` event to a disabled button, not
+even a synthetic/forced one.
+
 ## The window's scene system
 
 The view through `#window` is not one fixed starfield — it's a stack of
@@ -513,8 +576,10 @@ seems to "do nothing," check the transform's sign against which edge the
 strip is anchored to before anything else.
 
 `js/power.js` triggers the sequence by dispatching a plain `'ship:launch'`
-DOM event on `document` (once, the first time the ship powers on — not on
-every power toggle) rather than calling into window-scenes.js directly,
+DOM event on `document` — safe to fire unconditionally on every click
+LAUNCH actually receives, since (per "The ship's power state" above) the
+button disables itself after that one click, so there is no second click
+to guard against — rather than calling into window-scenes.js directly,
 the same loose, no-shared-state coupling every other feature file in this
 codebase already uses. Reach for that same event-dispatch pattern for any
 future cross-file trigger instead of adding direct references between

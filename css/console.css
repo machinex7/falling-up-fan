@@ -399,7 +399,13 @@
    Its lens starts on the shared idle `.amber` pulse (same as the nav
    buttons) instead of off, since it's the only thing still lit while
    #cockpit is unpowered — js/power.js flips it to a steady green
-   glow once pressed instead of dimming like everything else does. */
+   glow once pressed instead of dimming like everything else does.
+   js/power.js also disables the element right after that first press
+   — launching is one-way for now, nothing to wire back up to yet —
+   so :disabled gets its own cursor rather than inheriting the
+   clickable one below; the green "systems nominal" look otherwise
+   stays exactly as-is (disabled reads as "already launched," not
+   "broken"). */
 .tile.launch {
   grid-column: 7 / 11;
   grid-row: 2 / 4;
@@ -408,6 +414,12 @@
   border: none;
   font: inherit;
   cursor: pointer;
+}
+.tile.launch:disabled {
+  cursor: default;
+}
+.tile.launch:disabled .push-btn:hover {
+  filter: none;
 }
 
 .push-btn.launch-btn {
