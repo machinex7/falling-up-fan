@@ -457,7 +457,19 @@ depth isn't sold by darkness alone: six `.level-marker` labels ("LEVEL
 1"–"LEVEL 6") are spaced through `.band-silo` at fixed intervals
 (`(2L-1)/12 * 100%`, independent of the strip's overall scale) so the
 descent has a legible sense of scale, not just an abstractly-long dark
-scroll. Similarly, `.band-ground` layers two tree SVGs instead of one —
+scroll. `.level-seam` adds a second, physical layer to that same idea: 5
+thin highlight/shadow lines at the boundaries BETWEEN the 6 level slots
+(1/6 through 5/6 of `.band-silo`'s own height — the marker positions are
+each slot's center, so the seams fall naturally between them), reading as
+poured-concrete floor joints rather than lit signage — deliberately a
+plain white-over-black pair, not the amber HUD language `.level-marker`
+uses, so it's legible as the shaft's own material rather than an
+instrument. Its highlight alpha (`0.4`) is well above what would look
+right on an undimmed surface, because `.band-silo`'s own `filter:
+brightness(0.4)` dims it along with everything else in the shaft — budget
+similar headroom for any future subtle-highlight element placed inside an
+already-dimmed/filtered container, or it'll render essentially invisible.
+Similarly, `.band-ground` layers two tree SVGs instead of one —
 `.tree-line.far` (short, hazy, desaturated) behind `.tree-line.near`
 (tall, near-black, tall enough to poke past `.band-ground`'s own edge
 into the sky band above via `overflow: visible`) — since a single

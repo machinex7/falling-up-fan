@@ -166,6 +166,30 @@
   background: rgba(217,134,31,0.2);
 }
 
+/* the 6 level markers sit centered in 6 equal slots of .band-silo's
+   own height (1/6 each — the same (2L-1)/12*100 spacing above, just
+   read as slot centers instead of raw positions); .level-seam marks
+   the 5 boundaries BETWEEN those slots at 1/6, 2/6, 3/6, 4/6, 5/6.
+   Not lit signage like .level-marker — a plain highlight-over-shadow
+   pair instead of the amber HUD language, reading as a physical
+   construction seam in the shaft wall (like a poured-concrete floor
+   joint) rather than an instrument marking, so the levels read as
+   physically passing by even at a glance, not just via the text. No
+   seam at the band's own top (already a strong material change into
+   .band-ground) or bottom (the strip's own cutoff, not a real seam). */
+.level-seam {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  /* .band-silo's own filter: brightness(0.4) dims this along with
+     everything else in the shaft, so the highlight needs real headroom
+     to still read as "slightly brighter" once dimmed, not the ~0.15
+     alpha that would look right on an undimmed surface */
+  background: linear-gradient(180deg, rgba(255,255,255,0.4), rgba(0,0,0,0.3));
+  pointer-events: none;
+}
+
 .cloud-layer {
   position: absolute;
   inset: 0;
