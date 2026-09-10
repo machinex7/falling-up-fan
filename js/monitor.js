@@ -2,89 +2,28 @@
 // INFO MONITOR — the Albums button (#albums-tile) slides
 // #info-monitor in over #forward (css/monitor.css handles the
 // actual animation) instead of navigating to tracks.html. This
-// file just owns the two-view "traditional website" nav inside
-// that panel — an album list and a per-album track list, swapped
-// via [hidden] — and the open/close/back wiring. No routing, no
-// page loads: everything lives in ALBUM_DATA below.
+// file just owns the two-view terminal nav inside that panel —
+// an album list and a per-album track list, swapped via
+// [hidden] — and the open/close/back wiring. No routing, no
+// page loads.
 //
-// ALBUM_DATA is filled in from memory, not checked against
-// liner notes or a streaming catalog — treat titles, track
-// counts/order, and release years as a first draft (the
+// Album/track content lives in data/albums.json, not inline
+// here, so it's a plain data file to hand-edit — fetched once
+// (this needs the site served over http(s); a bare file:// open
+// will fail fetch() for a local JSON file in most browsers, per
+// AGENTS.md) and cached in `dataPromise` for every open after
+// the first. That JSON was filled in from memory, not checked
+// against liner notes or a streaming catalog — treat titles,
+// track counts/order, and release years as a first draft (the
 // .monitor-flag banner in the panel says the same to anyone
-// looking at it) and correct anything wrong here directly.
+// looking at it) and correct entries directly in the JSON file.
 // ═══════════════════════════════════════════════════════
 (function () {
-  const ALBUM_DATA = [
-    {
-      title: 'Sound of Renewal',
-      year: 2004,
-      type: 'LP',
-      tracks: [
-        'Broken Heart',
-        'Broken Flag',
-        'Falling Up',
-        'Escaped Youth',
-        'Discovering Directions',
-        'Vine and Branches',
-      ],
-    },
-    {
-      title: 'Dawn Escapes',
-      year: 2007,
-      type: 'LP',
-      tracks: [
-        'The Dark Horse',
-        'Broken Sight',
-        'Ambassador',
-        'Streetlights',
-        'Escape Artist',
-      ],
-    },
-    {
-      title: 'Captiva',
-      year: 2009,
-      type: 'LP',
-      tracks: [
-        'Bittersweet',
-        'Weatherman',
-        'Force of Nature',
-        'Sad Sun',
-        'Broadcasts from Eden',
-      ],
-    },
-    {
-      title: 'Your Sparkling Death Cometh',
-      year: 2011,
-      type: 'EP',
-      tracks: [
-        'Sad Songs',
-        'Panic Blossom',
-        'The Pressure Kids',
-      ],
-    },
-    {
-      title: 'Fangs!',
-      year: 2013,
-      type: 'LP',
-      tracks: [
-        'The Colossus',
-        'Sad Cypress',
-        'Choke',
-        'Dagger',
-        'Fevers and Sires',
-      ],
-    },
-    {
-      title: 'Hours',
-      year: 2018,
-      type: 'LP',
-      tracks: [
-        'Sad Songs, Sad Songs',
-        'Panic Room',
-        'Midnight',
-      ],
-    },
-  ];
+  const DATA_URL = 'data/albums.json';
+  const dataPromise = fetch(DATA_URL).then(res => {
+    if (!res.ok) throw new Error(`${DATA_URL}: HTTP ${res.status}`);
+    return res.json();
+  });
 
   const monitor = document.getElementById('info-monitor');
   const openBtn = document.getElementById('albums-tile');
@@ -108,9 +47,9 @@
       .toUpperCase();
   }
 
-  function renderAlbumList() {
+  function renderAlbumList(albums) {
     albumListEl.innerHTML = '';
-    ALBUM_DATA.forEach(album => {
+    albums.forEach(album => {
       const li = document.createElement('li');
       const card = document.createElement('button');
       card.type = 'button';
@@ -126,6 +65,10 @@
       li.appendChild(card);
       albumListEl.appendChild(li);
     });
+  }
+
+  function showStatus(message) {
+    albumListEl.innerHTML = `<li class="monitor-status">${message}</li>`;
   }
 
   function showTracks(album) {
@@ -150,11 +93,18 @@
   }
 
   function openMonitor() {
-    renderAlbumList();
     showAlbumList();
     monitor.classList.add('is-open');
     monitor.setAttribute('aria-hidden', 'false');
     openBtn.setAttribute('aria-expanded', 'true');
+
+    showStatus('ACCESSING CATALOG…');
+    dataPromise
+      .then(albums => renderAlbumList(albums))
+      .catch(err => {
+        showStatus('CATALOG DATA UNAVAILABLE.');
+        console.error('albums.json failed to load', err);
+      });
   }
 
   function closeMonitor() {

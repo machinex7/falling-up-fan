@@ -10,10 +10,11 @@ A fan site for the band Falling Up, themed as a spacecraft flight deck /
 cockpit. `index.html` is the entire site so far: plain HTML markup that
 links out to separate CSS and JS files rather than inlining `<style>` /
 `<script>` (no build step, no dependencies beyond a Google Fonts link) —
-see "File layout" below for what lives where. Open it directly in a
-browser or serve the directory with any static file server; the `css/`
-and `js/` files are linked with relative paths, so serving is the safer
-option if a bare `file://` open ever runs into relative-path issues.
+see "File layout" below for what lives where. Serving the directory with
+a static file server (e.g. `python3 -m http.server`) is no longer just
+the safer option, it's required: `js/monitor.js` fetches `data/albums.json`,
+and `fetch()` against a local file fails in most browsers under a bare
+`file://` open.
 
 `members.html` and `connections.html` are linked from the console but
 don't exist yet — they're the planned next pages. The former `tracks.html`
@@ -27,6 +28,12 @@ that's ever relevant to future content.
 ```
 index.html          markup only — links the CSS files, loads the JS
                      files at the end of <body>
+data/
+  albums.json        the info monitor's Albums content — plain array
+                      of { title, year, type, tracks }, fetched by
+                      js/monitor.js; hand-edit this file directly to
+                      correct or extend the catalog, nothing else
+                      references it
 css/
   base.css           reset, :root palette/spacing variables, html/body
   cockpit.css        shell layout: plaque bar, hull walls, seams,
@@ -623,17 +630,31 @@ intercept a click meant for the console underneath it. Being inside
 every other nav button — no separate wiring needed for that.
 
 **Why the panel's own screen looks nothing like the rest of the ship:**
-per explicit user framing, once the monitor is open it should read as "a
-more traditional web site," not another HUD widget — a deliberate material
-break from the metal/amber/LED language the rest of this file insists on
-keeping consistent. The split is literal: `.monitor-bezel` (the physical
-frame around the screen) still reuses `.hull` + corner `.bolt`s, same as
-`#window`/`#console`, so the *hardware* stays ship-consistent; only
-`.monitor-screen` — the display surface inside that frame — switches to a
-plain light background, dark text, and ordinary list/card styling. Treat
-that boundary as intentional if extending this: new bezel chrome follows
-the ship's material language, new on-screen content follows a plain
-website's.
+originally this was styled as a plain light "traditional website," then
+deliberately reworked into an old green CRT terminal (Fallout/Pip-Boy
+territory — scanlines, phosphor glow, all-caps blocky text) per explicit
+user request. Both versions share the same underlying split, and it's
+worth keeping if this changes again: `.monitor-bezel` (the physical frame
+around the screen) reuses `.hull` + corner `.bolt`s, same as
+`#window`/`#console`, so the *hardware* always stays ship-consistent;
+`.monitor-screen` — the display surface inside that frame — is free to
+look like whatever the content on it is supposed to be, independent of
+the ship's own metal/amber-and-cyan-LED language. Currently that's a
+terminal: `--led-green`/`--green-glow` (the same tokens the console's own
+green LED readouts already use, so the color itself still ties back into
+the ship's instrument family) plus `var(--font-led)` (VT323) and
+`text-transform: uppercase` throughout `.monitor-screen`, a
+`repeating-linear-gradient` + radial vignette on `.monitor-screen::after`
+for scanlines (opacity kept low — "faint" was explicit), and a
+`crt-flicker` keyframe (animations.css) that sits at full brightness
+almost the whole cycle with just two brief ~5% dips, not a steady pulse —
+a real tube holds steady far more than it flickers. Selection/hover on
+`.album-card`/`.monitor-back`/`.monitor-close` inverts to solid green on
+near-black rather than just changing a border color, matching how a real
+terminal highlights the selected line. The `.monitor-flag` data-accuracy
+warning stays on the amber/`--led-amber` language instead of green, so it
+reads as a distinct system warning rather than blending into the normal
+green readout.
 
 **A `[hidden]`-vs-`display` gotcha worth knowing before adding a third
 view here:** `.album-list` and `.track-view` each need their own
@@ -646,13 +667,18 @@ and both views rendered stacked on top of each other. Any future view
 swapped the same way needs that same explicit `[hidden]` override the
 moment it sets its own `display`.
 
-**`ALBUM_DATA` in `js/monitor.js` is a first draft, not sourced data** —
-titles, years, and tracklists were filled in from memory rather than
-checked against liner notes or a streaming catalog, and the panel says so
-via the `.monitor-flag` banner visible under the header in both views.
-Correct entries directly in that array (each album is `{ title, year,
-type, tracks: [...] }`, no other file references it) rather than treating
-anything currently in it as verified canon.
+**`data/albums.json` is a first draft, not sourced data** — titles, years,
+and tracklists were filled in from memory rather than checked against
+liner notes or a streaming catalog, and the panel says so via the
+`.monitor-flag` banner visible under the header in both views. Correct
+entries directly in that JSON file rather than treating anything currently
+in it as verified canon. `js/monitor.js` fetches it once on the album
+button's first `click` (`dataPromise`, module-scoped so later opens reuse
+the same resolved promise instead of re-fetching) and shows an
+`ACCESSING CATALOG…` placeholder row in the meantime — on a fast local
+server that placeholder is only visible for a frame, but it's there for
+slower hosting and for the fetch-failure path (a `CATALOG DATA
+UNAVAILABLE.` row plus a console error) rather than a silent blank panel.
 
 ## A real gotcha: 3D transforms break naive click targeting
 

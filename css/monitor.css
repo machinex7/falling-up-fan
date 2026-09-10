@@ -3,7 +3,13 @@
    side to cover #forward (window + console) when Albums is
    pressed, instead of navigating to a separate page. See the
    comment block in index.html for why the bezel and the
-   screen inside it get two different material languages.
+   screen inside it get two different material languages: the
+   bezel stays ship metal, the screen is styled as an old green
+   CRT terminal (VT323 + --led-green/--green-glow — the same
+   tokens the console's own LED readouts already use, so the
+   monitor's color reads as the same instrument family, just a
+   full screen of it instead of a few digits) rather than
+   another widget face.
 ═══════════════════════════════════════════ */
 
 /* the whole overlay: sized to #forward (its position:relative
@@ -27,8 +33,8 @@
 
 /* the physical frame: same worn-metal .hull material + corner bolts
    as #window/#console (set via class list in index.html), so the
-   monitor still reads as ship hardware even though what it displays
-   deliberately doesn't */
+   monitor still reads as ship hardware even though the screen it
+   houses deliberately doesn't */
 .monitor-bezel {
   position: relative;
   flex: 1 1 auto;
@@ -38,21 +44,50 @@
   box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.4), 0 20px 30px rgba(0, 0, 0, 0.55);
 }
 
-/* the screen itself: a plain, bright, "traditional website" reading
-   surface — the point of contrast with every other panel on the
-   dash, not an oversight. No image assets: album art below is a
-   generated gradient swatch with initials, same no-build-step rule
-   as the rest of this project. */
+/* the screen itself: near-black LED background, phosphor-green
+   monospace text, glowing like every other lit digit on the dash.
+   text-shadow is inherited, so setting it once here carries onto
+   every child below instead of repeating it per element. */
 .monitor-screen {
   position: absolute;
   inset: 9px;
   border-radius: 3px;
-  background: #eef0f2;
-  color: #1c2024;
+  background: var(--led-bg);
+  color: var(--led-green);
+  font-family: var(--font-led);
+  text-shadow: 0 0 3px var(--green-glow);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: inset 0 0 0 1px #0007, inset 0 2px 14px rgba(0, 0, 0, 0.25);
+  box-shadow: inset 0 0 0 1px #000, inset 0 0 40px rgba(0, 0, 0, 0.8);
+}
+
+/* scanlines + a soft edge vignette, both on one inert overlay above
+   the real content (z-index below the header/buttons stay clickable
+   under it since this layer is pointer-events:none regardless).
+   Kept faint per explicit request — this sells "old screen," not
+   "unreadable" — and z-index:1 relative to .monitor-screen's other
+   flex children (which get the implicit z-index:0 painting order,
+   so this still paints on top without an explicit index on them). */
+.monitor-screen::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.35) 0, rgba(0, 0, 0, 0.35) 1px, transparent 1px, transparent 3px),
+    radial-gradient(ellipse 80% 80% at 50% 50%, transparent 60%, rgba(0, 0, 0, 0.45) 100%);
+  mix-blend-mode: multiply;
+  opacity: 0.5;
+}
+
+/* a rare, very small brightness dip rather than a steady pulse — a
+   real CRT holds its brightness almost all the time and only
+   occasionally dips, so most of this keyframe (see animations.css)
+   sits flat at 1 with just two brief dips per cycle */
+.monitor-screen {
+  animation: crt-flicker 7s ease-in-out infinite;
 }
 
 .monitor-header {
@@ -60,19 +95,22 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 12px;
-  background: #d7dbdf;
-  border-bottom: 1px solid #b9bfc5;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--green);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 .monitor-header h2 {
   flex: 1 1 auto;
   min-width: 0;
-  font-size: clamp(0.85rem, 3vw, 1.1rem);
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  font-size: clamp(1rem, 3.6vw, 1.3rem);
+  font-weight: 400;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.monitor-header h2::before {
+  content: '> ';
 }
 
 .monitor-back,
@@ -80,27 +118,32 @@
   flex: none;
   appearance: none;
   -webkit-appearance: none;
-  border: 1px solid #b9bfc5;
-  border-radius: 5px;
-  background: #f5f6f8;
-  color: #1c2024;
+  border: 1px solid var(--green);
+  border-radius: 0;
+  background: transparent;
+  color: var(--led-green);
   font: inherit;
+  text-shadow: inherit;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   cursor: pointer;
 }
 .monitor-back:hover,
-.monitor-close:hover {
-  background: #fff;
+.monitor-close:hover,
+.monitor-back:focus-visible,
+.monitor-close:focus-visible {
+  background: var(--led-green);
+  color: #04140a;
+  text-shadow: none;
 }
 .monitor-back {
-  padding: 6px 10px;
-  font-size: clamp(0.6rem, 2vw, 0.72rem);
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  padding: 5px 10px;
+  font-size: clamp(0.68rem, 2.2vw, 0.8rem);
 }
 .monitor-close {
-  width: 30px;
-  height: 30px;
-  font-size: 1.1rem;
+  width: 32px;
+  height: 32px;
+  font-size: 1.2rem;
   line-height: 1;
 }
 .monitor-close[hidden],
@@ -110,19 +153,33 @@
 
 .monitor-flag {
   flex: 0 0 auto;
-  padding: 6px 12px;
-  font-size: clamp(0.52rem, 1.8vw, 0.62rem);
+  padding: 5px 12px;
+  font-size: clamp(0.6rem, 2vw, 0.68rem);
   letter-spacing: 0.02em;
-  color: #7a5a12;
-  background: #fbeecb;
-  border-bottom: 1px solid #ecd8a3;
+  text-transform: uppercase;
+  color: var(--led-amber);
+  text-shadow: 0 0 3px var(--amber-glow);
+  background: rgba(217, 134, 31, 0.12);
+  border-bottom: 1px solid var(--amber);
+}
+.monitor-flag::before {
+  content: '! ';
 }
 
 .monitor-body {
+  position: relative;
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
   padding: 10px 12px 20px;
+}
+
+.monitor-status {
+  list-style: none;
+  padding: 10px 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.85;
 }
 
 /* ── album list ── */
@@ -142,86 +199,94 @@
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 .album-card {
   width: 100%;
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px;
+  padding: 8px 10px;
   appearance: none;
   -webkit-appearance: none;
-  border: 1px solid #c7ccd1;
-  border-radius: 6px;
-  background: #fff;
+  border: 1px solid var(--green);
+  border-radius: 0;
+  background: transparent;
   font: inherit;
   color: inherit;
+  text-shadow: inherit;
   text-align: left;
   cursor: pointer;
 }
-.album-card:hover {
-  border-color: var(--amber);
-  background: #fff8ec;
+.album-card:hover,
+.album-card:focus-visible {
+  background: var(--led-green);
+  color: #04140a;
+  text-shadow: none;
+}
+.album-card:hover .album-art,
+.album-card:focus-visible .album-art {
+  border-color: #04140a;
+  color: #04140a;
 }
 
 .album-art {
   flex: none;
-  width: 48px;
-  height: 48px;
-  border-radius: 4px;
+  width: 42px;
+  height: 42px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-label);
+  border: 1px solid currentColor;
   font-weight: 700;
   font-size: 0.85rem;
-  letter-spacing: 0.04em;
-  color: #fff;
-  background: linear-gradient(155deg, var(--amber), #7a3f9c 65%, #23345e);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  letter-spacing: 0.02em;
 }
 
 .album-info {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 .album-title {
-  font-weight: 700;
-  font-size: clamp(0.72rem, 2.4vw, 0.86rem);
+  font-size: clamp(0.85rem, 2.8vw, 1rem);
 }
 .album-meta {
-  font-size: clamp(0.58rem, 1.9vw, 0.68rem);
-  color: #5a6169;
+  font-size: clamp(0.68rem, 2.2vw, 0.78rem);
+  opacity: 0.75;
 }
 
 /* ── track list ── */
 .track-meta {
   margin-bottom: 10px;
-  font-size: clamp(0.6rem, 2vw, 0.7rem);
-  color: #5a6169;
+  font-size: clamp(0.7rem, 2.3vw, 0.8rem);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  opacity: 0.75;
 }
 .track-list {
   list-style: none;
   counter-reset: track;
-  border-top: 1px solid #d5d9dd;
+  border-top: 1px solid var(--green);
 }
 .track-list li {
   counter-increment: track;
   display: flex;
   align-items: baseline;
   gap: 10px;
-  padding: 9px 4px;
-  border-bottom: 1px solid #d5d9dd;
-  font-size: clamp(0.68rem, 2.2vw, 0.8rem);
+  padding: 8px 4px;
+  border-bottom: 1px solid var(--green);
+  font-size: clamp(0.78rem, 2.5vw, 0.92rem);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 .track-list li::before {
   content: counter(track, decimal-leading-zero);
   flex: none;
-  width: 2ch;
-  font-family: var(--font-led);
-  font-size: 1rem;
-  color: var(--amber);
+  width: 2.2ch;
+  color: var(--led-amber);
+  text-shadow: 0 0 3px var(--amber-glow);
 }
