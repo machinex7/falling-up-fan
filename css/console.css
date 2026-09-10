@@ -175,6 +175,19 @@
 .tile.readout { grid-column: span 4; }
 .tile.nav-tile { grid-column: span 3; }
 
+/* #albums-tile is a <button>, not an <a>, since it opens the info
+   monitor (css/monitor.css) in place instead of navigating — strip the
+   UA button chrome so it renders identically to the .tile <a>s beside
+   it. Shared with .tile.launch's own reset below rather than the other
+   way around, since this is the more general case. */
+button.tile {
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
+  font: inherit;
+  cursor: pointer;
+}
+
 .tile:has(.knob), .tile:has(.toggle-btn), .tile.nav-tile {
   cursor: pointer;
 }

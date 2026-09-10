@@ -15,10 +15,12 @@ browser or serve the directory with any static file server; the `css/`
 and `js/` files are linked with relative paths, so serving is the safer
 option if a bare `file://` open ever runs into relative-path issues.
 
-`members.html`, `tracks.html`, and `connections.html` are linked from the
-console but don't exist yet — they're the planned next pages. `Stories.md`
-has narrative/world-building notes for the site's fiction if that's ever
-relevant to future content.
+`members.html` and `connections.html` are linked from the console but
+don't exist yet — they're the planned next pages. The former `tracks.html`
+link is gone: what was going to be a Tracks page is now the Albums info
+monitor described below, built in-page rather than as a separate site.
+`Stories.md` has narrative/world-building notes for the site's fiction if
+that's ever relevant to future content.
 
 ## File layout
 
@@ -35,6 +37,9 @@ css/
                      widget "face" (readout, gauge, nav-tile, knob,
                      toggle, bar, alert light, throttle, equalizer,
                      LAUNCH)
+  monitor.css        #info-monitor: the slide-out "second screen"
+                     the Albums nav button opens over #window/#console
+                     — see "The info monitor" section below
   scenes.css         the window's swappable backgrounds — #scene-layer,
                      .scene, and every scene's own art (currently just
                      .scene-ascent's silo/ground/sky/space strip;
@@ -63,6 +68,9 @@ js/
   power.js           the ship's powered/unpowered state (LAUNCH
                      button, a one-way press that disables itself);
                      dispatches 'ship:launch' on that press
+  monitor.js         opens/closes #info-monitor and swaps its
+                     album-list/track-list views; also owns
+                     ALBUM_DATA — see "The info monitor" below
 ```
 
 Split for size/readability, not for reuse or bundling — there's still no
@@ -584,6 +592,67 @@ the same loose, no-shared-state coupling every other feature file in this
 codebase already uses. Reach for that same event-dispatch pattern for any
 future cross-file trigger instead of adding direct references between
 `js/*.js` files.
+
+## The info monitor: a second screen, not a second page
+
+`members.html`/`connections.html` are still meant to be real separate
+pages once they exist, but the planned Tracks page turned into something
+different once it was actually being built: instead of navigating away,
+the **Albums** nav button (`#albums-tile`, a `<button>` now rather than an
+`<a>` — see the `button.tile` reset in console.css) opens `#info-monitor`,
+a panel that slides in from the side to cover `#window`/`#console` and
+shows an album list; picking an album swaps to that album's track list in
+the same panel. Both views are plain content swapped via the `hidden`
+attribute (`js/monitor.js`'s `showAlbumList`/`showTracks`) — there's no
+router, no history entries, no page load, just two `<div>`s toggling
+visibility the same way `js/window-scenes.js` toggles `.scene`s.
+
+**Why a slide-out panel instead of a real page:** the user's own framing
+was "a slot or additional monitor to the side" — an in-universe second
+screen the ship already has, not a link out of the cockpit. `#info-monitor`
+lives inside `#forward` (which needed `position: relative` added in
+cockpit.css for this to anchor to), sized via `position: absolute; inset:
+0`, so it automatically covers exactly the window+console box at any
+breakpoint with zero measurement — the same trick `.console-riser` and
+`.armrest` use elsewhere in this file. It's parked at `translateX(106%)`
+until `.is-open` slides it to `translateX(0)` (css/monitor.css); `pointer-
+events` are off while parked so a closed, off-screen panel can never
+intercept a click meant for the console underneath it. Being inside
+`#deck-grid`'s power state indirectly (the button that opens it is a
+`.tile`) means Albums is dark/inert while `#cockpit` is unpowered, same as
+every other nav button — no separate wiring needed for that.
+
+**Why the panel's own screen looks nothing like the rest of the ship:**
+per explicit user framing, once the monitor is open it should read as "a
+more traditional web site," not another HUD widget — a deliberate material
+break from the metal/amber/LED language the rest of this file insists on
+keeping consistent. The split is literal: `.monitor-bezel` (the physical
+frame around the screen) still reuses `.hull` + corner `.bolt`s, same as
+`#window`/`#console`, so the *hardware* stays ship-consistent; only
+`.monitor-screen` — the display surface inside that frame — switches to a
+plain light background, dark text, and ordinary list/card styling. Treat
+that boundary as intentional if extending this: new bezel chrome follows
+the ship's material language, new on-screen content follows a plain
+website's.
+
+**A `[hidden]`-vs-`display` gotcha worth knowing before adding a third
+view here:** `.album-list` and `.track-view` each need their own
+non-default `display` for layout (`flex` / block-with-children), and at
+equal specificity an author rule for `display` beats the browser's own
+`[hidden] { display: none }` UA rule — so without the explicit
+`.album-list[hidden], .track-view[hidden] { display: none; }` override
+near the top of monitor.css, toggling the `hidden` attribute did nothing
+and both views rendered stacked on top of each other. Any future view
+swapped the same way needs that same explicit `[hidden]` override the
+moment it sets its own `display`.
+
+**`ALBUM_DATA` in `js/monitor.js` is a first draft, not sourced data** —
+titles, years, and tracklists were filled in from memory rather than
+checked against liner notes or a streaming catalog, and the panel says so
+via the `.monitor-flag` banner visible under the header in both views.
+Correct entries directly in that array (each album is `{ title, year,
+type, tracks: [...] }`, no other file references it) rather than treating
+anything currently in it as verified canon.
 
 ## A real gotcha: 3D transforms break naive click targeting
 
