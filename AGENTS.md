@@ -402,21 +402,37 @@ scene's own box, so it scales with `#window` at any breakpoint with zero
 JS measurement) rather than several separately-timed effects. Reading it
 bottom-to-top: silo shaft, ground/treeline, sky+clouds, upper atmosphere,
 space+stars. A single `translateY` scroll animation (`ascent-scroll` in
-animations.css, `26s linear`) is the whole sequence — "gradually
-brighter," "trees pass below," and "clouds pass below" all fall straight
-out of scrolling past different painted bands of one world, not out of
+animations.css, `30s`) is the whole sequence — "gradually brighter,"
+"trees pass below," and "clouds pass below" all fall straight out of
+scrolling past different painted bands of one world, not out of
 separately animating brightness/position for each element. If a future
 scene needs its own multi-stage transition, prefer this "one strip, bands
 do the work" trick over hand-timing a pile of individual elements — it's
 what kept this one from turning into a mess of `setTimeout`s.
 
-The timing function is `linear`, not eased, **on purpose**: on a
-straight-line scroll, each band's `height` percentage of the strip IS its
-share of the total 26s, so "spend more time in the sky" or "make the silo
-feel deeper" is tuned purely by resizing that one band's percentage —
-swapping in an eased curve would decouple a band's size from how long it's
-actually on screen and make that tuning unreliable. Silo depth also isn't
-sold by darkness alone: six `.level-marker` labels ("LEVEL 1"–"LEVEL 6")
+`ascent-scroll` plays under `animation-timing-function: linear`
+(scenes.css), but the keyframe itself is NOT a plain from/to — it has 5
+explicit stops whose spacing is what gives the climb its "slow through the
+first level or two, faster from there" acceleration (per user feedback;
+an earlier version used a plain linear from/to and felt too uniform).
+Because the timing-function is linear, interpolation BETWEEN each pair of
+stops is straight, so a stop's (time%, distance%) pair is exactly when
+that much of the strip has scrolled — no timing-function easing further
+distorting it. To retune the curve: move a stop's time% to make that
+segment last longer/shorter, or its distance% to cover more/less ground
+in that segment; each stop just needs both values to keep increasing from
+the previous one. Reach for this same "explicit keyframe stops under a
+linear timing-function" trick for any future scene that needs a
+hand-shaped pace curve — it keeps the stops' numbers meaning exactly what
+they say, which a bezier easing on top would quietly break.
+
+Band sizing (the height% values) is a separate knob from this curve and
+still works the same way it always did: it sets how much of the strip's
+total DISTANCE each band covers, not directly how much time — with a
+non-uniform curve, a band's share of time now depends on where its
+distance range falls across the stops above, not purely on its own
+height%. Silo depth isn't sold by darkness alone: six `.level-marker`
+labels ("LEVEL 1"–"LEVEL 6")
 are spaced through `.band-silo` at fixed intervals (`(2L-1)/12 * 100%`,
 independent of the strip's overall scale) so the descent has a legible
 sense of scale, not just an abstractly-long dark scroll. Similarly,

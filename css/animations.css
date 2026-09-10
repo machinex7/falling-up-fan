@@ -51,9 +51,26 @@
   90% { transform: translate(-1px, 1px); }
 }
 
+/* the ascent's acceleration curve: 5 stops (not from/to) so distance
+   covered per equal time slice grows at each one — slow at first
+   (0%->30% of the time covers just the first 6% of the climb, roughly
+   LEVEL 6 into LEVEL 5 — see the .level-marker positions in
+   scenes.css), then steadily faster the rest of the way. Playing
+   under `animation-timing-function: linear` (scenes.css) matters:
+   that keeps interpolation BETWEEN each pair of stops straight, so
+   these percentages are the exact intended time/distance mapping —
+   an eased timing-function here would distort them further. To make
+   the slow start last longer or shorter, move the early stops (e.g.
+   30%/6%); to change how hard the finish accelerates, adjust the
+   spacing of the later ones — each stop only needs to keep both its
+   time% and its translateY% increasing from the previous one. */
 @keyframes ascent-scroll {
-  from { transform: translateY(0); }
-  to   { transform: translateY(91.667%); }
+  0%   { transform: translateY(0%); }
+  30%  { transform: translateY(6%); }
+  55%  { transform: translateY(20%); }
+  75%  { transform: translateY(41%); }
+  90%  { transform: translateY(70%); }
+  100% { transform: translateY(91.667%); }
 }
 
 @keyframes cloud-drift {

@@ -54,17 +54,18 @@
    transform needed) and scrolls DOWN (positive translateY) as the
    ship climbs — the ground/sky sliding down and out of frame while
    the sky above stays put is what an ascending window view actually
-   looks like. `linear` (not eased) on purpose: with a straight-line
-   scroll, each band's % share of the strip's height IS its share of
-   the total time, so "more time in the sky" or "deeper underground"
-   is tuned purely by resizing that band below — an eased curve would
-   break that correspondence. translateY(91.667%) = (1200% - 100%) /
-   1200% of the strip's OWN height, i.e. "scroll until the strip's
-   top 1 window-height is in view" — recompute this fraction if the
-   strip's total height (1200%) ever changes. */
+   looks like. translateY(91.667%) = (1200% - 100%) / 1200% of the
+   strip's OWN height, i.e. "scroll until the strip's top 1 window-
+   height is in view" — recompute this fraction if the strip's total
+   height (1200%) ever changes.
+
+   The animation-timing-function here is `linear`, but the ACCELERATION
+   ("slow through the first level or two, faster from there") lives in
+   ascent-scroll's own keyframe stops (animations.css), not in this
+   timing-function — see the comment there before tuning the curve. */
 .scene-ascent.is-shaking { animation: silo-shake 1.4s ease-in-out; }
 .ascent-strip.is-launching {
-  animation: ascent-scroll 26s linear forwards;
+  animation: ascent-scroll 30s linear forwards;
 }
 
 .ascent-band {
