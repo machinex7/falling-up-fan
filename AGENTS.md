@@ -465,16 +465,40 @@ poured-concrete floor joints rather than lit signage — deliberately a
 plain white-over-black pair, not the amber HUD language `.level-marker`
 uses, so it's legible as the shaft's own material rather than an
 instrument. Its highlight alpha (`0.4`) is well above what would look
-right on an undimmed surface, because `.band-silo`'s own `filter:
-brightness(0.4)` dims it along with everything else in the shaft — budget
-similar headroom for any future subtle-highlight element placed inside an
-already-dimmed/filtered container, or it'll render essentially invisible.
-Similarly, `.band-ground` layers two tree SVGs instead of one —
+right on an undimmed surface, because it sits inside `.ascent-strip`,
+which carries its own animated dimming (see the light-level curve below)
+— budget similar headroom for any future subtle-highlight element placed
+inside an already-dimmed/filtered container, or it'll render essentially
+invisible. Similarly, `.band-ground` layers two tree SVGs instead of one —
 `.tree-line.far` (short, hazy, desaturated) behind `.tree-line.near`
 (tall, near-black, tall enough to poke past `.band-ground`'s own edge
 into the sky band above via `overflow: visible`) — since a single
 distant tree line reads as "flying over a forest," while the near layer
 is what sells "hidden close in the woods."
+
+**The ascent's light level is one animated curve, not a per-band
+constant.** `.ascent-strip` (not any individual band) carries `filter:
+brightness()` (plus a `sepia()` warm tint that only applies underground)
+as part of `ascent-scroll`'s own keyframes, riding along on the same
+timeline as the scroll itself — dark at rest, climbing steadily through
+the silo, reaching neutral (`brightness(1)`, no dimming) right as the
+ground band arrives so it doesn't fight the sky's already-correct
+colors, holding there through the sky, then dropping again over the
+final stretch into black. This replaced an earlier version where
+`.band-silo` alone carried a flat `brightness(0.4)` (plus a static
+depth-darkening overlay that compounded with it) — constant regardless
+of how far the climb had progressed, which per feedback made the first
+few seconds of the climb hard to even perceive as movement, since
+nothing about the shaft's appearance actually changed as it passed. The
+fix generalizes: for anything that should visibly change over the
+course of the ascent (or a future scene's own timeline), animate it on
+the element carrying the scroll's own keyframes, in the same keyframe
+rule, rather than hanging a static rule off whichever band happens to
+contain it — a static per-band property can't express "changes over
+time" no matter how it's tuned, only "changes when a different band
+scrolls into view." `.ascent-strip`'s base (non-`.is-launching`) filter
+must match `ascent-scroll`'s `0%` stop exactly, since nothing else dims
+the shaft before the animation takes over.
 
 The strip is **bottom-anchored** (`bottom: 0`), so it shows the silo at
 rest with no transform needed, and scrolls **down** (positive `translateY`)

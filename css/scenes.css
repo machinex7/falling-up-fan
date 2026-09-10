@@ -46,6 +46,22 @@
   right: 0;
   bottom: 0;
   height: 1200%;
+  /* the ascent's whole light level, not just the silo's: a single
+     brightness (+ a warm sepia tint that fades out by the time we
+     clear the ground) animated on THIS element, so it affects
+     whatever band currently fills the window without needing a
+     separate darkening rule per band. This base filter is the rest
+     state — it must match ascent-scroll's own 0% keyframe
+     (animations.css) exactly, since nothing else dims the shaft
+     before .is-launching's animation takes over. Previously the silo
+     was a flat, always-0.4-brightness band (plus an extra static
+     depth-darkening overlay that compounded with it) — dark enough at
+     rest that motion in the first few seconds of the climb was barely
+     perceptible. Now brightness climbs steadily from the moment the
+     climb starts, so the shaft visibly lightens level by level instead
+     of sitting at one fixed darkness until it suddenly reaches the
+     already-bright ground band. */
+  filter: brightness(0.4) sepia(0.4);
 }
 /* the pre-launch rumble, then the long climb — js/window-scenes.js
    sequences these two classes with matching setTimeouts (SHAKE_MS/
@@ -121,20 +137,14 @@
   top: 54%;
   height: 46%;
   /* reuses .hull (base.css/cockpit.css) for the same worn-riveted-metal
-     material as the rest of the ship, just dimmer — a shaft interior
-     gets none of the console's window-light spill */
-  filter: brightness(0.4) saturate(0.55);
-}
-/* darkens further toward the shaft's bottom (deepest, visible at rest)
-   and lightens toward its top (nearest the surface) — a depth cue on
-   top of the level markers, so approaching ground reads as "getting
-   less dark" even before the ground band itself comes into view */
-.band-silo::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.6) 75%);
-  pointer-events: none;
+     material as the rest of the ship — dimming is no longer a static
+     property of this band; it's the ascent's animated light-level
+     curve on .ascent-strip below, so the shaft actually gets brighter
+     over time instead of sitting at one fixed darkness the whole way
+     down (see the comment on .ascent-strip.is-launching). Desaturation
+     stays static, though — the shaft reads as dull concrete/metal at
+     any light level, not just when dark. */
+  filter: saturate(0.55);
 }
 
 /* six evenly-spaced level markers through .band-silo, deepest (6) at

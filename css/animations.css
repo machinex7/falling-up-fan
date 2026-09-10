@@ -74,18 +74,33 @@
    translateY% is fixed by the level's actual position); to retune the
    post-silo pacing, move the last 3 stops' time%s. Every stop must
    keep both its time% and its translateY% increasing from the one
-   before it. */
+   before it.
+
+   Each stop also carries a `filter`: the whole ascent's light level,
+   not a per-band constant (see .ascent-strip's base filter in
+   scenes.css, which is this keyframe's 0% value — keep the two in
+   sync). `brightness` climbs steadily through the silo (per explicit
+   feedback that a flat dark shaft made the first few seconds of
+   climbing hard to even perceive as movement), reaches 1 — neutral,
+   no dimming — right as the ground band arrives so the already-bright
+   sky/cloud colors aren't muddied by a filter fighting them, holds
+   there through the whole sky flight, then drops again over the final
+   stretch as the view fades to black. `sepia` rides along underground
+   only (a warm work-light tint on the shaft, fully gone by the time
+   the ground band arrives) and stays at 0 for the rest of the climb —
+   it's a silo-specific touch, not a general color grade for the whole
+   sequence. */
 @keyframes ascent-scroll {
-  0%      { transform: translateY(0%); }      /* rest: LEVEL 6 in view */
-  15.22%  { transform: translateY(3.83%); }   /* +3.5s: LEVEL 6 passed */
-  28.26%  { transform: translateY(11.5%); }   /* +3.0s: LEVEL 5 passed */
-  39.13%  { transform: translateY(19.17%); }  /* +2.5s: LEVEL 4 passed */
-  47.83%  { transform: translateY(26.83%); }  /* +2.0s: LEVEL 3 passed */
-  54.35%  { transform: translateY(34.5%); }   /* +1.5s: LEVEL 2 passed */
-  58.70%  { transform: translateY(42.17%); }  /* +1.0s: LEVEL 1 passed, silo done */
-  65.22%  { transform: translateY(54%); }     /* +1.5s: ground/trees cleared */
-  91.30%  { transform: translateY(82%); }     /* +6.0s: sky cleared */
-  100%    { transform: translateY(90%); }     /* +2.0s: solid black — crossfade to real stars fires here */
+  0%      { transform: translateY(0%);      filter: brightness(0.4)  sepia(0.4);  } /* rest: LEVEL 6 in view */
+  15.22%  { transform: translateY(3.83%);   filter: brightness(0.48) sepia(0.34); } /* +3.5s: LEVEL 6 passed */
+  28.26%  { transform: translateY(11.5%);   filter: brightness(0.56) sepia(0.28); } /* +3.0s: LEVEL 5 passed */
+  39.13%  { transform: translateY(19.17%);  filter: brightness(0.64) sepia(0.22); } /* +2.5s: LEVEL 4 passed */
+  47.83%  { transform: translateY(26.83%);  filter: brightness(0.72) sepia(0.16); } /* +2.0s: LEVEL 3 passed */
+  54.35%  { transform: translateY(34.5%);   filter: brightness(0.8)  sepia(0.1);  } /* +1.5s: LEVEL 2 passed */
+  58.70%  { transform: translateY(42.17%);  filter: brightness(0.88) sepia(0.05); } /* +1.0s: LEVEL 1 passed, silo done */
+  65.22%  { transform: translateY(54%);     filter: brightness(1)    sepia(0);    } /* +1.5s: ground/trees cleared, full brightness */
+  91.30%  { transform: translateY(82%);     filter: brightness(1)    sepia(0);    } /* +6.0s: sky cleared, still full brightness */
+  100%    { transform: translateY(90%);     filter: brightness(0.5)  sepia(0);    } /* +2.0s: solid black — dims again, crossfade to real stars fires here */
 }
 
 @keyframes cloud-drift {
