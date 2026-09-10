@@ -1,0 +1,252 @@
+/* ═══════════════════════════════════════════
+   WINDOW SCENES
+   The view through #window is a stack of swappable backgrounds, not
+   one fixed starfield: every .scene is an absolutely-positioned
+   layer inside #scene-layer, shown/hidden by crossfading opacity
+   (js/window-scenes.js owns that switch and the events that drive
+   it). Adding a future view (another ship, a constellation, an
+   effect) means adding another .scene here, not touching this system.
+═══════════════════════════════════════════ */
+#scene-layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0; /* behind the bolts/HUD/reticle/glass, same spot the bare starfield canvas used to sit in */
+}
+
+.scene {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 1.6s ease;
+}
+.scene.is-active { opacity: 1; }
+
+/* ── ASCENT — the silo interior at rest, scrolling up through
+   ground/sky/upper-atmosphere into space on launch.
+
+   This is ONE tall strip (percentage-sized against #scene-ascent's
+   own height, itself 100% of #window via .scene above — no JS
+   measurement needed at any breakpoint) instead of several discrete
+   timed effects: "gradually brighter", "trees pass below", and
+   "clouds pass below" all fall straight out of one translateY
+   scroll revealing different painted bands of one continuous world,
+   bottom (silo, y100%) to top (space, y0%). Keep that bottom-up
+   reading if these bands change — it's what keeps the brightening
+   and the sky-to-black transition automatic instead of animated
+   separately. */
+.scene-ascent {
+  background: #030302; /* fallback under the strip while it's loading/off-screen */
+}
+
+.ascent-strip {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1200%;
+  /* the ascent's whole light level, not just the silo's: a single
+     brightness (+ a warm sepia tint that fades out by the time we
+     clear the ground) animated on THIS element, so it affects
+     whatever band currently fills the window without needing a
+     separate darkening rule per band. This base filter is the rest
+     state — it must match ascent-scroll's own 0% keyframe
+     (animations.css) exactly, since nothing else dims the shaft
+     before .is-launching's animation takes over. Previously the silo
+     was a flat, always-0.4-brightness band (plus an extra static
+     depth-darkening overlay that compounded with it) — dark enough at
+     rest that motion in the first few seconds of the climb was barely
+     perceptible. Now brightness climbs steadily from the moment the
+     climb starts, so the shaft visibly lightens level by level instead
+     of sitting at one fixed darkness until it suddenly reaches the
+     already-bright ground band. */
+  filter: brightness(0.4) sepia(0.4);
+}
+/* the pre-launch rumble, then the long climb — js/window-scenes.js
+   sequences these two classes with matching setTimeouts (SHAKE_MS/
+   SCROLL_MS); keep those durations equal to the ones below if either
+   changes. The strip is bottom-anchored (silo visible at rest, no
+   transform needed) and scrolls DOWN (positive translateY) as the
+   ship climbs — the ground/sky sliding down and out of frame while
+   the sky above stays put is what an ascending window view actually
+   looks like.
+
+   The animation-timing-function here is `linear`, but the ACCELERATION
+   (an explicit, decreasing per-level duration — see ascent-scroll's own
+   comment in animations.css) lives entirely in ascent-scroll's keyframe
+   stops, not in this timing-function. Note the scroll no longer runs
+   all the way to translateY(91.667%) (the strip's true top/space band):
+   it stops at 90%, right as the view reaches solid black, because
+   js/window-scenes.js crossfades to the real starfield scene (see
+   .scene-space below) at that same moment rather than waiting for the
+   strip's fake, baked-in stars to finish scrolling into view — distant
+   stars shouldn't visibly slide past at ascent speed the way foreground
+   scenery does. */
+.scene-ascent.is-shaking { animation: silo-shake 1s ease-in-out; }
+.ascent-strip.is-launching {
+  animation: ascent-scroll 23s linear forwards;
+}
+
+.ascent-band {
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+
+/* percentages of the 1200%-tall strip: 6 + 12 + 28 + 8 + 46 = 100.
+   Silo is now the dominant share (a 1200%-tall strip puts ~5.5 window-
+   heights of shaft below ground, with 6 level markers spaced through
+   it — see .level-marker below — instead of relying on darkness alone
+   to read as "deep"); sky is a bigger share than before per explicit
+   feedback ("more time flying against the sky"). */
+.band-space {
+  top: 0%;
+  height: 6%;
+  /* plain black, not painted stars: real stars are far enough away that
+     they shouldn't visibly slide past at ascent speed the way the
+     ground/sky do, so this band is never meant to be scrolled through —
+     the scroll stops just before it (see .ascent-strip.is-launching
+     above) and js/window-scenes.js crossfades in the real starfield
+     scene (.scene-space) instead of ever fully revealing this one */
+  background: #05060a;
+}
+.band-upper {
+  top: 6%;
+  height: 12%;
+  background: linear-gradient(180deg, #05060a 0%, #16233a 55%, #3a6ea5 100%);
+}
+.band-sky {
+  top: 18%;
+  height: 28%;
+  overflow: hidden;
+  background: linear-gradient(180deg, #3a6ea5 0%, #7fb7de 100%);
+}
+.band-ground {
+  top: 46%;
+  height: 8%;
+  /* the horizon line lives inside this one band: sky above it, ground
+     below, so "trees pass below us" needs no separate element sizing.
+     Ground reads as forest floor (not open field) since the trees
+     below are meant to be a dense woods the silo hides in, not a
+     lone tree line. */
+  background: linear-gradient(180deg, #9fd0ec 0%, #cfe9f7 52%, #2c3a1c 52%, #161f0c 100%);
+  overflow: visible; /* lets .tree-line.near's tall trees poke up past this band's own edge into the sky above, per "trees are taller and closer" */
+}
+.band-silo {
+  top: 54%;
+  height: 46%;
+  /* reuses .hull (base.css/cockpit.css) for the same worn-riveted-metal
+     material as the rest of the ship — dimming is no longer a static
+     property of this band; it's the ascent's animated light-level
+     curve on .ascent-strip below, so the shaft actually gets brighter
+     over time instead of sitting at one fixed darkness the whole way
+     down (see the comment on .ascent-strip.is-launching). Desaturation
+     stays static, though — the shaft reads as dull concrete/metal at
+     any light level, not just when dark. */
+  filter: saturate(0.55);
+}
+
+/* six evenly-spaced level markers through .band-silo, deepest (6) at
+   the bottom — the rest position visible at load — up to shallowest
+   (1) just below the surface. Local top% = (2L-1)/12*100 for level L,
+   independent of the strip's overall scale. Text/color reuse the same
+   HUD font and amber as .hud (window.css) — stenciled shaft signage
+   lit by the same instrument-panel language as the rest of the ship. */
+.level-marker {
+  position: absolute;
+  left: 0;
+  right: 0;
+  transform: translateY(-50%);
+  padding: 0 6%;
+  font-family: var(--font-led);
+  font-size: clamp(0.85rem, 2.2vw, 1.3rem);
+  letter-spacing: 0.1em;
+  color: rgba(217,134,31,0.55);
+  text-shadow: 0 0 4px rgba(217,134,31,0.35);
+}
+.level-marker::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  margin-top: 5px;
+  height: 1px;
+  background: rgba(217,134,31,0.2);
+}
+
+/* the 6 level markers sit centered in 6 equal slots of .band-silo's
+   own height (1/6 each — the same (2L-1)/12*100 spacing above, just
+   read as slot centers instead of raw positions); .level-seam marks
+   the 5 boundaries BETWEEN those slots at 1/6, 2/6, 3/6, 4/6, 5/6.
+   Not lit signage like .level-marker — a plain highlight-over-shadow
+   pair instead of the amber HUD language, reading as a physical
+   construction seam in the shaft wall (like a poured-concrete floor
+   joint) rather than an instrument marking, so the levels read as
+   physically passing by even at a glance, not just via the text. No
+   seam at the band's own top (already a strong material change into
+   .band-ground) or bottom (the strip's own cutoff, not a real seam). */
+.level-seam {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  /* .band-silo's own filter: brightness(0.4) dims this along with
+     everything else in the shaft, so the highlight needs real headroom
+     to still read as "slightly brighter" once dimmed, not the ~0.15
+     alpha that would look right on an undimmed surface */
+  background: linear-gradient(180deg, rgba(255,255,255,0.4), rgba(0,0,0,0.3));
+  pointer-events: none;
+}
+
+.cloud-layer {
+  position: absolute;
+  inset: 0;
+}
+.cloud {
+  position: absolute;
+  /* .band-sky is a much taller box now (28% of a 1200%-tall strip —
+     more time flying against it), so cloud height is a smaller % of
+     that box than it looks: this still renders at roughly the same
+     on-screen size as before, just spread across more of them over a
+     longer flight instead of a couple of oversized puffs */
+  height: 5%;
+  aspect-ratio: 2.6 / 1;
+  border-radius: 999px;
+  /* a few overlapping puffs instead of one plain pill, so it reads as
+     a cumulus cloud silhouette rather than a flat oval at any size */
+  background:
+    radial-gradient(circle at 24% 65%, rgba(255,255,255,0.95), rgba(255,255,255,0.5) 65%, transparent 75%),
+    radial-gradient(circle at 52% 35%, rgba(255,255,255,0.95), rgba(255,255,255,0.55) 60%, transparent 72%),
+    radial-gradient(circle at 76% 60%, rgba(255,255,255,0.9), rgba(255,255,255,0.5) 60%, transparent 75%),
+    radial-gradient(ellipse at 50% 70%, rgba(255,255,255,0.85), transparent 70%);
+  filter: blur(1.5px);
+  animation: cloud-drift 40s ease-in-out infinite alternate;
+}
+
+/* two tree layers instead of one, for depth ("hidden in the woods"
+   reads as a dense close forest, not a distant tree line): .far is
+   shorter, hazier, and slightly lighter (a receding tree line behind
+   the clearing); .near is the tall, dark, close forest the silo sits
+   in, tall enough to poke above .band-ground's own edge into the sky
+   (.band-ground's overflow:visible above allows this). */
+.tree-line {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+}
+.tree-line.far {
+  height: 55%;
+  fill: #34432a;
+  opacity: 0.6;
+}
+.tree-line.near {
+  height: 125%;
+  fill: #030602;
+}
+
+.scene-space {
+  background: #05060a;
+}

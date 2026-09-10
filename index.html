@@ -10,13 +10,14 @@
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/cockpit.css">
   <link rel="stylesheet" href="css/window.css">
+  <link rel="stylesheet" href="css/scenes.css">
   <link rel="stylesheet" href="css/console.css">
   <link rel="stylesheet" href="css/animations.css">
   <link rel="stylesheet" href="css/responsive.css">
 </head>
 <body>
 
-<div id="cockpit">
+<div id="cockpit" class="unpowered">
 
   <!-- shown only on iOS Safari, which gates DeviceOrientation behind an
        explicit tap — see js/parallax.js. Hidden everywhere else. -->
@@ -57,7 +58,85 @@
         <div class="bolt bl"></div>
         <div class="bolt br"></div>
 
-        <canvas id="starfield"></canvas>
+        <!-- SCENE LAYER — the view through the window: a stack of
+             swappable backgrounds (js/window-scenes.js, css/scenes.css),
+             not one fixed starfield. #scene-ascent is the silo interior
+             at rest; it scrolls up through ground/sky/atmosphere on
+             launch, then hands off to #scene-space (the starfield
+             canvas, unchanged from before) for the rest of the flight.
+             Future views (other ships, constellations, effects) are
+             just another .scene added here. -->
+        <div id="scene-layer">
+          <div class="scene scene-ascent is-active" id="scene-ascent" data-scene="ascent">
+            <div class="ascent-strip" id="ascent-strip">
+              <div class="ascent-band band-space"></div>
+              <div class="ascent-band band-upper"></div>
+              <div class="ascent-band band-sky">
+                <!-- spread across the whole (now much taller) sky band,
+                     not clustered near its bottom, so clouds keep passing
+                     below us through the longer flight instead of running
+                     out partway up -->
+                <div class="cloud-layer">
+                  <div class="cloud" style="top: 6%; left: 10%; width: 30%; animation-delay: -2s;"></div>
+                  <div class="cloud" style="top: 16%; left: 60%; width: 22%; animation-delay: -19s;"></div>
+                  <div class="cloud" style="top: 27%; left: 28%; width: 26%; animation-delay: -8s;"></div>
+                  <div class="cloud" style="top: 38%; left: 74%; width: 20%; animation-delay: -25s;"></div>
+                  <div class="cloud" style="top: 48%; left: 6%; width: 24%; animation-delay: -14s;"></div>
+                  <div class="cloud" style="top: 58%; left: 46%; width: 28%; animation-delay: -31s;"></div>
+                  <div class="cloud" style="top: 69%; left: 18%; width: 22%; animation-delay: -6s;"></div>
+                  <div class="cloud" style="top: 79%; left: 66%; width: 26%; animation-delay: -22s;"></div>
+                  <div class="cloud" style="top: 90%; left: 36%; width: 20%; animation-delay: -11s;"></div>
+                </div>
+              </div>
+              <div class="ascent-band band-ground">
+                <!-- a hazy, smaller tree line behind the close forest, for depth -->
+                <svg class="tree-line far" viewBox="0 0 400 60" preserveAspectRatio="none">
+                  <polygon points="14,60 30,32 46,60"/>
+                  <polygon points="55,60 68,26 81,60"/>
+                  <polygon points="100,60 118,34 136,60"/>
+                  <polygon points="160,60 174,24 188,60"/>
+                  <polygon points="215,60 230,36 245,60"/>
+                  <polygon points="270,60 286,28 302,60"/>
+                  <polygon points="320,60 334,38 348,60"/>
+                  <polygon points="365,60 380,30 395,60"/>
+                </svg>
+                <!-- the close, tall woods the silo is hidden in — tall
+                     enough to poke past the horizon into the sky above
+                     (.band-ground's overflow:visible) -->
+                <svg class="tree-line near" viewBox="0 0 400 60" preserveAspectRatio="none">
+                  <polygon points="8,60 26,7 44,60"/>
+                  <polygon points="34,60 48,24 62,60"/>
+                  <polygon points="72,60 94,3 116,60"/>
+                  <polygon points="104,60 122,29 140,60"/>
+                  <polygon points="152,60 172,9 192,60"/>
+                  <polygon points="178,60 194,31 210,60"/>
+                  <polygon points="232,60 252,5 272,60"/>
+                  <polygon points="262,60 280,27 298,60"/>
+                  <polygon points="312,60 332,2 352,60"/>
+                  <polygon points="342,60 358,25 374,60"/>
+                </svg>
+              </div>
+              <div class="ascent-band band-silo hull">
+                <!-- concrete seams between the 6 level slots -->
+                <div class="level-seam" style="top: 16.667%;"></div>
+                <div class="level-seam" style="top: 33.333%;"></div>
+                <div class="level-seam" style="top: 50%;"></div>
+                <div class="level-seam" style="top: 66.667%;"></div>
+                <div class="level-seam" style="top: 83.333%;"></div>
+                <div class="level-marker" style="top: 8.33%;">LEVEL 1</div>
+                <div class="level-marker" style="top: 25%;">LEVEL 2</div>
+                <div class="level-marker" style="top: 41.67%;">LEVEL 3</div>
+                <div class="level-marker" style="top: 58.33%;">LEVEL 4</div>
+                <div class="level-marker" style="top: 75%;">LEVEL 5</div>
+                <div class="level-marker" style="top: 91.67%;">LEVEL 6</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="scene scene-space" id="scene-space" data-scene="space">
+            <canvas id="starfield"></canvas>
+          </div>
+        </div>
 
         <div class="hud tl">Heading 227.4&deg;<br>Drift 0.001 AU/HR</div>
         <div class="hud tr">Range: Deep Field<br>Signal: Locked</div>
@@ -119,6 +198,15 @@
             </svg>
             <div class="tile-label">O2</div>
           </div>
+
+          <!-- LAUNCH — powers the whole console on/off (js/power.js).
+               Same push-btn/btn-lens component as the toggles below,
+               just bigger, and the only tile still lit while the ship
+               is unpowered. -->
+          <button type="button" id="launch-tile" class="tile launch">
+            <div class="push-btn round launch-btn"><div class="btn-lens amber"></div></div>
+            <div class="tile-label" id="launch-label">Launch</div>
+          </button>
 
           <!-- row 2: the real links + more instruments -->
           <a href="members.html" class="tile nav-tile">
@@ -274,5 +362,7 @@
 <script src="js/readouts.js"></script>
 <script src="js/throttle.js"></script>
 <script src="js/parallax.js"></script>
+<script src="js/window-scenes.js"></script>
+<script src="js/power.js"></script>
 </body>
 </html>

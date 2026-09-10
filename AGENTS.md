@@ -33,14 +33,22 @@ css/
                      reticle, canvas sizing
   console.css        the widget deck: #deck-grid, .tile and every
                      widget "face" (readout, gauge, nav-tile, knob,
-                     toggle, bar, alert light, throttle, equalizer)
+                     toggle, bar, alert light, throttle, equalizer,
+                     LAUNCH)
+  scenes.css         the window's swappable backgrounds — #scene-layer,
+                     .scene, and every scene's own art (currently just
+                     .scene-ascent's silo/ground/sky/space strip;
+                     .scene-space is just a plain wrapper around the
+                     existing starfield canvas)
   animations.css     all @keyframes, shared across the files above
   responsive.css     the >=900px media query — kept last on purpose,
                      since it overrides rules defined in the files
                      above and CSS source order decides that fight
 js/
   starfield.js       canvas starfield IIFE, sized to #window via
-                     ResizeObserver
+                     ResizeObserver — now mounted inside #scene-space
+                     rather than being #window's only background, but
+                     otherwise unchanged
   controls.js        toggle/knob/alert click handling on .tile
   readouts.js        readout drift (setInterval) + cargo bar fill-in
   throttle.js        pointer-based drag on .throttle-track
@@ -48,6 +56,13 @@ js/
                      DeviceOrientation; also owns the #motion-enable
                      iOS-permission pill (button lives in index.html,
                      styled in cockpit.css)
+  window-scenes.js   the scene switch (crossfades .scene elements via
+                     .is-active) plus the one scene transition that
+                     exists so far — silo -> ascent -> space, played
+                     once on the 'ship:launch' DOM event
+  power.js           the ship's powered/unpowered state (LAUNCH
+                     button, a one-way press that disables itself);
+                     dispatches 'ship:launch' on that press
 ```
 
 Split for size/readability, not for reuse or bundling — there's still no
@@ -365,6 +380,210 @@ pinned to the seat — the same "flat sibling below a hinge that doesn't
 move" logic as `.console-riser`, just used to foreshorten a receding
 surface instead of add a front face. The outer `rotate()` then points
 that already-foreshortened plane diagonally in toward the console.
+
+## The ship's power state
+
+The ship boots **unpowered**: `#cockpit` carries an `unpowered` class in
+the raw HTML (not added by JS) so the dimmed look is what a `file://`
+open or a JS-disabled load shows too, not something that flashes on
+after the page paints. Three files read that class (and its sibling
+`powered`/`flicker` classes, all toggled only by `js/power.js`) to dim
+their own corner of the ship, rather than one central place owning every
+dimmed element directly:
+
+- `console.css`: `#cockpit.unpowered #deck-grid > .tile:not(.launch)`
+  gets `filter: brightness(0.3) saturate(0.4)` and `pointer-events: none`
+  — every deck control goes dark AND stops responding to clicks (a dead
+  console shouldn't be operable), except `.tile.launch` itself, which
+  is excluded from the selector so it's the one thing still lit and
+  clickable.
+- `cockpit.css`: `.wall-light` goes fully dark (`background:
+  var(--bezel-lo)`, animation stopped) instead of just dimming — it's a
+  bare glowing dot with no surrounding material to fade, so a dimmed
+  version would just look like a smaller glow, not "off."
+- `window.css`: `.hud` and `#reticle` drop to `opacity: 0.04` — the
+  window's own projected instrument overlay, not the view of space
+  itself (the starfield canvas is deliberately NOT dimmed here — see
+  its own comment in window.css — space doesn't need the ship's power).
+
+`#cockpit.flicker` plays `power-flicker` (animations.css) on those same
+selectors for ~1.15s when power comes on, before the classes settle into
+their final `powered` state — the one-time "systems coming online"
+moment. All three files independently keying off the same three classes
+is the pattern to follow for any future ship-wide state (e.g. a "red
+alert" mode): pick the class names once, add them in one place
+(`js/power.js` here), and let each file that owns a dimmable element
+react to them locally rather than centralizing the dimming logic
+somewhere that would need to know about every other file's elements.
+
+**LAUNCH** (console.css, markup in index.html's `#deck-grid`) is the
+one control still lit and clickable while unpowered. It's deliberately
+the SAME `.push-btn.round` + `.btn-lens` component every toggle button
+uses (explicit user request — an earlier version was a bespoke button
+shape, which was reverted), just sized up (`.launch-btn`) with a bigger
+`.tile-label` caption, and explicitly `grid-column`/`grid-row` placed
+so `#deck-grid`'s dense auto-flow routes every other tile around this
+one reserved block instead of needing manual placement for the rest of
+the deck (its footprint went from a 3-row block to today's 2-row one
+after the first version read as too large). Its lens starts on the
+shared idle `.btn-lens.amber` pulse (the same idle language as the nav
+buttons) rather than off, since it's the only lit thing in the whole
+cockpit at rest; `#cockpit.powered .tile.launch .btn-lens` overrides
+that to a steady green glow (the `.toggle-btn.is-on` "systems nominal"
+color), and the caption switches from "Launch" to "Launched" to match.
+
+Pressing it is **one-way**: `js/power.js` sets the button's own
+`disabled` attribute right after the first press, rather than toggling
+back to an unpowered state on a second press (an earlier version did
+toggle both ways). There's nothing yet for a second press to do —
+revisit this once shutdown/relaunch or some other post-launch action
+is actually wired up, rather than re-adding a toggle with no real
+second state behind it. `disabled` also is what makes power.js's
+`ship:launch` dispatch (below) safe to fire unconditionally on click,
+with no "did this already happen" guard needed in JS: the browser
+itself won't deliver a second `click` event to a disabled button, not
+even a synthetic/forced one.
+
+## The window's scene system
+
+The view through `#window` is not one fixed starfield — it's a stack of
+swappable **scenes**, since the plan is for it to eventually show all kinds
+of different backgrounds (other ships, constellations, effects) as the
+site's fiction develops, not just the launch. `#scene-layer` holds every
+`.scene`, each an absolutely-positioned full-bleed layer; `js/window-scenes.js`
+shows one at a time by toggling `.is-active`, which crossfades via a plain
+CSS `opacity` transition. A future scene is just another element added to
+`#scene-layer` plus whatever code decides to call `showScene()` on it —
+this file doesn't need to know about it in advance, the same way `.tile`
+widgets on the deck don't need console.css to know about every future
+widget type.
+
+The one scene transition that exists so far — `.scene-ascent`'s silo
+interior scrolling up into `.scene-space`'s starfield on launch — is built
+as **one continuous tall strip** (`.ascent-strip`, `height: 1200%` of the
+scene's own box, so it scales with `#window` at any breakpoint with zero
+JS measurement) rather than several separately-timed effects. Reading it
+bottom-to-top: silo shaft, ground/treeline, sky+clouds, upper atmosphere,
+space+stars. A single `translateY` scroll animation (`ascent-scroll` in
+animations.css, `23s`) is most of the sequence — "gradually brighter,"
+"trees pass below," and "clouds pass below" all fall straight out of
+scrolling past different painted bands of one world, not out of
+separately animating brightness/position for each element. If a future
+scene needs its own multi-stage transition, prefer this "one strip, bands
+do the work" trick over hand-timing a pile of individual elements — it's
+what kept this one from turning into a mess of `setTimeout`s.
+
+`ascent-scroll` plays under `animation-timing-function: linear`
+(scenes.css), but the keyframe itself is NOT a plain from/to — it has 9
+explicit stops, 6 of them pinned to an exact per-level duration the user
+gave directly (LEVEL 6 passes in 3.5s, LEVEL 5 in 3s, down to LEVEL 1 in
+1s — "passing" defined as that level's `.level-marker` scrolling out the
+window's bottom edge, i.e. `translateY% = 100 - <that level's absolute
+strip position>`), with 3 more hand-picked stops pacing what comes after
+(ground, sky, fade-to-black). Because the timing-function is linear,
+interpolation BETWEEN each pair of stops is straight, so a stop's
+(time%, distance%) pair is exactly when that much of the strip has
+scrolled — no timing-function easing further distorting it. To retune a
+level's own duration, change only that stop's time% (its translateY% is
+fixed by the level's actual position, not a free choice); to retune
+post-silo pacing, move the last 3 stops' time%s. Every stop just needs
+both its time% and its translateY% to keep increasing from the one
+before it. Reach for this same "explicit keyframe stops under a linear
+timing-function" trick for any future scene that needs a hand-shaped pace
+curve — it keeps the stops' numbers meaning exactly what they say, which
+a bezier easing on top would quietly break.
+
+The scroll deliberately does NOT run all the way to the strip's true top
+(`translateY(91.667%)`, where `.band-space`'s baked art would be fully
+revealed) — it stops at `90%`, the moment the view is solid black, per
+explicit feedback that painted-in stars sliding past at ascent speed
+looks wrong: real stars are far enough away that they shouldn't
+noticeably move at all on this timescale. `.band-space` is now just flat
+black (`#05060a`), never meant to be fully scrolled into view; instead,
+`js/window-scenes.js`'s `SCROLL_MS` timeout (kept equal to this
+animation's total duration) fires right as that final stop is reached,
+and crossfades to `.scene-space` — the REAL starfield canvas — over the
+existing `.scene` opacity transition, reading as stars gradually becoming
+visible once it's dark enough, not a scene cut. If a future scene needs a
+similar "painted approximation hands off to a live/real element" moment,
+trigger the handoff at the exact time the painted version stops adding
+anything (here: "already solid black"), not at the animation's literal
+end — the two aren't the same thing once the strip's own final stretch
+is blank.
+
+Band sizing (the height% values) is a separate knob from this curve and
+still works the same way it always did: it sets how much of the strip's
+total DISTANCE each band covers, not directly how much time — with a
+non-uniform curve, a band's share of time depends on where its distance
+range falls across the stops above, not purely on its own height%. Silo
+depth isn't sold by darkness alone: six `.level-marker` labels ("LEVEL
+1"–"LEVEL 6") are spaced through `.band-silo` at fixed intervals
+(`(2L-1)/12 * 100%`, independent of the strip's overall scale) so the
+descent has a legible sense of scale, not just an abstractly-long dark
+scroll. `.level-seam` adds a second, physical layer to that same idea: 5
+thin highlight/shadow lines at the boundaries BETWEEN the 6 level slots
+(1/6 through 5/6 of `.band-silo`'s own height — the marker positions are
+each slot's center, so the seams fall naturally between them), reading as
+poured-concrete floor joints rather than lit signage — deliberately a
+plain white-over-black pair, not the amber HUD language `.level-marker`
+uses, so it's legible as the shaft's own material rather than an
+instrument. Its highlight alpha (`0.4`) is well above what would look
+right on an undimmed surface, because it sits inside `.ascent-strip`,
+which carries its own animated dimming (see the light-level curve below)
+— budget similar headroom for any future subtle-highlight element placed
+inside an already-dimmed/filtered container, or it'll render essentially
+invisible. Similarly, `.band-ground` layers two tree SVGs instead of one —
+`.tree-line.far` (short, hazy, desaturated) behind `.tree-line.near`
+(tall, near-black, tall enough to poke past `.band-ground`'s own edge
+into the sky band above via `overflow: visible`) — since a single
+distant tree line reads as "flying over a forest," while the near layer
+is what sells "hidden close in the woods."
+
+**The ascent's light level is one animated curve, not a per-band
+constant.** `.ascent-strip` (not any individual band) carries `filter:
+brightness()` (plus a `sepia()` warm tint that only applies underground)
+as part of `ascent-scroll`'s own keyframes, riding along on the same
+timeline as the scroll itself — dark at rest, climbing steadily through
+the silo, reaching neutral (`brightness(1)`, no dimming) right as the
+ground band arrives so it doesn't fight the sky's already-correct
+colors, holding there through the sky, then dropping again over the
+final stretch into black. This replaced an earlier version where
+`.band-silo` alone carried a flat `brightness(0.4)` (plus a static
+depth-darkening overlay that compounded with it) — constant regardless
+of how far the climb had progressed, which per feedback made the first
+few seconds of the climb hard to even perceive as movement, since
+nothing about the shaft's appearance actually changed as it passed. The
+fix generalizes: for anything that should visibly change over the
+course of the ascent (or a future scene's own timeline), animate it on
+the element carrying the scroll's own keyframes, in the same keyframe
+rule, rather than hanging a static rule off whichever band happens to
+contain it — a static per-band property can't express "changes over
+time" no matter how it's tuned, only "changes when a different band
+scrolls into view." `.ascent-strip`'s base (non-`.is-launching`) filter
+must match `ascent-scroll`'s `0%` stop exactly, since nothing else dims
+the shaft before the animation takes over.
+
+The strip is **bottom-anchored** (`bottom: 0`), so it shows the silo at
+rest with no transform needed, and scrolls **down** (positive `translateY`)
+as the ship climbs — the ground sliding down and out of the window while
+the sky above stays in place is what an ascending window view actually
+looks like, and matches the "scroll down" the user originally described.
+Getting the sign of that transform backwards was the one real bug during
+development: it looked like the scene just went to black and stayed there,
+because the strip scrolled UP off the top of its own artwork into empty
+space instead of down through it — if a future scene's scroll transition
+seems to "do nothing," check the transform's sign against which edge the
+strip is anchored to before anything else.
+
+`js/power.js` triggers the sequence by dispatching a plain `'ship:launch'`
+DOM event on `document` — safe to fire unconditionally on every click
+LAUNCH actually receives, since (per "The ship's power state" above) the
+button disables itself after that one click, so there is no second click
+to guard against — rather than calling into window-scenes.js directly,
+the same loose, no-shared-state coupling every other feature file in this
+codebase already uses. Reach for that same event-dispatch pattern for any
+future cross-file trigger instead of adding direct references between
+`js/*.js` files.
 
 ## A real gotcha: 3D transforms break naive click targeting
 

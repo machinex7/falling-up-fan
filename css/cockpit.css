@@ -187,6 +187,17 @@
   display: none; /* revealed at wider breakpoints */
 }
 
+/* unpowered: the wall lamps go dark instead of just dimming, since
+   they're a bare glowing dot with no surrounding material to fade */
+#cockpit.unpowered .wall-light {
+  background: var(--bezel-lo);
+  box-shadow: none;
+  animation: none;
+}
+#cockpit.flicker .wall-light {
+  animation: power-flicker 1.1s steps(1, jump-none) 1;
+}
+
 .knob-unit {
   display: flex;
   flex-direction: column;
