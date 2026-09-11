@@ -77,6 +77,10 @@ js/
   power.js           the ship's powered/unpowered state (LAUNCH
                      button, a one-way press that disables itself);
                      dispatches 'ship:launch' on that press
+  timer.js           the console's mission countdown (dd:hh:mi:ss),
+                     idle at 00:00:15:00 until 'ship:launch' fires,
+                     then ticks down once a second and stops dead at
+                     zero — see "The mission timer" below
   monitor.js         opens/closes #info-monitor and swaps its
                      album-list/track-list/lyrics-view views —
                      see "The info monitor" below
@@ -463,6 +467,39 @@ second state behind it. `disabled` also is what makes power.js's
 with no "did this already happen" guard needed in JS: the browser
 itself won't deliver a second `click` event to a disabled button, not
 even a synthetic/forced one.
+
+## The mission timer
+
+`.tile.timer` (markup right before LAUNCH in `#deck-grid`, styling in
+console.css, ticking logic in `js/timer.js`) is a countdown readout in
+`dd:hh:mi:ss`, reusing the bare-glowing-digits `.r-value` look every
+other readout uses but in cyan rather than amber/green, so it reads as
+its own instrument rather than a fourth Power/Signal/Hull gauge.
+Explicitly `grid-column: 11 / 17; grid-row: 1 / 2` — same "reserve a
+block, let `dense` packing route every auto-placed tile around it"
+trick LAUNCH's own comment in console.css documents; confirmed via
+Playwright at phone/tablet/desktop widths that dropping this block into
+row 1 pushes the rest of the deck's tiles down cleanly with no overlaps
+before landing on this placement, since dense reflow after adding a new
+explicitly-placed tile isn't safe to just eyeball on a 16-column deck
+already packed edge to edge (re-check the same way if this block's size
+or position changes).
+
+It idles at `00:00:15:00` from page load (`js/timer.js`'s initial
+`render()`) — deliberately not gated behind `#cockpit.powered`, since
+that state alone already dims and disables it like every other non-
+LAUNCH/`.nav-tile` (see "The ship's power state" above); the timer just
+doesn't start counting until it hears `'ship:launch'`, at which point a
+plain `setInterval` decrements a module-scoped `remaining` (seconds) and
+re-renders once a second. Reaching zero is meant to unlock a story event
+per `Stories.md`-style narrative plans, but that event doesn't exist
+yet, so `js/timer.js` does the minimum that's actually true right now:
+`clearInterval` the moment `remaining` hits 0 and stop, no event
+dispatch, no placeholder hook for "later." Wire an actual
+`document.dispatchEvent(new CustomEvent(...))` in that same spot
+(mirroring `power.js`'s `'ship:launch'` dispatch) once there's a real
+listener for it to reach, rather than adding one now with nothing on
+the other end.
 
 ## The window's scene system
 
