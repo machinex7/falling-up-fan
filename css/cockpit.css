@@ -221,6 +221,10 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
+  /* anchors #info-monitor (css/monitor.css), which covers this box via
+     position:absolute; inset:0 — #window/#console stay in normal flow,
+     unaffected, since an absolute child is taken out of it */
+  position: relative;
 }
 
 /* ── sticky notes: someone's been living here ──

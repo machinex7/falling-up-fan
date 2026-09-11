@@ -175,6 +175,19 @@
 .tile.readout { grid-column: span 4; }
 .tile.nav-tile { grid-column: span 3; }
 
+/* #albums-tile is a <button>, not an <a>, since it opens the info
+   monitor (css/monitor.css) in place instead of navigating — strip the
+   UA button chrome so it renders identically to the .tile <a>s beside
+   it. Shared with .tile.launch's own reset below rather than the other
+   way around, since this is the more general case. */
+button.tile {
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
+  font: inherit;
+  cursor: pointer;
+}
+
 .tile:has(.knob), .tile:has(.toggle-btn), .tile.nav-tile {
   cursor: pointer;
 }
@@ -449,13 +462,23 @@
   text-shadow: 0 0 8px var(--green-glow);
 }
 
-/* UNPOWERED — every deck tile but LAUNCH itself goes dark and
-   unresponsive (dimmed + desaturated via filter rather than hunting
-   down every lit color individually, and unclickable so a dead
-   console can't be operated). js/power.js owns the
-   unpowered/powered/flicker classes on #cockpit; .flicker briefly
-   plays power-flicker (animations.css) as things come back on. */
-#cockpit.unpowered #deck-grid > .tile:not(.launch) {
+/* UNPOWERED — every deck tile but LAUNCH and the three band-info nav
+   buttons (Members/Albums/Connections) goes dark and unresponsive
+   (dimmed + desaturated via filter rather than hunting down every lit
+   color individually, and unclickable so a dead console can't be
+   operated). js/power.js owns the unpowered/powered/flicker classes
+   on #cockpit; .flicker briefly plays power-flicker (animations.css)
+   as things come back on.
+
+   .nav-tile is excluded from the dimming/disabling half of this rule
+   — explicit user call: reading about the band is "the point of the
+   site" and shouldn't require flying the ship first, so Members/
+   Albums/Connections (and the info monitor Albums opens) stay lit and
+   clickable at every power state. They're left IN the .flicker rule
+   below, though: they were already lit, so the power-up flicker just
+   reads as the whole panel surging together rather than them visibly
+   turning on, which is harmless and keeps that moment unified. */
+#cockpit.unpowered #deck-grid > .tile:not(.launch):not(.nav-tile) {
   filter: brightness(0.3) saturate(0.4);
   pointer-events: none;
 }

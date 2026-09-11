@@ -10,21 +10,30 @@ A fan site for the band Falling Up, themed as a spacecraft flight deck /
 cockpit. `index.html` is the entire site so far: plain HTML markup that
 links out to separate CSS and JS files rather than inlining `<style>` /
 `<script>` (no build step, no dependencies beyond a Google Fonts link) —
-see "File layout" below for what lives where. Open it directly in a
-browser or serve the directory with any static file server; the `css/`
-and `js/` files are linked with relative paths, so serving is the safer
-option if a bare `file://` open ever runs into relative-path issues.
+see "File layout" below for what lives where. Serving the directory with
+a static file server (e.g. `python3 -m http.server`) is no longer just
+the safer option, it's required: `js/monitor.js` fetches `data/albums.json`,
+and `fetch()` against a local file fails in most browsers under a bare
+`file://` open.
 
-`members.html`, `tracks.html`, and `connections.html` are linked from the
-console but don't exist yet — they're the planned next pages. `Stories.md`
-has narrative/world-building notes for the site's fiction if that's ever
-relevant to future content.
+`members.html` and `connections.html` are linked from the console but
+don't exist yet — they're the planned next pages. The former `tracks.html`
+link is gone: what was going to be a Tracks page is now the Albums info
+monitor described below, built in-page rather than as a separate site.
+`Stories.md` has narrative/world-building notes for the site's fiction if
+that's ever relevant to future content.
 
 ## File layout
 
 ```
 index.html          markup only — links the CSS files, loads the JS
                      files at the end of <body>
+data/
+  albums.json        the info monitor's Albums content — plain array
+                      of { title, year, type, tracks }, fetched by
+                      js/monitor.js; hand-edit this file directly to
+                      correct or extend the catalog, nothing else
+                      references it
 css/
   base.css           reset, :root palette/spacing variables, html/body
   cockpit.css        shell layout: plaque bar, hull walls, seams,
@@ -35,6 +44,9 @@ css/
                      widget "face" (readout, gauge, nav-tile, knob,
                      toggle, bar, alert light, throttle, equalizer,
                      LAUNCH)
+  monitor.css        #info-monitor: the slide-out "second screen"
+                     the Albums nav button opens over #window/#console
+                     — see "The info monitor" section below
   scenes.css         the window's swappable backgrounds — #scene-layer,
                      .scene, and every scene's own art (currently just
                      .scene-ascent's silo/ground/sky/space strip;
@@ -63,6 +75,9 @@ js/
   power.js           the ship's powered/unpowered state (LAUNCH
                      button, a one-way press that disables itself);
                      dispatches 'ship:launch' on that press
+  monitor.js         opens/closes #info-monitor and swaps its
+                     album-list/track-list views; also owns
+                     ALBUM_DATA — see "The info monitor" below
 ```
 
 Split for size/readability, not for reuse or bundling — there's still no
@@ -391,12 +406,15 @@ after the page paints. Three files read that class (and its sibling
 their own corner of the ship, rather than one central place owning every
 dimmed element directly:
 
-- `console.css`: `#cockpit.unpowered #deck-grid > .tile:not(.launch)`
+- `console.css`: `#cockpit.unpowered #deck-grid > .tile:not(.launch):not(.nav-tile)`
   gets `filter: brightness(0.3) saturate(0.4)` and `pointer-events: none`
   — every deck control goes dark AND stops responding to clicks (a dead
-  console shouldn't be operable), except `.tile.launch` itself, which
-  is excluded from the selector so it's the one thing still lit and
-  clickable.
+  console shouldn't be operable), except `.tile.launch` and the three
+  `.nav-tile`s (Members/Albums/Connections — explicit user call: reading
+  about the band shouldn't require launching the ship first, since
+  that's "the point of the site"), which stay lit and clickable at
+  every power state. `.nav-tile` still plays the `.flicker` power-up
+  animation below, purely decorative since it was never actually dimmed.
 - `cockpit.css`: `.wall-light` goes fully dark (`background:
   var(--bezel-lo)`, animation stopped) instead of just dimming — it's a
   bare glowing dot with no surrounding material to fade, so a dimmed
@@ -584,6 +602,116 @@ the same loose, no-shared-state coupling every other feature file in this
 codebase already uses. Reach for that same event-dispatch pattern for any
 future cross-file trigger instead of adding direct references between
 `js/*.js` files.
+
+## The info monitor: a second screen, not a second page
+
+`members.html`/`connections.html` are still meant to be real separate
+pages once they exist, but the planned Tracks page turned into something
+different once it was actually being built: instead of navigating away,
+the **Albums** nav button (`#albums-tile`, a `<button>` now rather than an
+`<a>` — see the `button.tile` reset in console.css) opens `#info-monitor`,
+a panel that slides in from the side to cover `#window`/`#console` and
+shows an album list; picking an album swaps to that album's track list in
+the same panel. Both views are plain content swapped via the `hidden`
+attribute (`js/monitor.js`'s `showAlbumList`/`showTracks`) — there's no
+router, no history entries, no page load, just two `<div>`s toggling
+visibility the same way `js/window-scenes.js` toggles `.scene`s.
+
+**Why a slide-out panel instead of a real page:** the user's own framing
+was "a slot or additional monitor to the side" — an in-universe second
+screen the ship already has, not a link out of the cockpit. `#info-monitor`
+lives inside `#forward` (which needed `position: relative` added in
+cockpit.css for this to anchor to), sized via `position: absolute; inset:
+0`, so it automatically covers exactly the window+console box at any
+breakpoint with zero measurement — the same trick `.console-riser` and
+`.armrest` use elsewhere in this file. It's parked at `translateX(106%)`
+until `.is-open` slides it to `translateX(0)` (css/monitor.css) —
+deliberately NOT far enough to fully clear the viewport: `106%` is
+relative to `#info-monitor`'s own width, which is only `#forward`'s width
+(narrower than the viewport by whatever the side walls/seams take up), so
+a chunk of the parked panel sits visibly past the right wall at every
+breakpoint. An earlier pass "fixed" this into a full off-screen park
+(`translateX(calc(100% + 100vw))`) on the assumption the sliver was a
+bug; explicit follow-up feedback reversed that — the sliver peeking out
+is the point, it's what sells "there's a second screen tucked in over
+there" — so this stayed at `106%` and the actual fix went into making
+that visible sliver render as an inert, powered-off black rectangle
+instead (below), not into hiding it. `pointer-events` are off while
+parked so that sliver can never intercept a click meant for the console
+underneath it. Unlike every other tile, `#albums-tile` (and the other two
+`.nav-tile`s) is explicitly EXCLUDED from `#cockpit.unpowered`'s
+dimming/`pointer-events:none` rule in console.css — explicit user call:
+band info shouldn't require launching the ship first, so the monitor
+opens at any power state, not just once `#cockpit` is `.powered`.
+
+**Why the panel's own screen looks nothing like the rest of the ship:**
+originally this was styled as a plain light "traditional website," then
+deliberately reworked into an old green CRT terminal (Fallout/Pip-Boy
+territory — scanlines, phosphor glow, all-caps blocky text) per explicit
+user request. Both versions share the same underlying split, and it's
+worth keeping if this changes again: `.monitor-bezel` (the physical frame
+around the screen) reuses `.hull` + corner `.bolt`s, same as
+`#window`/`#console`, so the *hardware* always stays ship-consistent;
+`.monitor-screen` — the display surface inside that frame — is free to
+look like whatever the content on it is supposed to be, independent of
+the ship's own metal/amber-and-cyan-LED language. Currently that's a
+terminal: `--led-green`/`--green-glow` (the same tokens the console's own
+green LED readouts already use, so the color itself still ties back into
+the ship's instrument family) plus `var(--font-led)` (VT323) and
+`text-transform: uppercase` throughout `.monitor-screen`, a
+`repeating-linear-gradient` + radial vignette on `.monitor-screen::after`
+for scanlines (opacity kept low — "faint" was explicit), and a
+`crt-flicker` keyframe (animations.css, applied only via
+`.info-monitor.is-open .monitor-screen` so it's not running at all while
+closed) that sits at full brightness almost the whole cycle with just two
+brief ~5% dips, not a steady pulse — a real tube holds steady far more
+than it flickers. Selection/hover on
+`.album-card`/`.monitor-back`/`.monitor-close` inverts to solid green on
+near-black rather than just changing a border color, matching how a real
+terminal highlights the selected line. The `.monitor-flag` data-accuracy
+warning stays on the amber/`--led-amber` language instead of green, so it
+reads as a distinct system warning rather than blending into the normal
+green readout.
+
+**The screen is "powered off" whenever `#info-monitor` isn't `.is-open`,**
+not just repositioned — this matters because the parked panel is
+partially visible (see above), so what that visible sliver shows is a
+real design decision, not dead CSS. `.info-monitor:not(.is-open)
+.monitor-screen` swaps the background to flat `#000` (plain
+`var(--led-bg)` alone still reads as a lit, if dark, LED panel — not
+"off") and sets every direct child to `visibility: hidden` (not
+`display: none`, so the header/list/track-view keep their real layout
+and measurements for the moment the panel opens, rather than having to
+re-flow from nothing). The `::after` scanline/vignette layer isn't a
+child, so it needs its own `content: none` override in the same rule.
+Any new direct child added to `.monitor-screen` gets this "off" state
+for free via the `> *` selector; a future non-child decoration (another
+pseudo-element, or something appended straight to `.monitor-bezel`)
+would need the same explicit treatment the scanline layer got.
+
+**A `[hidden]`-vs-`display` gotcha worth knowing before adding a third
+view here:** `.album-list` and `.track-view` each need their own
+non-default `display` for layout (`flex` / block-with-children), and at
+equal specificity an author rule for `display` beats the browser's own
+`[hidden] { display: none }` UA rule — so without the explicit
+`.album-list[hidden], .track-view[hidden] { display: none; }` override
+near the top of monitor.css, toggling the `hidden` attribute did nothing
+and both views rendered stacked on top of each other. Any future view
+swapped the same way needs that same explicit `[hidden]` override the
+moment it sets its own `display`.
+
+**`data/albums.json` is a first draft, not sourced data** — titles, years,
+and tracklists were filled in from memory rather than checked against
+liner notes or a streaming catalog, and the panel says so via the
+`.monitor-flag` banner visible under the header in both views. Correct
+entries directly in that JSON file rather than treating anything currently
+in it as verified canon. `js/monitor.js` fetches it once on the album
+button's first `click` (`dataPromise`, module-scoped so later opens reuse
+the same resolved promise instead of re-fetching) and shows an
+`ACCESSING CATALOG…` placeholder row in the meantime — on a fast local
+server that placeholder is only visible for a frame, but it's there for
+slower hosting and for the fetch-failure path (a `CATALOG DATA
+UNAVAILABLE.` row plus a console error) rather than a silent blank panel.
 
 ## A real gotcha: 3D transforms break naive click targeting
 
