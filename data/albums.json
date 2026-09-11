@@ -1,71 +1,278 @@
 [
   {
-    "title": "Sound of Renewal",
+    "title": "Crashings",
     "year": 2004,
     "type": "LP",
     "tracks": [
+      "Bittersweet",
+      "Symmetry",
       "Broken Heart",
-      "Broken Flag",
-      "Falling Up",
-      "Escaped Youth",
-      "Discovering Directions",
-      "Vine and Branches"
+      "Escalates",
+      "New Hope Generation",
+      "The Gathering",
+      "Jackson Five",
+      "Divinity",
+      "Places",
+      "Falling In Love",
+      "Ambience",
+      "Arafax Deep"
     ]
   },
   {
     "title": "Dawn Escapes",
-    "year": 2007,
+    "year": 2005,
     "type": "LP",
     "tracks": [
-      "The Dark Horse",
-      "Broken Sight",
-      "Ambassador",
-      "Streetlights",
-      "Escape Artist"
+      "Searchlights",
+      "Exhibition",
+      "Flights",
+      "Exit Calypsan (Only in My Dreams)",
+      "Contact",
+      "Moonlit",
+      "Cascades",
+      "Meridians",
+      "Lights of Reedsport",
+      "Marathons",
+      "Fearless",
+      "Into the Gravity"
+    ]
+  },
+  {
+    "title": "Exit Lights",
+    "year": 2006,
+    "type": "LP",
+    "tracks": [
+      "Islander",
+      "Exit Calypsan (Into the Ice Cave)",
+      "Escalates (Aceramic)",
+      "Broken Heart (Ghosts of Seaside)",
+      "Circlewinds (Interlude)",
+      "Moonlit (Neon Predator)",
+      "Bittersweet (a Jedi Force)",
+      "Third Lake (Interlude)",
+      "Searchlights (Indoor Soccer)",
+      "Fearless (250 and Dark Stars)",
+      "Contact (Complexus)",
+      "Exhibition (Epoison)",
+      "Cascades (From In the Forest Cascade)"
     ]
   },
   {
     "title": "Captiva",
+    "year": 2007,
+    "type": "LP",
+    "tracks": [
+      "A Guide to Marine Life",
+      "Hotel Aquarium",
+      "Goodnight Gravity",
+      "Captiva",
+      "Helicopters",
+      "Maps",
+      "How They Made Cameras",
+      "Good Morning Planetarium",
+      "Murexa",
+      "Drago or the Dragons",
+      "Arc to Archtilles",
+      "The Dark Side of Indoor Track Meets"
+    ]
+  },
+  {
+    "title": "Discover the Trees Again: The Best of Falling Up",
+    "year": 2008,
+    "type": "Compilation",
+    "tracks": [
+      "Broken Heart",
+      "Hotel Aquarium",
+      "Moonlit",
+      "Exit Calypsan (Into the Ice Cave)",
+      "Escalates",
+      "Contact",
+      "Searchlights (Indoor Soccer)",
+      "Good Morning Planetarium",
+      "Bittersweet",
+      "Islander",
+      "Symmetry",
+      "Flights",
+      "Falling In Love",
+      "Goodnight Gravity"
+    ]
+  },
+  {
+    "title": "Fangs!",
     "year": 2009,
     "type": "LP",
     "tracks": [
-      "Bittersweet",
-      "Weatherman",
-      "Force of Nature",
-      "Sad Sun",
-      "Broadcasts from Eden"
+      "A Colour Eutopian",
+      "Lotus and the Languorous",
+      "Streams of Woe at Acheron",
+      "Magician Reversed",
+      "Golden Arrows",
+      "The King's Garden",
+      "Panic and Geo-Primaries",
+      "The Moon and Sixpence",
+      "Goddess of the Dayspring, Am I",
+      "The Sidewinder Flux",
+      "The Chilling Alpine Adventure",
+      "Swimming Towards Propellers"
     ]
   },
   {
     "title": "Your Sparkling Death Cometh",
     "year": 2011,
-    "type": "EP",
+    "type": "LP",
     "tracks": [
-      "Sad Songs",
-      "Panic Blossom",
-      "The Pressure Kids"
+      "Circadian",
+      "The Wonder",
+      "Blue Ghost",
+      "Diamonds",
+      "The Light Beam Rider",
+      "Oceans",
+      "Mscron",
+      "Vates",
+      "Forms and Shapes",
+      "Slow Waves",
+      "Darkspeed (Bonus Song)"
     ]
   },
   {
-    "title": "Fangs!",
-    "year": 2013,
-    "type": "LP",
+    "title": "Mnemos EP",
+    "year": 2012,
+    "type": "EP",
     "tracks": [
-      "The Colossus",
-      "Sad Cypress",
-      "Choke",
-      "Dagger",
-      "Fevers and Sires"
+      "Pete the Little Robot Comes Home",
+      "Taipan",
+      "Alexis",
+      "Glassen",
+      "Caves",
+      "Earthship",
+      "Remembering Pete",
+      "Evidence (Bonus Track)",
+      "Now Available on VHS (Bonus Track)"
     ]
   },
   {
     "title": "Hours",
-    "year": 2018,
+    "year": 2013,
     "type": "LP",
     "tracks": [
-      "Sad Songs, Sad Songs",
-      "Panic Room",
-      "Midnight"
+      "The Contract",
+      "The Climb",
+      "Finn Hatches a Plan",
+      "The Rest Will Soon Follow",
+      "Aeva and the Waving World",
+      "On Growing Things",
+      "Intro to the Radio Room",
+      "The Outsider",
+      "Blue Ruins",
+      "Transmission",
+      "Prillicians",
+      "In Echoes Forever",
+      "The Station (Bonus Track)"
+    ]
+  },
+  {
+    "title": "Midnight on Earthship",
+    "year": 2013,
+    "type": "EP",
+    "tracks": [
+      "Sky Circles",
+      "Home",
+      "Bruise",
+      "Greying Morning",
+      "Who You Are",
+      "Down Here",
+      "Summer Song",
+      "Rooftops",
+      "Voices",
+      "Tomorrows"
+    ]
+  },
+  {
+    "title": "Silver City",
+    "year": 2013,
+    "type": "EP",
+    "tracks": [
+      "Intro/Jingle Bells",
+      "Carol of the Bells",
+      "Emanuel",
+      "Silent Night",
+      "Oh Holy Night",
+      "Oh Holy Night (Reprise)",
+      "Silver Creek",
+      "Sugar Plum Fairy",
+      "Song in the Air",
+      "Silver City",
+      "The Little Robot",
+      "Silver City Sleeps"
+    ]
+  },
+  {
+    "title": "House Full of Caverns",
+    "year": 2015,
+    "type": "EP",
+    "tracks": [
+      "Aron on the Wind",
+      "Nova",
+      "Fenn",
+      "Stormland",
+      "Debris Field",
+      "The Narrows",
+      "Violet",
+      "Fathoms"
+    ]
+  },
+  {
+    "title": "Falling Up",
+    "year": 2015,
+    "type": "LP",
+    "tracks": [
+      "Boone Flyer",
+      "Flora",
+      "The Green Rider",
+      "Hydro",
+      "The Woodworker",
+      "Wild Bird",
+      "Typhoon",
+      "In the Woodshop",
+      "Rangers",
+      "Up in Houses",
+      "The Insect",
+      "Flares"
+    ]
+  },
+  {
+    "title": "The Chilling Alpine Adventure",
+    "year": 2024,
+    "type": "LP",
+    "tracks": [
+      "The Waterfall House",
+      "Five Angle",
+      "That's Reanimation!",
+      "Recruitment",
+      "Processing",
+      "Counter Moves",
+      "Autumn 38",
+      "Double Afterlife",
+      "Tall Grass in the Lobby",
+      "The Version"
+    ]
+  },
+  {
+    "title": "Reimagined Volume 1",
+    "year": 2026,
+    "type": "Compilation",
+    "tracks": [
+      "Oceans",
+      "In the Woodshop",
+      "Goddess of the Dayspring, Am I",
+      "A Guide to Marine Life",
+      "The Wonder",
+      "Helicopters",
+      "Blue Ruins",
+      "Golden Arrows",
+      "Exit Calypsan",
+      "Intro to the Radio Room",
+      "The Narrator"
     ]
   }
 ]
