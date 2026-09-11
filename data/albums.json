@@ -1,71 +1,791 @@
 [
   {
-    "title": "Sound of Renewal",
+    "title": "Crashings",
     "year": 2004,
     "type": "LP",
     "tracks": [
-      "Broken Heart",
-      "Broken Flag",
-      "Falling Up",
-      "Escaped Youth",
-      "Discovering Directions",
-      "Vine and Branches"
+      {
+        "title": "Bittersweet",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Symmetry",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Broken Heart",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Escalates",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "New Hope Generation",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "The Gathering",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Jackson Five",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Divinity",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Places",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Falling In Love",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Ambience",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Arafax Deep",
+        "lyrics": "TODO"
+      }
     ]
   },
   {
     "title": "Dawn Escapes",
-    "year": 2007,
+    "year": 2005,
     "type": "LP",
     "tracks": [
-      "The Dark Horse",
-      "Broken Sight",
-      "Ambassador",
-      "Streetlights",
-      "Escape Artist"
+      {
+        "title": "Searchlights",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Exhibition",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Flights",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Exit Calypsan (Only in My Dreams)",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Contact",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Moonlit",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Cascades",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Meridians",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Lights of Reedsport",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Marathons",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Fearless",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Into the Gravity",
+        "lyrics": "TODO"
+      }
+    ]
+  },
+  {
+    "title": "Exit Lights",
+    "year": 2006,
+    "type": "LP",
+    "tracks": [
+      {
+        "title": "Islander",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Exit Calypsan (Into the Ice Cave)",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Escalates (Aceramic)",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Broken Heart (Ghosts of Seaside)",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Circlewinds (Interlude)",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Moonlit (Neon Predator)",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Bittersweet (a Jedi Force)",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Third Lake (Interlude)",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Searchlights (Indoor Soccer)",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Fearless (250 and Dark Stars)",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Contact (Complexus)",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Exhibition (Epoison)",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Cascades (From In the Forest Cascade)",
+        "lyrics": "TODO"
+      }
     ]
   },
   {
     "title": "Captiva",
+    "year": 2007,
+    "type": "LP",
+    "tracks": [
+      {
+        "title": "A Guide to Marine Life",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Hotel Aquarium",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Goodnight Gravity",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Captiva",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Helicopters",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Maps",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "How They Made Cameras",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Good Morning Planetarium",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Murexa",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Drago or the Dragons",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Arc to Archtilles",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "The Dark Side of Indoor Track Meets",
+        "lyrics": "TODO"
+      }
+    ]
+  },
+  {
+    "title": "Discover the Trees Again: The Best of Falling Up",
+    "year": 2008,
+    "type": "Compilation",
+    "tracks": [
+      {
+        "title": "Broken Heart",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Hotel Aquarium",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Moonlit",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Exit Calypsan (Into the Ice Cave)",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Escalates",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Contact",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Searchlights (Indoor Soccer)",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Good Morning Planetarium",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Bittersweet",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Islander",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Symmetry",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Flights",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Falling In Love",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Goodnight Gravity",
+        "lyrics": "TODO"
+      }
+    ]
+  },
+  {
+    "title": "Fangs!",
     "year": 2009,
     "type": "LP",
     "tracks": [
-      "Bittersweet",
-      "Weatherman",
-      "Force of Nature",
-      "Sad Sun",
-      "Broadcasts from Eden"
+      {
+        "title": "A Colour Eutopian",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Lotus and the Languorous",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Streams of Woe at Acheron",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Magician Reversed",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Golden Arrows",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "The King's Garden",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Panic and Geo-Primaries",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "The Moon and Sixpence",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Goddess of the Dayspring, Am I",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "The Sidewinder Flux",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "The Chilling Alpine Adventure",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Swimming Towards Propellers",
+        "lyrics": "TODO"
+      }
     ]
   },
   {
     "title": "Your Sparkling Death Cometh",
     "year": 2011,
-    "type": "EP",
+    "type": "LP",
     "tracks": [
-      "Sad Songs",
-      "Panic Blossom",
-      "The Pressure Kids"
+      {
+        "title": "Circadian",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "The Wonder",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Blue Ghost",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Diamonds",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "The Light Beam Rider",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Oceans",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Mscron",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Vates",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Forms and Shapes",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Slow Waves",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Darkspeed (Bonus Song)",
+        "lyrics": "TODO"
+      }
     ]
   },
   {
-    "title": "Fangs!",
-    "year": 2013,
-    "type": "LP",
+    "title": "Mnemos EP",
+    "year": 2012,
+    "type": "EP",
     "tracks": [
-      "The Colossus",
-      "Sad Cypress",
-      "Choke",
-      "Dagger",
-      "Fevers and Sires"
+      {
+        "title": "Pete the Little Robot Comes Home",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Taipan",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Alexis",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Glassen",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Caves",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Earthship",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Remembering Pete",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Evidence (Bonus Track)",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Now Available on VHS (Bonus Track)",
+        "lyrics": "TODO"
+      }
     ]
   },
   {
     "title": "Hours",
-    "year": 2018,
+    "year": 2013,
     "type": "LP",
     "tracks": [
-      "Sad Songs, Sad Songs",
-      "Panic Room",
-      "Midnight"
+      {
+        "title": "The Contract",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "The Climb",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Finn Hatches a Plan",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "The Rest Will Soon Follow",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Aeva and the Waving World",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "On Growing Things",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Intro to the Radio Room",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "The Outsider",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Blue Ruins",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Transmission",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Prillicians",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "In Echoes Forever",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "The Station (Bonus Track)",
+        "lyrics": "TODO"
+      }
+    ]
+  },
+  {
+    "title": "Midnight on Earthship",
+    "year": 2013,
+    "type": "EP",
+    "tracks": [
+      {
+        "title": "Sky Circles",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Home",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Bruise",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Greying Morning",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Who You Are",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Down Here",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Summer Song",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Rooftops",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Voices",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Tomorrows",
+        "lyrics": "TODO"
+      }
+    ]
+  },
+  {
+    "title": "Silver City",
+    "year": 2013,
+    "type": "EP",
+    "tracks": [
+      {
+        "title": "Intro/Jingle Bells",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Carol of the Bells",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Emanuel",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Silent Night",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Oh Holy Night",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Oh Holy Night (Reprise)",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Silver Creek",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Sugar Plum Fairy",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Song in the Air",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Silver City",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "The Little Robot",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Silver City Sleeps",
+        "lyrics": "TODO"
+      }
+    ]
+  },
+  {
+    "title": "House Full of Caverns",
+    "year": 2015,
+    "type": "EP",
+    "tracks": [
+      {
+        "title": "Aron on the Wind",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Nova",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Fenn",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Stormland",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Debris Field",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "The Narrows",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Violet",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Fathoms",
+        "lyrics": "TODO"
+      }
+    ]
+  },
+  {
+    "title": "Falling Up",
+    "year": 2015,
+    "type": "LP",
+    "tracks": [
+      {
+        "title": "Boone Flyer",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Flora",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "The Green Rider",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Hydro",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "The Woodworker",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Wild Bird",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Typhoon",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "In the Woodshop",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Rangers",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Up in Houses",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "The Insect",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Flares",
+        "lyrics": "TODO"
+      }
+    ]
+  },
+  {
+    "title": "The Chilling Alpine Adventure",
+    "year": 2024,
+    "type": "LP",
+    "tracks": [
+      {
+        "title": "The Waterfall House",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Five Angle",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "That's Reanimation!",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Recruitment",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Processing",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Counter Moves",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Autumn 38",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Double Afterlife",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Tall Grass in the Lobby",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "The Version",
+        "lyrics": "TODO"
+      }
+    ]
+  },
+  {
+    "title": "Reimagined Volume 1",
+    "year": 2026,
+    "type": "Compilation",
+    "tracks": [
+      {
+        "title": "Oceans",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "In the Woodshop",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Goddess of the Dayspring, Am I",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "A Guide to Marine Life",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "The Wonder",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Helicopters",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Blue Ruins",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Golden Arrows",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Exit Calypsan",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "Intro to the Radio Room",
+        "lyrics": "TODO"
+      },
+      {
+        "title": "The Narrator",
+        "lyrics": "TODO"
+      }
     ]
   }
 ]

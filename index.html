@@ -340,7 +340,8 @@
            material as every other panel); the screen it shows is
            deliberately a plain, scrollable "traditional website" list/
            detail view, not another cockpit widget — js/monitor.js swaps
-           #album-list and #track-view via [hidden], no page loads. -->
+           #album-list, #track-view and #lyrics-view via [hidden], no
+           page loads. -->
       <div id="info-monitor" class="info-monitor" aria-hidden="true">
         <div class="monitor-bezel hull">
           <div class="bolt tl"></div>
@@ -353,12 +354,16 @@
               <h2 id="monitor-title">Albums</h2>
               <button type="button" id="monitor-close" class="monitor-close" aria-label="Close albums monitor">&times;</button>
             </header>
-            <p class="monitor-flag">Draft data, pulled from memory — verify titles and tracklists before treating any of this as canon.</p>
+            <p class="monitor-flag">Catalog cross-checked against public release listings — flag any discrepancy you spot.</p>
             <div class="monitor-body">
               <ul id="album-list" class="album-list"></ul>
               <div id="track-view" class="track-view" hidden>
                 <p id="track-meta" class="track-meta"></p>
                 <ol id="track-list" class="track-list"></ol>
+              </div>
+              <div id="lyrics-view" class="lyrics-view" hidden>
+                <p id="lyrics-meta" class="track-meta"></p>
+                <pre id="lyrics-body" class="lyrics-body"></pre>
               </div>
             </div>
           </div>

@@ -2,21 +2,20 @@
 // INFO MONITOR — the Albums button (#albums-tile) slides
 // #info-monitor in over #forward (css/monitor.css handles the
 // actual animation) instead of navigating to tracks.html. This
-// file just owns the two-view terminal nav inside that panel —
-// an album list and a per-album track list, swapped via
-// [hidden] — and the open/close/back wiring. No routing, no
-// page loads.
+// file just owns the three-view terminal nav inside that panel —
+// an album list, a per-album track list, and a per-track lyrics
+// view, swapped via [hidden] — and the open/close/back wiring.
+// No routing, no page loads.
 //
 // Album/track content lives in data/albums.json, not inline
 // here, so it's a plain data file to hand-edit — fetched once
 // (this needs the site served over http(s); a bare file:// open
 // will fail fetch() for a local JSON file in most browsers, per
 // AGENTS.md) and cached in `dataPromise` for every open after
-// the first. That JSON was filled in from memory, not checked
-// against liner notes or a streaming catalog — treat titles,
-// track counts/order, and release years as a first draft (the
-// .monitor-flag banner in the panel says the same to anyone
-// looking at it) and correct entries directly in the JSON file.
+// the first. Each track is `{ title, lyrics }`; lyrics are
+// placeholder `"TODO"` strings until the real words get filled
+// in by hand — this file just displays whatever string is there,
+// it doesn't know or care whether it's a placeholder.
 // ═══════════════════════════════════════════════════════
 (function () {
   const DATA_URL = 'data/albums.json';
@@ -34,8 +33,18 @@
   const trackViewEl = document.getElementById('track-view');
   const trackMetaEl = document.getElementById('track-meta');
   const trackListEl = document.getElementById('track-list');
+  const lyricsViewEl = document.getElementById('lyrics-view');
+  const lyricsMetaEl = document.getElementById('lyrics-meta');
+  const lyricsBodyEl = document.getElementById('lyrics-body');
   if (!monitor || !openBtn || !closeBtn || !backBtn || !titleEl ||
-      !albumListEl || !trackViewEl || !trackMetaEl || !trackListEl) return;
+      !albumListEl || !trackViewEl || !trackMetaEl || !trackListEl ||
+      !lyricsViewEl || !lyricsMetaEl || !lyricsBodyEl) return;
+
+  // Which view goBack() should treat as "current" — set at the end of
+  // each showX() below rather than inferred from [hidden] state, so
+  // goBack doesn't have to re-derive it from the DOM.
+  let view = 'albums';
+  let currentAlbum = null;
 
   function initials(name) {
     return name
@@ -72,24 +81,52 @@
   }
 
   function showTracks(album) {
+    currentAlbum = album;
     titleEl.textContent = album.title;
     trackMetaEl.textContent = `${album.year} · ${album.type} · ${album.tracks.length} tracks`;
     trackListEl.innerHTML = '';
     album.tracks.forEach(track => {
       const li = document.createElement('li');
-      li.textContent = track;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'track-button';
+      btn.textContent = track.title;
+      btn.addEventListener('click', () => showLyrics(album, track));
+      li.appendChild(btn);
       trackListEl.appendChild(li);
     });
+    lyricsViewEl.hidden = true;
     albumListEl.hidden = true;
     trackViewEl.hidden = false;
     backBtn.hidden = false;
+    backBtn.textContent = '← Albums';
+    view = 'tracks';
+  }
+
+  function showLyrics(album, track) {
+    titleEl.textContent = track.title;
+    lyricsMetaEl.textContent = album.title;
+    lyricsBodyEl.textContent = track.lyrics;
+    trackViewEl.hidden = true;
+    albumListEl.hidden = true;
+    lyricsViewEl.hidden = false;
+    backBtn.hidden = false;
+    backBtn.textContent = `← ${album.title}`;
+    view = 'lyrics';
   }
 
   function showAlbumList() {
     titleEl.textContent = 'Albums';
     trackViewEl.hidden = true;
+    lyricsViewEl.hidden = true;
     albumListEl.hidden = false;
     backBtn.hidden = true;
+    view = 'albums';
+  }
+
+  function goBack() {
+    if (view === 'lyrics') showTracks(currentAlbum);
+    else showAlbumList();
   }
 
   function openMonitor() {
@@ -115,7 +152,7 @@
 
   openBtn.addEventListener('click', openMonitor);
   closeBtn.addEventListener('click', closeMonitor);
-  backBtn.addEventListener('click', showAlbumList);
+  backBtn.addEventListener('click', goBack);
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && monitor.classList.contains('is-open')) closeMonitor();
   });
