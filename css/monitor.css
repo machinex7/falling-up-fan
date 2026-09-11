@@ -213,15 +213,18 @@
 }
 
 /* ── album list ── */
-/* .album-list/.track-view both set their own `display` for layout
-   (flex here, block by default on #track-view), which — at equal
-   selector specificity — beats the UA stylesheet's `[hidden] {
-   display: none }` rule that js/monitor.js relies on to swap these
-   two views. Restate it explicitly so toggling the `hidden` attribute
-   actually hides whichever view isn't current, instead of both
-   rendering stacked on top of each other. */
+/* .album-list/.track-view/.lyrics-view each set their own `display`
+   for layout (flex here, block by default on #track-view/#lyrics-view),
+   which — at equal selector specificity — beats the UA stylesheet's
+   `[hidden] { display: none }` rule that js/monitor.js relies on to
+   swap between these three views. Restate it explicitly so toggling
+   the `hidden` attribute actually hides whichever views aren't
+   current, instead of all three rendering stacked on top of each
+   other. Any further view added the same way needs the same
+   treatment the moment it sets its own `display`. */
 .album-list[hidden],
-.track-view[hidden] {
+.track-view[hidden],
+.lyrics-view[hidden] {
   display: none;
 }
 
@@ -307,16 +310,52 @@
   display: flex;
   align-items: baseline;
   gap: 10px;
-  padding: 8px 4px;
+  padding: 0 4px;
   border-bottom: 1px solid var(--green);
-  font-size: clamp(0.78rem, 2.5vw, 0.92rem);
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
 }
 .track-list li::before {
   content: counter(track, decimal-leading-zero);
   flex: none;
   width: 2.2ch;
+  padding: 8px 0;
   color: var(--led-amber);
   text-shadow: 0 0 3px var(--amber-glow);
+}
+
+.track-button {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 8px 4px;
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  text-shadow: inherit;
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-size: clamp(0.78rem, 2.5vw, 0.92rem);
+  cursor: pointer;
+}
+.track-button:hover,
+.track-button:focus-visible {
+  background: var(--led-green);
+  color: #04140a;
+  text-shadow: none;
+}
+
+/* ── lyrics view ── */
+.lyrics-body {
+  margin: 0;
+  padding-top: 6px;
+  border-top: 1px solid var(--green);
+  font: inherit;
+  color: inherit;
+  text-shadow: inherit;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: clamp(0.78rem, 2.5vw, 0.92rem);
+  letter-spacing: 0.02em;
 }

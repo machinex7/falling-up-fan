@@ -30,10 +30,12 @@ index.html          markup only — links the CSS files, loads the JS
                      files at the end of <body>
 data/
   albums.json        the info monitor's Albums content — plain array
-                      of { title, year, type, tracks }, fetched by
+                      of { title, year, type, tracks }, where each
+                      track is { title, lyrics }, fetched by
                       js/monitor.js; hand-edit this file directly to
                       correct or extend the catalog, nothing else
-                      references it
+                      references it. Lyrics are placeholder "TODO"
+                      strings to be filled in by hand later.
 css/
   base.css           reset, :root palette/spacing variables, html/body
   cockpit.css        shell layout: plaque bar, hull walls, seams,
@@ -76,8 +78,8 @@ js/
                      button, a one-way press that disables itself);
                      dispatches 'ship:launch' on that press
   monitor.js         opens/closes #info-monitor and swaps its
-                     album-list/track-list views; also owns
-                     ALBUM_DATA — see "The info monitor" below
+                     album-list/track-list/lyrics-view views —
+                     see "The info monitor" below
 ```
 
 Split for size/readability, not for reuse or bundling — there's still no
@@ -611,11 +613,17 @@ different once it was actually being built: instead of navigating away,
 the **Albums** nav button (`#albums-tile`, a `<button>` now rather than an
 `<a>` — see the `button.tile` reset in console.css) opens `#info-monitor`,
 a panel that slides in from the side to cover `#window`/`#console` and
-shows an album list; picking an album swaps to that album's track list in
-the same panel. Both views are plain content swapped via the `hidden`
-attribute (`js/monitor.js`'s `showAlbumList`/`showTracks`) — there's no
-router, no history entries, no page load, just two `<div>`s toggling
-visibility the same way `js/window-scenes.js` toggles `.scene`s.
+shows an album list; picking an album swaps to that album's track list,
+and picking a track swaps to that track's lyrics, all in the same panel.
+The three views are plain content swapped via the `hidden` attribute
+(`js/monitor.js`'s `showAlbumList`/`showTracks`/`showLyrics`) — there's no
+router, no history entries, no page load, just `<div>`s toggling
+visibility the same way `js/window-scenes.js` toggles `.scene`s. The back
+button's label and destination are context-sensitive (`goBack`, driven by
+a module-scoped `view` string monitor.js sets at the end of each
+`showX()`): from the track list it reads "← Albums" and returns to the
+album list; from the lyrics view it reads "← <Album Title>" and returns
+to that album's track list rather than all the way out.
 
 **Why a slide-out panel instead of a real page:** the user's own framing
 was "a slot or additional monitor to the side" — an in-universe second
@@ -689,23 +697,25 @@ for free via the `> *` selector; a future non-child decoration (another
 pseudo-element, or something appended straight to `.monitor-bezel`)
 would need the same explicit treatment the scanline layer got.
 
-**A `[hidden]`-vs-`display` gotcha worth knowing before adding a third
-view here:** `.album-list` and `.track-view` each need their own
-non-default `display` for layout (`flex` / block-with-children), and at
+**A `[hidden]`-vs-`display` gotcha worth knowing before adding a fourth
+view here:** `.album-list`, `.track-view`, and `.lyrics-view` each set
+their own `display` for layout (`flex` / block-with-children), and at
 equal specificity an author rule for `display` beats the browser's own
 `[hidden] { display: none }` UA rule — so without the explicit
-`.album-list[hidden], .track-view[hidden] { display: none; }` override
-near the top of monitor.css, toggling the `hidden` attribute did nothing
-and both views rendered stacked on top of each other. Any future view
-swapped the same way needs that same explicit `[hidden]` override the
-moment it sets its own `display`.
+`.album-list[hidden], .track-view[hidden], .lyrics-view[hidden] {
+display: none; }` override near the top of monitor.css, toggling the
+`hidden` attribute did nothing and all three views rendered stacked on
+top of each other. Any future view swapped the same way needs that same
+explicit `[hidden]` override the moment it sets its own `display`.
 
-**`data/albums.json` is a first draft, not sourced data** — titles, years,
-and tracklists were filled in from memory rather than checked against
-liner notes or a streaming catalog, and the panel says so via the
-`.monitor-flag` banner visible under the header in both views. Correct
-entries directly in that JSON file rather than treating anything currently
-in it as verified canon. `js/monitor.js` fetches it once on the album
+**`data/albums.json` titles, years, and tracklists were cross-checked**
+against public release listings (the `.monitor-flag` banner, visible under
+the header regardless of which of the three views is showing, says so)
+— but each track's `lyrics` field is still a placeholder `"TODO"` string,
+to be replaced by hand later; `js/monitor.js` doesn't distinguish a
+placeholder from real lyrics, it just displays whatever string is there.
+Correct or fill in entries directly in that JSON file. `js/monitor.js`
+fetches it once on the album
 button's first `click` (`dataPromise`, module-scoped so later opens reuse
 the same resolved promise instead of re-fetching) and shows an
 `ACCESSING CATALOG…` placeholder row in the meantime — on a fast local
