@@ -403,6 +403,27 @@ button.tile {
 }
 .tile.alert.is-alert .tile-label { color: var(--red); }
 
+/* MISSION TIMER — a readout face (bare glowing digits, same as
+   .tile.readout) but wider and explicitly grid-placed top-right,
+   same reserved-block trick LAUNCH uses just below: dense packing
+   routes every other auto-placed tile around this corner instead of
+   needing manual placement for the rest of the deck. Cyan rather than
+   the amber/green the other readouts use so it reads as its own
+   instrument, not a fourth Power/Signal/Hull gauge. */
+.tile.timer {
+  grid-column: 11 / 17;
+  grid-row: 1 / 2;
+}
+.tile.timer .r-value {
+  font-family: var(--font-led);
+  font-size: clamp(0.6rem, 2.6vw, 0.95rem);
+  letter-spacing: 0.02em;
+  line-height: 1;
+  color: var(--led-cyan);
+  text-shadow: 0 0 6px var(--cyan-glow);
+  white-space: nowrap;
+}
+
 /* LAUNCH — same .push-btn/.btn-lens component as every other
    pushbutton on the deck (round bezel, .tile-label caption below —
    see the push-btn note in AGENTS.md), just explicitly grid-placed

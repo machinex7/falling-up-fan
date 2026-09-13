@@ -200,6 +200,19 @@
             <div class="tile-label">O2</div>
           </div>
 
+          <!-- MISSION TIMER — counts down from 15:00 (dd:hh:mi:ss) once
+               LAUNCH fires 'ship:launch' (js/power.js); reads 00:00:15:00
+               and holds still until then. Reaching zero is meant to
+               unlock a story event that doesn't exist yet, so for now it
+               just stops ticking there — see js/timer.js. Explicitly
+               grid-placed top-right, the same "reserve a block, let
+               dense packing route everything else around it" trick
+               LAUNCH uses below. -->
+          <div class="tile timer">
+            <div class="r-value" id="ro-timer">00:00:15:00</div>
+            <div class="tile-label">Countdown</div>
+          </div>
+
           <!-- LAUNCH — powers the whole console on/off (js/power.js).
                Same push-btn/btn-lens component as the toggles below,
                just bigger, and the only tile still lit while the ship
@@ -403,6 +416,7 @@
 <script src="js/parallax.js"></script>
 <script src="js/window-scenes.js"></script>
 <script src="js/power.js"></script>
+<script src="js/timer.js"></script>
 <script src="js/monitor.js"></script>
 </body>
 </html>
