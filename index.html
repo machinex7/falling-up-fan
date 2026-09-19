@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="css/scenes.css">
   <link rel="stylesheet" href="css/console.css">
   <link rel="stylesheet" href="css/monitor.css">
+  <link rel="stylesheet" href="css/comms.css">
   <link rel="stylesheet" href="css/animations.css">
   <link rel="stylesheet" href="css/responsive.css">
 </head>
@@ -136,6 +137,17 @@
 
           <div class="scene scene-space" id="scene-space" data-scene="space">
             <canvas id="starfield"></canvas>
+
+            <!-- CUTSCENE OBJECT — the "ship or station appears in
+                 space" case from data/scenes.json's per-scene `image`
+                 field (js/cutscenes.js). Sits over the live starfield
+                 rather than swapping it out, and crossfades in via the
+                 same opacity-transition trick every .scene already
+                 uses (css/scenes.css). Empty/hidden until a scene
+                 actually sets an image. -->
+            <div class="scene-object" id="scene-object">
+              <img id="scene-object-img" alt="">
+            </div>
           </div>
         </div>
 
@@ -321,10 +333,18 @@
             <div class="alert-lamp"></div>
             <div class="tile-label">Hull</div>
           </div>
-          <div class="tile alert">
+          <!-- COMMS — the pending-conversation button js/comms.js
+               owns: flashes (.is-pending, green rather than the red
+               .is-alert language) once a scene hands off a
+               conversation, and opens #comms-panel on click. A
+               <button> like #albums-tile, not the plain .alert <div>
+               the other four alert lamps still are, since this one
+               needs its own click behavior instead of the generic
+               toggle-a-red-light demo in js/controls.js. -->
+          <button type="button" id="comms-tile" class="tile alert" aria-haspopup="true" aria-expanded="false" aria-controls="comms-panel">
             <div class="alert-lamp"></div>
             <div class="tile-label">Comms</div>
-          </div>
+          </button>
           <div class="tile alert">
             <div class="alert-lamp"></div>
             <div class="tile-label">Nav</div>
@@ -382,6 +402,36 @@
           </div>
         </div>
       </div>
+
+      <!-- ═══ COMMS PANEL ═══
+           A second slide-out screen (js/comms.js), reusing #info-
+           monitor's own chrome classes wholesale (.info-monitor/
+           .monitor-bezel/.monitor-screen/.monitor-header/
+           .monitor-close/.monitor-body) rather than restyling a CRT
+           terminal from scratch a second time — the only thing
+           css/comms.css overrides is which side it parks/slides from.
+           Content-wise it's its own thing: #comms-log is a running
+           transcript, #comms-replies holds whatever reply choices the
+           current conversation node offers. Empty/inert until a scene
+           actually hands off a conversation via 'comms:incoming'. -->
+      <div id="comms-panel" class="info-monitor comms-panel" aria-hidden="true">
+        <div class="monitor-bezel hull">
+          <div class="bolt tl"></div>
+          <div class="bolt tr"></div>
+          <div class="bolt bl"></div>
+          <div class="bolt br"></div>
+          <div class="monitor-screen">
+            <header class="monitor-header">
+              <h2 id="comms-title">Incoming Transmission</h2>
+              <button type="button" id="comms-close" class="monitor-close" aria-label="Close comms panel">&times;</button>
+            </header>
+            <div class="monitor-body">
+              <ul id="comms-log" class="comms-log"></ul>
+              <div id="comms-replies" class="comms-replies"></div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="seam"></div>
@@ -417,6 +467,8 @@
 <script src="js/window-scenes.js"></script>
 <script src="js/power.js"></script>
 <script src="js/timer.js"></script>
+<script src="js/cutscenes.js"></script>
+<script src="js/comms.js"></script>
 <script src="js/monitor.js"></script>
 </body>
 </html>

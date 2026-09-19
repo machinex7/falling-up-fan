@@ -1,0 +1,90 @@
+/* ═══════════════════════════════════════════
+   COMMS PANEL — a second slide-out screen (js/comms.js), reusing
+   #info-monitor's own chrome classes wholesale (see the comment block
+   in index.html): .info-monitor for the slide/park mechanics,
+   .monitor-bezel/.monitor-screen/.monitor-header/.monitor-close/
+   .monitor-body (all css/monitor.css) for the physical frame and the
+   green CRT terminal look. This file only overrides the one thing
+   that's actually different — which side it parks/slides from — and
+   adds the transcript+reply content .monitor-body never needed for
+   the Albums panel.
+═══════════════════════════════════════════ */
+
+/* Parks off the LEFT edge instead of the right (#info-monitor's own
+   106%), so the two panels read as separate hardware on opposite
+   sides of the cockpit rather than two things sliding out of the same
+   slot. Single-class selector, same specificity as .info-monitor's
+   own base transform — this file being linked after monitor.css in
+   index.html's <head> is what makes -106% win over 106% here. */
+.comms-panel {
+  transform: translateX(-106%);
+}
+.comms-panel.is-open {
+  transform: translateX(0);
+}
+
+/* ── transcript ── */
+.comms-log {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.comms-msg {
+  max-width: 85%;
+  padding: 8px 10px;
+  border: 1px solid var(--green);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-size: clamp(0.78rem, 2.5vw, 0.92rem);
+}
+.comms-msg.from-you {
+  align-self: flex-end;
+  text-align: right;
+}
+.comms-from {
+  display: block;
+  margin-bottom: 2px;
+  font-size: clamp(0.6rem, 2vw, 0.68rem);
+  opacity: 0.75;
+}
+
+/* ── reply choices ── */
+.comms-replies {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid var(--green);
+}
+.reply-btn {
+  padding: 8px 10px;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 1px solid var(--green);
+  border-radius: 0;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  text-shadow: inherit;
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-size: clamp(0.78rem, 2.5vw, 0.92rem);
+  cursor: pointer;
+}
+.reply-btn:hover,
+.reply-btn:focus-visible {
+  background: var(--led-green);
+  color: #04140a;
+  text-shadow: none;
+}
+
+.comms-ended {
+  margin: 0;
+  opacity: 0.75;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: clamp(0.7rem, 2.3vw, 0.8rem);
+}

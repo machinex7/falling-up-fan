@@ -1,9 +1,8 @@
 // ═══════════════════════════════════════════════════════
 // MISSION TIMER — reads 00:00:15:00 (dd:hh:mi:ss) at rest, then
 // counts down once js/power.js dispatches 'ship:launch'. Reaching
-// zero is meant to unlock a story event that isn't built yet, so for
-// now it just stops ticking there — nothing more to wire up until
-// that event exists.
+// zero dispatches 'timer:complete' for js/cutscenes.js to pick up —
+// same loose, no-shared-state event pattern as 'ship:launch'.
 // ═══════════════════════════════════════════════════════
 (function () {
   const el = document.getElementById('ro-timer');
@@ -26,7 +25,10 @@
     const intervalId = setInterval(() => {
       remaining -= 1;
       render();
-      if (remaining <= 0) clearInterval(intervalId);
+      if (remaining <= 0) {
+        clearInterval(intervalId);
+        document.dispatchEvent(new CustomEvent('timer:complete'));
+      }
     }, 1000);
   });
 })();

@@ -24,7 +24,10 @@
       });
       return;
     }
-    if (tile.classList.contains('alert')) {
+    // #comms-tile is an .alert tile too (same lamp+label face) but its
+    // click is owned entirely by js/comms.js (open the comms panel),
+    // not this generic "toggle a red alert" demo interaction.
+    if (tile.classList.contains('alert') && tile.id !== 'comms-tile') {
       tile.addEventListener('click', () => tile.classList.toggle('is-alert'));
     }
   });

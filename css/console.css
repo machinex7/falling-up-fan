@@ -403,6 +403,19 @@ button.tile {
 }
 .tile.alert.is-alert .tile-label { color: var(--red); }
 
+/* #comms-tile's own "pending conversation" state (js/comms.js) — the
+   same blink as .is-alert above, but in the comms/terminal green
+   language (--green/--led-green) rather than red, since a waiting
+   transmission isn't a fault. Clears the moment the panel is opened,
+   so this only ever means "unread," never "currently open." */
+.tile.alert.is-pending .alert-lamp {
+  background: var(--green);
+  border-color: var(--green);
+  box-shadow: 0 0 9px 2px var(--green-glow), inset 0 0 2px rgba(255,255,255,0.4);
+  animation: alert-blink 1s steps(1, jump-none) infinite;
+}
+.tile.alert.is-pending .tile-label { color: var(--led-green); }
+
 /* MISSION TIMER — a readout face (bare glowing digits, same as
    .tile.readout) but wider and explicitly grid-placed top-right,
    same reserved-block trick LAUNCH uses just below: dense packing
