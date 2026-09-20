@@ -3,6 +3,7 @@
     "id": "handler-checkin",
     "contact": "Handler",
     "image": "images/scenes/relay-probe.svg",
+    "countdown": 300,
     "communications": [
       {
         "id": "start",

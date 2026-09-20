@@ -12,9 +12,12 @@
 // A conversation is a flat array of nodes — { id, from, text, replies }
 // — not a linear script: `replies` is a list of { text, next } choices,
 // and `next` is another node's id. An empty `replies` array means the
-// conversation is over. The first element of the array is always the
-// entry point. This file just walks that graph; it doesn't know or
-// care how many nodes a scene has or how they branch.
+// conversation is over — reaching one dispatches 'comms:ended', which
+// js/cutscenes.js listens for to know when it's safe to start a
+// scene's next `countdown` (see AGENTS.md's "The cutscene system").
+// The first element of the array is always the entry point. This file
+// just walks that graph; it doesn't know or care how many nodes a
+// scene has or how they branch.
 // ═══════════════════════════════════════════════════════
 (function () {
   const tile = document.getElementById('comms-tile');
@@ -45,6 +48,7 @@
       p.className = 'comms-ended';
       p.textContent = 'Transmission ended';
       repliesEl.appendChild(p);
+      document.dispatchEvent(new CustomEvent('comms:ended'));
       return;
     }
     node.replies.forEach(reply => {

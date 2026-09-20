@@ -334,15 +334,16 @@
             <div class="tile-label">Hull</div>
           </div>
           <!-- COMMS — the pending-conversation button js/comms.js
-               owns: flashes (.is-pending, green rather than the red
-               .is-alert language) once a scene hands off a
-               conversation, and opens #comms-panel on click. A
-               <button> like #albums-tile, not the plain .alert <div>
-               the other four alert lamps still are, since this one
-               needs its own click behavior instead of the generic
-               toggle-a-red-light demo in js/controls.js. -->
-          <button type="button" id="comms-tile" class="tile alert" aria-haspopup="true" aria-expanded="false" aria-controls="comms-panel">
-            <div class="alert-lamp"></div>
+               owns: the same round push-btn/lens face every toggle
+               button uses (console.css), dark/unlit at rest, flashing
+               blue (.is-pending) once a scene hands off a
+               conversation, and opening #comms-panel on click. A
+               <button> like #albums-tile, not a .toggle-btn — it
+               isn't a latch, so it's deliberately excluded from
+               js/controls.js's generic toggle/alert click handling by
+               not carrying either of those classes. -->
+          <button type="button" id="comms-tile" class="tile comms" aria-haspopup="true" aria-expanded="false" aria-controls="comms-panel">
+            <div class="push-btn round"><div class="btn-lens"></div></div>
             <div class="tile-label">Comms</div>
           </button>
           <div class="tile alert">

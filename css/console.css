@@ -399,22 +399,28 @@ button.tile {
   background: var(--red);
   border-color: var(--red);
   box-shadow: 0 0 9px 2px var(--red-glow), inset 0 0 2px rgba(255,255,255,0.4);
-  animation: alert-blink 1s steps(1, jump-none) infinite;
+  animation: alert-blink 1s steps(1, jump-end) infinite;
 }
 .tile.alert.is-alert .tile-label { color: var(--red); }
 
-/* #comms-tile's own "pending conversation" state (js/comms.js) — the
-   same blink as .is-alert above, but in the comms/terminal green
-   language (--green/--led-green) rather than red, since a waiting
-   transmission isn't a fault. Clears the moment the panel is opened,
-   so this only ever means "unread," never "currently open." */
-.tile.alert.is-pending .alert-lamp {
-  background: var(--green);
-  border-color: var(--green);
-  box-shadow: 0 0 9px 2px var(--green-glow), inset 0 0 2px rgba(255,255,255,0.4);
-  animation: alert-blink 1s steps(1, jump-none) infinite;
+/* #comms-tile — the same round .push-btn/.btn-lens component every
+   toggle button uses (console.css's push-btn section above), not the
+   .alert lamp face the other four alert tiles still have: a plain
+   unlit .btn-lens (no color variant) at rest, since there's nothing
+   to indicate until a scene actually hands off a conversation
+   (js/comms.js's 'comms:incoming'). `.tile.comms` is deliberately NOT
+   `.toggle-btn` — it isn't a latch the player clicks on/off, it's an
+   indicator the player clicks to open #comms-panel, so it's excluded
+   from js/controls.js's generic toggle/alert click handling by not
+   matching any of those class hooks in the first place. */
+.tile.comms.is-pending .btn-lens {
+  --lens-hi: var(--led-blue);
+  --lens: var(--blue);
+  --lens-lo: #0a1a2e;
+  --btn-glow: var(--blue-glow);
+  animation: alert-blink 1s steps(1, jump-end) infinite;
 }
-.tile.alert.is-pending .tile-label { color: var(--led-green); }
+.tile.comms.is-pending .tile-label { color: var(--led-blue); }
 
 /* MISSION TIMER — a readout face (bare glowing digits, same as
    .tile.readout) but wider and explicitly grid-placed top-right,
@@ -517,7 +523,7 @@ button.tile {
   pointer-events: none;
 }
 #cockpit.flicker #deck-grid > .tile:not(.launch) {
-  animation: power-flicker 1.1s steps(1, jump-none) 1;
+  animation: power-flicker 1.1s steps(1, jump-end) 1;
 }
 
 /* throttle tile — vertical drag lever, 2 columns wide */
