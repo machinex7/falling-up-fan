@@ -32,6 +32,8 @@
   --green-glow:   rgba(63,143,95,0.65);
   --cyan:         #2fa8c4;
   --cyan-glow:    rgba(47,168,196,0.65);
+  --blue:         #3d72c9;
+  --blue-glow:    rgba(61,114,201,0.65);
   --red:          #d33b3b;
   --red-glow:     rgba(211,59,59,0.75);
 
@@ -39,6 +41,7 @@
   --led-amber:    #ffb339;
   --led-green:    #5ee88a;
   --led-cyan:     #5fd6ee;
+  --led-blue:     #6fb0ff;
 
   --wall-w:       11%;
   --seam-w:       4px;

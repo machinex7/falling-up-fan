@@ -36,6 +36,13 @@ data/
                       correct or extend the catalog, nothing else
                       references it. Lyrics are placeholder "TODO"
                       strings to be filled in by hand later.
+  scenes.json         the cutscene system's content — a plain array of
+                      scene objects, meant to be hand-authored; see
+                      "The cutscene system" below for the schema.
+images/
+  scenes/             art referenced by data/scenes.json's `image`
+                      field — currently just relay-probe.svg, the one
+                      test scene's placeholder ship art.
 css/
   base.css           reset, :root palette/spacing variables, html/body
   cockpit.css        shell layout: plaque bar, hull walls, seams,
@@ -49,11 +56,19 @@ css/
   monitor.css        #info-monitor: the slide-out "second screen"
                      the Albums nav button opens over #window/#console
                      — see "The info monitor" section below
+  comms.css          #comms-panel: reuses #info-monitor's own chrome
+                     classes (it's the same slide-out CRT screen, just
+                     parked/sliding from the opposite side) and adds
+                     the transcript/reply-button styling that panel
+                     never needed — see "The cutscene system" below
   scenes.css         the window's swappable backgrounds — #scene-layer,
                      .scene, and every scene's own art (currently just
                      .scene-ascent's silo/ground/sky/space strip;
                      .scene-space is just a plain wrapper around the
-                     existing starfield canvas)
+                     existing starfield canvas) — plus #scene-object,
+                     the cutscene system's ship/station image that
+                     fades in over the starfield rather than replacing
+                     it (see "The cutscene system" below)
   animations.css     all @keyframes, shared across the files above
   responsive.css     the >=900px media query — kept last on purpose,
                      since it overrides rules defined in the files
@@ -79,8 +94,18 @@ js/
                      dispatches 'ship:launch' on that press
   timer.js           the console's mission countdown (dd:hh:mi:ss),
                      idle at 00:00:15:00 until 'ship:launch' fires,
-                     then ticks down once a second and stops dead at
-                     zero — see "The mission timer" below
+                     then ticks down once a second and dispatches
+                     'timer:complete' on hitting zero — see "The
+                     mission timer" below
+  cutscenes.js       plays the next entry in data/scenes.json on
+                     'timer:complete' — fades in a scene's `image`
+                     over the starfield and/or hands its
+                     `communications` off to js/comms.js — see "The
+                     cutscene system" below
+  comms.js           opens/closes #comms-panel, flashes #comms-tile
+                     while a conversation is unread, and walks a
+                     scene's `communications` branch graph — see "The
+                     cutscene system" below
   monitor.js         opens/closes #info-monitor and swaps its
                      album-list/track-list/lyrics-view views —
                      see "The info monitor" below
@@ -490,16 +515,210 @@ It idles at `00:00:15:00` from page load (`js/timer.js`'s initial
 that state alone already dims and disables it like every other non-
 LAUNCH/`.nav-tile` (see "The ship's power state" above); the timer just
 doesn't start counting until it hears `'ship:launch'`, at which point a
-plain `setInterval` decrements a module-scoped `remaining` (seconds) and
-re-renders once a second. Reaching zero is meant to unlock a story event
-per `Stories.md`-style narrative plans, but that event doesn't exist
-yet, so `js/timer.js` does the minimum that's actually true right now:
-`clearInterval` the moment `remaining` hits 0 and stop, no event
-dispatch, no placeholder hook for "later." Wire an actual
-`document.dispatchEvent(new CustomEvent(...))` in that same spot
-(mirroring `power.js`'s `'ship:launch'` dispatch) once there's a real
-listener for it to reach, rather than adding one now with nothing on
-the other end.
+plain `setInterval` decrements a module-scoped `remaining` (seconds),
+re-renders once a second, and dispatches `'timer:complete'` on hitting
+zero — `js/cutscenes.js` is the listener on the other end (see "The
+cutscene system" below).
+
+The countdown isn't strictly one-shot, either: `js/timer.js` also
+listens for `'timer:start'` (`detail: { seconds }`), which restarts the
+same countdown from a new duration — a scene's own `countdown` field,
+dispatched by `js/cutscenes.js` once that scene is done, uses this to
+line up the next story beat's own timer without a second countdown
+instrument or a second `setInterval` loop. Both `'ship:launch'` and
+`'timer:start'` funnel through the same `startCountdown()`, so "the
+mission timer, restarted mid-mission" and "the mission timer, started
+at launch" are one code path, not two.
+
+## The cutscene system
+
+`data/scenes.json` is a plain array of scene objects, meant to be
+hand-authored — this repo's version of `data/albums.json`'s "correct or
+extend it directly, nothing else references it" role, except for the
+site's narrative beats (`Stories.md` has the world-building notes to draw
+on) rather than catalog data. `js/cutscenes.js` plays them one at a time,
+in array order, off a module-scoped index — the trigger it currently
+listens for is `'timer:complete'` (dispatched by `js/timer.js` the moment
+the mission countdown hits zero), but that's just "the first trigger that
+existed," not something baked into the scene format: a future second
+timer, a location, or anything else just needs its own listener calling
+into the same `playNextScene()`, the same "pick the event, let every
+interested file react to it locally" pattern `'ship:launch'` already
+established. Right now `scenes.json` holds exactly one scene — enough to
+prove the plumbing end to end — with the rest left for hand-authoring.
+
+A scene object is:
+
+```json
+{
+  "id": "handler-checkin",
+  "contact": "Handler",
+  "image": "images/scenes/relay-probe.svg",
+  "countdown": 300,
+  "communications": [ /* see below */ ]
+}
+```
+
+`id` is just a human-readable label (nothing currently reads it back —
+it's there for whoever's hand-editing this file to keep scenes straight).
+`image`, `communications`, and `countdown` are all optional and
+independent: a scene can set any combination of them, including none (a
+beat that's pure narrative text once there's somewhere to show that,
+say). `contact` is who the conversation is with, used only for the
+comms panel's header — see below.
+
+**`countdown`** is a plain number of seconds — not a `dd:hh:mi:ss`
+string — matching `js/timer.js`'s own internal unit (`remaining`) so
+there's no parsing layer between this file and the countdown it starts;
+`.tile.timer`'s display formatting handles turning it back into
+`dd:hh:mi:ss` the same way it already does for the initial 15-minute
+mission clock. It's "the next countdown, to start once THIS scene is
+done" — not "how long this scene lasts" — so `js/cutscenes.js` doesn't
+dispatch `'timer:start'` the moment the scene plays; it waits for the
+scene's content to actually finish: immediately, if the scene has no
+`communications` (nothing left to wait on), or on `'comms:ended'`
+(dispatched by `js/comms.js` the moment the conversation reaches a leaf
+node) if it does — a scene with a conversation isn't "done" until the
+player has actually walked it to the end, even if that takes a while. A
+scene with no `countdown` just leaves the mission clock stopped at zero
+afterward, same as before this field existed — nothing currently forces
+every scene to chain into another one.
+
+**The `image`** is not a new full-window `.scene` the way `.scene-ascent`
+and `.scene-space` are — the ask was for something to "appear in space in
+the window view" while still flying, not a scene cut, so it fades in
+*over* the live starfield instead of replacing it. `#scene-object` (inside
+`#scene-space`, alongside `#starfield`) is a pre-wired, empty, `opacity: 0`
+element; `js/cutscenes.js`'s `showSceneObject()` just sets its `<img>`'s
+`src` and adds `.is-visible`, and `css/scenes.css` does the actual
+crossfade — the same plain-opacity-transition trick every `.scene`
+already uses, just on a smaller element that coexists with one rather than
+swapping the active one. It's positioned off-center (`top`/`right`
+percentages) so it doesn't sit on top of the reticle, sized in `clamp()`/
+`vw` like everything else in this window so it scales with `#window` at
+any breakpoint with no JS measurement. `images/scenes/relay-probe.svg` is
+this test scene's placeholder art (a plain geometric satellite/relay
+silhouette, self-contained SVG, no external deps) — swap in real art per
+scene by pointing a future scene's `image` at a new file under
+`images/scenes/`; nothing about the mechanism cares what's actually drawn.
+
+**`communications`** is a flat array of message nodes forming a branching
+conversation graph, not a linear script:
+
+```json
+{ "id": "start", "from": "Handler", "text": "...",
+  "replies": [
+    { "text": "Reading you loud and clear.", "next": "status" },
+    { "text": "...Barely. Signal's rough.", "next": "signal" }
+  ]
+}
+```
+
+The array's first element is always the entry point. Each node's `from`
+is who's speaking (rendered as that name in the transcript); each `reply`
+is a line the *player* can send, and `next` is the id of the node that
+follows it — so a conversation can branch (different replies leading to
+different follow-up nodes) and later reconverge (two different `next`s
+pointing at the same id), which the one test scene actually does: picking
+either first reply eventually lands on the same `"close"` node. A node
+with an empty `replies` array is a leaf — the conversation is over once
+reached: `js/comms.js` shows a plain "Transmission ended" line instead of
+reply buttons, and dispatches `'comms:ended'` (the trigger for a scene's
+own `countdown`, above). A leaf reached as the very FIRST node (a one-shot
+announcement with no back-and-forth at all) still dispatches it — same
+code path, `renderReplies()` doesn't care whether it's rendering the
+entry point or node three of a branch. There's no "narration"/
+system-message concept beyond `from` — if a scene needs one, giving it
+a `from` like `"System"` reads fine against the existing transcript
+styling without any code change.
+
+**Why branching, not just a script that auto-advances:** explicit choice —
+letting the player pick which line to send (even though nothing downstream
+currently reacts to *which* choice was made, beyond routing to a different
+`next`) reads as a two-way channel rather than a cutscene with extra
+clicks. If a future scene wants a choice to actually matter later (unlock
+a different subsequent scene, flip some story flag), that's a
+`js/comms.js` change (it would need to report which `next` got chosen
+somewhere), not a `scenes.json` schema change — the graph shape already
+supports it.
+
+**`js/comms.js` owns `#comms-tile`, `#comms-panel`, and walking that
+graph.** `#comms-tile` (row 5 markup) is the same round `.push-btn`/
+`.btn-lens` component every toggle button uses — NOT the `.tile.alert`
+lamp face the other four alert tiles still have, and deliberately not a
+`.toggle-btn` either: it isn't a latch the player clicks on/off, it's an
+indicator the player clicks to open a panel, so it carries neither class
+and is naturally skipped by `js/controls.js`'s generic toggle/alert click
+handling (that loop only wires up tiles matching one of those two class
+hooks) rather than needing an explicit exclusion. Its lens starts plain
+and unlit — `.btn-lens` with no color variant, the same "dark glass until
+lit" default every lens starts from — since there's nothing to indicate
+until the first `'comms:incoming'` event arrives (dispatched by
+`js/cutscenes.js` whenever a played scene has a non-empty
+`communications` array); the tile does nothing on click before that
+either, the same "inert until its trigger exists" idea `.tile.timer` uses
+while idle. From then on, `.is-pending` (`css/console.css`) lights the
+lens in the comms/terminal blue language — `--blue`/`--led-blue`/
+`--blue-glow` (base.css) — and blinks it with `.is-alert`'s own
+`alert-blink` keyframe and cadence, reused rather than redeclared, until
+the tile is clicked, at which point the flash clears and `#comms-panel`
+slides open.
+
+Clicking a reply button appends the player's line to `#comms-log`
+(`.from-you`, right-aligned, vs. the other speaker's left-aligned
+default), looks up `next` in a `Map` built from the conversation's array
+once at `'comms:incoming'` time, appends *that* node's line, and
+re-renders the reply buttons (or the "ended" state) for the new node —
+`renderReplies()`/`pickReply()` in `js/comms.js`. There's no separate
+"resume state" to restore on reopen: the transcript and current reply
+buttons already live in the DOM inside `#comms-panel`, which only ever
+toggles visibility (`.is-open`), never gets torn down — closing and
+reopening the panel mid-conversation just shows what was already there,
+same as `#info-monitor` never re-fetching `albums.json` after its first
+open.
+
+**Why `#comms-panel` reuses `#info-monitor`'s own CSS classes wholesale**
+(`.info-monitor`, `.monitor-bezel`, `.monitor-screen`, `.monitor-header`,
+`.monitor-close`, `.monitor-body` — all still `css/monitor.css`, not
+duplicated into `css/comms.css`) rather than restyling a second CRT
+terminal from scratch: it's genuinely the same thing — a physical
+worn-metal bezel (`.hull` + corner `.bolt`s) housing a phosphor screen,
+sized to cover `#window`/`#console` via `position: absolute; inset: 0`
+inside `#forward`, with the exact same "off" behavior while parked (solid
+black, children `visibility: hidden`, no scanlines — see "The info
+monitor" above for why). `css/comms.css` overrides the two things that
+are actually different: `#comms-panel` parks/slides from the *left*
+(`translateX(-106%)`) instead of the right, so the two panels read as
+separate hardware on opposite sides of the cockpit rather than two things
+competing for the same slot — same "sliver visibly peeking out past the
+wall" look as `#info-monitor`, just mirrored — and it reads in blue
+rather than green, per explicit request: `.comms-panel` shadows the
+`--green`/`--green-glow`/`--led-green` custom properties to point at
+`--blue`/`--blue-glow`/`--led-blue` (base.css) instead. Because custom
+properties cascade like any other property, that one small rule
+re-colors every `monitor.css` rule that reads those tokens — the
+screen's own text color/glow, the header's border, the close button's
+border and hover state — for anything inside `#comms-panel`, with zero
+forked rules and `:root`'s real green tokens (the Albums panel, toggle
+buttons, etc.) untouched; `.comms-log`/`.comms-replies`'s own rules
+(new in `comms.css`) read the same tokens for the same reason. Reach for
+this "shadow the token, don't fork the rule" trick again before
+duplicating a shared component's CSS just to reskin its color. It also
+inherits the same `#cockpit.unpowered` gating as every other non-
+`.launch`/non-`.nav-tile` control (unlike the Albums button, there's no
+reason comms should work before the ship is powered — a scene's
+`'comms:incoming'` can't fire before `'ship:launch'` anyway, since it's
+downstream of the mission timer, which itself doesn't start counting
+until launch). Getting `comms.css`'s slide-direction override to
+actually win required linking it *after* `monitor.css` in `index.html`'s
+`<head>` — both `.info-monitor` and `.comms-panel` are single-class
+selectors setting the same `transform` property, so without that order
+the last-declared rule (whichever css file happens to load second)
+would silently win regardless of which one is "supposed" to. Content-
+wise the two panels aren't shared at all: `#comms-log`/`#comms-replies`
+and their styling are new in `comms.css`, same way `.album-list`/
+`.track-view`/`.lyrics-view` are Albums-only content inside the shared
+`.monitor-body` shell.
 
 ## The window's scene system
 
@@ -774,7 +993,32 @@ clickable widget, sanity-check it the way prior work did: query
 `elementFromPoint` at the element's own computed center and confirm it
 resolves back to that element (or a descendant) before trusting it works.
 
-## Testing approach
+## Another real gotcha: `steps(1, jump-none)` is invalid CSS
+
+Found while adding `#comms-tile`'s pending-blink: every blink/flicker
+animation on the whole site (`.tile.alert.is-alert`'s red blink,
+`#cockpit.flicker`'s power-up flicker on the console/walls/HUD) used
+`animation: <name> <duration> steps(1, jump-none) <count>`, and had
+**never actually run in any spec-compliant browser** — checked directly
+in Playwright: `getComputedStyle(el).animationName` came back `'none'`
+for all of them, meaning the whole shorthand was silently rejected as
+invalid, not just easing differently than intended. The cause: per the
+CSS Easing Functions spec, `steps(<integer>, jump-term)` with
+`jump-none` produces `<integer>` **minus 1** actual jumps (jump-none
+means neither endpoint of the range counts as a jump) — with
+`<integer>` = 1 that's zero jumps, which the spec disallows outright, so
+the whole `steps()` value is invalid and takes the entire `animation`
+shorthand down with it. `steps(2, jump-none)` parses fine (1 real jump);
+so does `steps(1, jump-end)` or bare `steps(1)` (both default/explicit
+`jump-end`, 1 jump). Fixed by swapping `jump-none` → `jump-end`
+everywhere above — same one-step "hard cut, no easing" look the original
+clearly intended (verified the actual per-frame opacity/filter values
+in Playwright before and after, not just that `animationName` stopped
+being `'none'` — a shorthand parsing successfully doesn't by itself
+prove the keyframe shape still reads as the intended snap-blink rather
+than something flattened). If a future animation reaches for
+`steps(1, ...)` for that same "no easing, instant flip" look, use
+`jump-end` (or omit the second argument) — never `jump-none` at count 1.
 
 There's no test suite. Verification so far has been: serve the file with
 `python3 -m http.server`, drive it with Playwright (already available via

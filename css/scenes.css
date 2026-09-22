@@ -250,3 +250,30 @@
 .scene-space {
   background: #05060a;
 }
+
+/* CUTSCENE OBJECT — a ship/station image (data/scenes.json's per-scene
+   `image`) that fades in over the live starfield rather than
+   replacing it, via js/cutscenes.js. Positioned off-center so it
+   doesn't sit on top of the HUD reticle; sized in vw/vh (not a fixed
+   px) so it scales with #window like everything else here. Same
+   plain opacity crossfade every .scene already uses above, on its own
+   element rather than promoting this to a full .scene, since it needs
+   to coexist with the starfield instead of taking the whole window
+   over. */
+.scene-object {
+  position: absolute;
+  top: 18%;
+  right: 14%;
+  width: clamp(90px, 24vw, 220px);
+  opacity: 0;
+  transition: opacity 1.6s ease;
+  pointer-events: none;
+}
+.scene-object.is-visible {
+  opacity: 1;
+}
+.scene-object img {
+  display: block;
+  width: 100%;
+  filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.6));
+}

@@ -81,7 +81,7 @@
 }
 #cockpit.flicker .hud,
 #cockpit.flicker #reticle {
-  animation: power-flicker 1.1s steps(1, jump-none) 1;
+  animation: power-flicker 1.1s steps(1, jump-end) 1;
 }
 
 #reticle {

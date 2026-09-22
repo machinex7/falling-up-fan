@@ -195,7 +195,7 @@
   animation: none;
 }
 #cockpit.flicker .wall-light {
-  animation: power-flicker 1.1s steps(1, jump-none) 1;
+  animation: power-flicker 1.1s steps(1, jump-end) 1;
 }
 
 .knob-unit {
