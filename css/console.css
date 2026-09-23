@@ -407,8 +407,8 @@ button.tile {
    toggle button uses (console.css's push-btn section above), not the
    .alert lamp face the other four alert tiles still have: a plain
    unlit .btn-lens (no color variant) at rest, since there's nothing
-   to indicate until a scene actually hands off a conversation
-   (js/comms.js's 'comms:incoming'). `.tile.comms` is deliberately NOT
+   to indicate until a scene's ink content actually offers a choice
+   (js/story.js's playScene()). `.tile.comms` is deliberately NOT
    `.toggle-btn` — it isn't a latch the player clicks on/off, it's an
    indicator the player clicks to open #comms-panel, so it's excluded
    from js/controls.js's generic toggle/alert click handling by not

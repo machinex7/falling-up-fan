@@ -1,0 +1,11 @@
+{
+  "name": "falling-up-fan",
+  "private": true,
+  "description": "Build tooling for the Falling Up flight deck site. The site itself has no build step (see AGENTS.md) — this exists solely to compile ink/*.ink into data/story.json.",
+  "scripts": {
+    "compile:ink": "node scripts/compile-ink.js"
+  },
+  "devDependencies": {
+    "inkjs": "2.4.0"
+  }
+}

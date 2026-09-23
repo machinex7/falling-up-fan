@@ -1,12 +1,12 @@
 // ═══════════════════════════════════════════════════════
 // MISSION TIMER — reads 00:00:15:00 (dd:hh:mi:ss) at rest, then
 // counts down once js/power.js dispatches 'ship:launch'. Reaching
-// zero dispatches 'timer:complete' for js/cutscenes.js to pick up —
+// zero dispatches 'timer:complete' for js/story.js to pick up —
 // same loose, no-shared-state event pattern as 'ship:launch'.
 //
-// The countdown isn't strictly one-shot: js/cutscenes.js can restart
-// it partway through a mission (a scene's own `countdown` field, once
-// that scene is done) by dispatching 'timer:start' with a new
+// The countdown isn't strictly one-shot: js/story.js can restart
+// it partway through a mission (a scene's own `# countdown:` ink tag,
+// once that scene is done) by dispatching 'timer:start' with a new
 // duration in seconds. startCountdown() is the one place both
 // 'ship:launch' and 'timer:start' funnel through, so a restart is
 // exactly "the same countdown, from a different number" rather than
