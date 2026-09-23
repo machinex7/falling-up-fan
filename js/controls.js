@@ -15,12 +15,15 @@
       });
       return;
     }
-    const knob = tile.querySelector('.knob');
-    if (knob) {
+    // Turn only the .knob-pointer layer, never .knob itself: the knob's
+    // background carries the cockpit's fixed specular highlight (see
+    // --light-pos), which has to stay put while the indicator spins.
+    const pointer = tile.querySelector('.knob-pointer');
+    if (pointer) {
       tile.addEventListener('click', () => {
-        const current = knob.style.transform.match(/-?\d+/);
+        const current = pointer.style.transform.match(/-?\d+/);
         const deg = current ? parseInt(current[0], 10) : 0;
-        knob.style.transform = `rotate(${deg + 45}deg)`;
+        pointer.style.transform = `rotate(${deg + 45}deg)`;
       });
       return;
     }
