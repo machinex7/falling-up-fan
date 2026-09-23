@@ -2,7 +2,9 @@
 // READOUT DRIFT — small live-feeling number nudges
 // ═══════════════════════════════════════════════════════
 (function () {
-  const ids = ['ro-power', 'ro-signal', 'ro-hull'];
+  // ro-hull deliberately absent — it's story state now, owned by
+  // js/story.js (the ink `hull` variable), not decorative drift
+  const ids = ['ro-power', 'ro-signal'];
   setInterval(() => {
     const id = ids[Math.floor(Math.random() * ids.length)];
     const el = document.getElementById(id);

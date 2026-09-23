@@ -685,7 +685,28 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
     the closing line makes the source say what the system does: the
     countdown begins at the conclusion of the story, because that's
     where the tag setting it lives.
-  
+  - `# hull: 80` / `# hull: -15` / `# hull: +10` — sets (bare number) or
+    adjusts (signed number) the ink `VAR hull`, clamped 0–100.
+  - `# movement: stopped | thruster | sideSpace` — sets the ink
+    `VAR movement`, the ship's movement mode; any other value is ignored
+    with a console warning.
+
+  `hull` and `movement` are **ink variables first, tags second**: both
+  are declared as `VAR`s at the top of `ink/story.ink` so the story can
+  branch on them (`{ hull < 50: ... }`) or write them directly
+  (`~ hull -= 10`), and the tags are just shorthand that writes the same
+  VARs. `js/story.js` reaches the page only through
+  `story.ObserveVariable()` on each, so both paths behave identically.
+  `hull` drives the console's `#ro-hull` readout (which is therefore no
+  longer in `js/readouts.js`'s random drift list); `movement` sets
+  `body[data-movement]` and dispatches a `'ship:movement'` DOM event
+  (`detail.mode`) — nothing reacts to it visually yet, that's the hook
+  for whatever each mode should look like.
+
+  **Keep `ink/story.ink`'s header comment the canonical tag/VAR list** —
+  every new tag or ship-state VAR gets documented there, since that's
+  where the author is looking when writing ink.
+
   Any tag key `applyTags()` doesn't recognize is silently ignored, not
   an error — matches ink's own "tags are just freeform metadata, the
   engine doesn't interpret them" philosophy; a future convention (mood,

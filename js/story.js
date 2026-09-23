@@ -29,6 +29,7 @@
   const titleEl = document.getElementById('comms-title');
   const logEl = document.getElementById('comms-log');
   const repliesEl = document.getElementById('comms-replies');
+  const hullEl = document.getElementById('ro-hull');
   if (!sceneObject || !sceneObjectImg || !tile || !panel || !closeBtn ||
       !titleEl || !logEl || !repliesEl) return;
 
@@ -45,7 +46,11 @@
       if (!res.ok) throw new Error(`${STORY_URL}: HTTP ${res.status}`);
       return res.json();
     })
-    .then(json => new window.inkjs.Story(json));
+    .then(json => {
+      const story = new window.inkjs.Story(json);
+      watchShipState(story);
+      return story;
+    });
 
   // The ordered list of top-level knots 'timer:complete' plays through —
   // the ink-authored equivalent of the old scenes.json array, just names
@@ -66,6 +71,60 @@
   let pendingCountdown = null;
   let hasActiveConversation = false;
 
+  // Ship state that lives in ink VARs (see ink/story.ink's header) —
+  // `hull` and `movement`. Ink is the one source of truth: the `# hull:`
+  // / `# movement:` tags just write those same VARs (see applyTags), and
+  // the observers below are the only place either one reaches the page,
+  // so `~ hull -= 10` in ink and `# hull: -10` behave identically.
+  const MOVEMENT_MODES = ['stopped', 'thruster', 'sideSpace'];
+
+  function clampHull(n) {
+    return Math.max(0, Math.min(100, Math.round(n)));
+  }
+
+  function renderHull(value) {
+    if (hullEl) hullEl.textContent = String(clampHull(value)).padStart(3, '0') + '%';
+  }
+
+  // Exposed as body[data-movement] for CSS and as a 'ship:movement' DOM
+  // event (detail.mode) for any other file that needs to react — same
+  // loose event pattern as 'ship:launch'/'timer:complete'.
+  function renderMovement(mode) {
+    if (!MOVEMENT_MODES.includes(mode)) {
+      console.warn(`story: unknown movement mode "${mode}" — expected one of ${MOVEMENT_MODES.join(', ')}`);
+      return;
+    }
+    document.body.dataset.movement = mode;
+    document.dispatchEvent(new CustomEvent('ship:movement', { detail: { mode } }));
+  }
+
+  function watchShipState(story) {
+    renderHull(story.variablesState.$('hull'));
+    renderMovement(story.variablesState.$('movement'));
+    story.ObserveVariable('hull', (_name, value) => renderHull(value));
+    story.ObserveVariable('movement', (_name, value) => renderMovement(value));
+  }
+
+  // `# hull: 80` sets, `# hull: -15` / `# hull: +10` adjust.
+  function applyHullTag(story, value) {
+    const n = Number(value);
+    if (value === '' || Number.isNaN(n)) {
+      console.warn(`story: bad hull tag value "${value}"`);
+      return;
+    }
+    const relative = value[0] === '+' || value[0] === '-';
+    const current = story.variablesState.$('hull');
+    story.variablesState.$('hull', clampHull(relative ? current + n : n));
+  }
+
+  function applyMovementTag(story, value) {
+    if (!MOVEMENT_MODES.includes(value)) {
+      console.warn(`story: unknown movement mode "${value}" — expected one of ${MOVEMENT_MODES.join(', ')}`);
+      return;
+    }
+    story.variablesState.$('movement', value);
+  }
+
   function showSceneObject(imageSrc) {
     sceneObjectImg.src = imageSrc;
     sceneObject.classList.add('is-visible');
@@ -84,12 +143,11 @@
   }
 
   // Applies every tag attached to the line ink just produced (see
-  // ink/story.ink's header comment for the `contact`/`image`/`countdown`
-  // conventions). `# image:` with no value (or the word `clear`) hides
+  // ink/story.ink's header comment for the full tag list). `# image:` with no value (or the word `clear`) hides
   // #scene-object instead of pointing it at a new src — the two are the
   // same tag because "which image is showing" is one piece of state,
   // not a separate show/hide concept.
-  function applyTags(tags) {
+  function applyTags(story, tags) {
     tags.forEach(tag => {
       const sep = tag.indexOf(':');
       const key = (sep === -1 ? tag : tag.slice(0, sep)).trim();
@@ -100,6 +158,8 @@
         else showSceneObject(value);
       }
       else if (key === 'countdown') pendingCountdown = Number(value);
+      else if (key === 'hull') applyHullTag(story, value);
+      else if (key === 'movement') applyMovementTag(story, value);
     });
   }
 
@@ -110,7 +170,7 @@
   function runContinueLoop(story) {
     while (story.canContinue) {
       const text = story.Continue().trim();
-      applyTags(story.currentTags || []);
+      applyTags(story, story.currentTags || []);
       if (text) appendLine(currentContact, text, false);
     }
   }
