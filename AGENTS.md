@@ -16,10 +16,12 @@ longer just the safer option, it's required: `js/monitor.js` fetches
 browsers under a bare `file://` open.
 
 **Viewing/serving the site itself still has no build step and no runtime
-dependency on npm** — every JS dependency it actually loads in the browser
-(currently just `js/vendor/inkjs.js`) is vendored straight into the repo,
-not pulled from a CDN or bundled. The one thing that DOES need Node/npm is
-authoring the story: `ink/*.ink` source is compiled to `data/story.json`
+dependency on npm.** The one external runtime dependency it does have —
+the inkjs runtime, CDN-loaded via unpkg — is deliberate and explained in
+"The cutscene system" below (bandwidth cost was the deciding factor,
+weighed against the failure mode of an external fetch). The one thing
+that DOES need Node/npm is authoring the story: `ink/*.ink` source is
+compiled to `data/story.json`
 by `scripts/compile-ink.js` (via `npm run compile:ink`, or automatically
 by `.github/workflows/compile-ink.yml`) — see "The cutscene system"
 below. That compile step never runs in the visitor's browser and nothing
@@ -135,10 +137,6 @@ js/
                      what used to be two files (cutscenes.js + comms.js
                      walking a hand-rolled JSON node graph) — see "The
                      cutscene system" below
-  vendor/inkjs.js     the inkjs runtime (Story class only, not the
-                     Compiler), vendored rather than CDN-loaded — see
-                     its own header comment and "The cutscene system"
-                     below for why
   monitor.js         opens/closes #info-monitor and swaps its
                      album-list/track-list/lyrics-view views —
                      see "The info monitor" below
@@ -154,9 +152,9 @@ files' pattern, rather than growing one of the existing ones into a
 grab-bag. `<link>` tags in `<head>` must keep `responsive.css` last; new
 `<script>` tags go at the end of `<body>`, in whatever order matches their
 dependencies — most of the current ones don't depend on each other, but
-`js/story.js` is a real exception: it reads `window.inkjs`, so
-`js/vendor/inkjs.js` has to be the `<script>` immediately before it, not
-just anywhere earlier in the list.
+`js/story.js` is a real exception: it reads `window.inkjs`, so the
+unpkg `<script>` tag loading inkjs has to come immediately before it,
+not just anywhere earlier in the list.
 
 ## Layout architecture
 
@@ -575,7 +573,8 @@ world-building notes to draw on. `scripts/compile-ink.js` compiles it to
 `data/story.json` using inkjs's own pure-JS `Compiler` (no `inklecate`,
 no .NET — see that script's comments), which `js/story.js` loads into an
 inkjs `Story` and drives through the browser's `window.inkjs.Story`
-runtime (`js/vendor/inkjs.js`, vendored). **`data/story.json` is
+runtime (a `<script>` tag pinned to `https://unpkg.com/inkjs@2.4.0/dist/ink.js`
+in `index.html`). **`data/story.json` is
 generated — never hand-edit it.** Edit `ink/story.ink`, then either run
 `npm run compile:ink` yourself or just push: `.github/workflows/
 compile-ink.yml` recompiles on every push touching `ink/**` and commits
@@ -607,17 +606,33 @@ the GitHub Action that runs it) a plain `npm ci && node
 scripts/compile-ink.js` rather than a much heavier CI job installing a
 .NET SDK to build/run `inklecate`.
 
-**Why the runtime is vendored (`js/vendor/inkjs.js`) instead of
-CDN-loaded:** this site otherwise has zero runtime dependency on any
-external network fetch beyond the Google Fonts CSS link — a `<script
-src="https://cdn.../inkjs...">` would be the first time a *core
-interactive feature* (not a font) silently breaks for a real visitor if
-that CDN has a bad day, which is a worse failure mode than the site's
-existing "no build step" story ever had. A vendored copy is just
-`node_modules/inkjs/dist/ink.js` (the runtime-only UMD build — no
-`Compiler`, so it's the smaller of inkjs's two browser builds) copied
-straight into the repo with a small header noting its version and how to
-update it; nothing about *that* file's content is hand-written.
+**Why the runtime is CDN-loaded (unpkg) rather than vendored into the
+repo:** the first pass vendored `node_modules/inkjs/dist/ink.js` (the
+runtime-only UMD build — no `Compiler`, the smaller of inkjs's two
+browser builds) straight into a committed `js/vendor/inkjs.js`,
+reasoning that this site otherwise has zero runtime dependency on any
+external network fetch beyond the Google Fonts CSS link, and a CDN
+script would be the first time a *core interactive feature* (not a
+font) could silently break for a visitor if that CDN had a bad day.
+Explicit follow-up call reversed that: bandwidth/hosting cost of serving
+a ~128KB JS file to every visitor from this site's own hosting matters
+more here than that reliability edge case does for a fan site, so it's
+back to a plain `<script src="https://unpkg.com/inkjs@2.4.0/…">` tag —
+unpkg mirrors whatever's published to npm, so this is the exact same
+file the vendored copy was, just fetched from unpkg's CDN instead
+(deliberately NOT counted on for cross-site browser caching savings —
+modern browsers partition the HTTP cache per top-level site specifically
+to prevent cross-site tracking, so a visitor having this exact URL
+cached from some unrelated site is no longer the realistic win it used
+to be; bandwidth taken off THIS site's own hosting is the actual reason).
+Pinned to an exact version (`@2.4.0`, matching `package.json`'s `inkjs`
+devDependency, which also dropped its `^` range for the same reason —
+compiler and runtime should stay in lockstep, not drift independently)
+so a future inkjs release can't silently change behavior here without a
+deliberate version bump in both places. If reliability ever outweighs
+bandwidth cost again, reverting is just swapping this one `<script src>`
+back to a local path — `js/story.js` only ever reads `window.inkjs`, it
+doesn't care where that came from.
 
 **ink/story.ink's authoring conventions**, since none of this is
 enforced by inkjs itself — it's just what `js/story.js` expects to find:

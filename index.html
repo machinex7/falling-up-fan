@@ -468,10 +468,12 @@
 <script src="js/window-scenes.js"></script>
 <script src="js/power.js"></script>
 <script src="js/timer.js"></script>
-<!-- ink runtime, vendored not CDN-loaded (see js/vendor/inkjs.js's own
-     header) — Story class only, no compiler; that's a build-time-only
-     scripts/compile-ink.js concern, see AGENTS.md -->
-<script src="js/vendor/inkjs.js"></script>
+<!-- ink runtime, CDN-loaded (unpkg mirrors npm) rather than vendored —
+     see AGENTS.md's "The cutscene system" for why. Pinned to an exact
+     version so a future inkjs release can't silently change behavior
+     here. Runtime only (Story class, no Compiler) — that's a
+     build-time-only scripts/compile-ink.js concern. -->
+<script src="https://unpkg.com/inkjs@2.4.0/dist/ink.js"></script>
 <script src="js/story.js"></script>
 <script src="js/monitor.js"></script>
 </body>
