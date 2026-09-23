@@ -334,6 +334,7 @@ button.tile {
   background: var(--bezel);
   transform: translateX(-50%);
   border-radius: 2px;
+  z-index: 1; /* keep the indicator above a .worn knob's grip patch */
 }
 
 /* a knob that gets turned constantly over a long haul (nav heading
@@ -341,10 +342,12 @@ button.tile {
    grip it — a warm, dulled, slightly-worn-bare-metal patch, distinct
    in hue from the knob's own cool specular shine rather than just more
    of the same shine (which would blend in and read as nothing), at two
-   off-center spots since a real grip isn't symmetric. `::before` so it
-   paints under the real .knob-pointer child and never obscures the
-   heading indicator. */
-.knob.worn::before {
+   off-center spots since a real grip isn't symmetric. Painted on the
+   rotating .knob-pointer layer, not .knob, because the wear is part of
+   the knob's surface and turns with it — only the specular highlight
+   (a property of the light, not the metal) stays fixed. The indicator's
+   z-index keeps it painted above the patch. */
+.knob.worn .knob-pointer::after {
   content: '';
   position: absolute;
   inset: -1px;
