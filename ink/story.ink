@@ -14,7 +14,6 @@
 === handler_checkin ===
 # contact: Handler
 # image: images/scenes/relay-probe.svg
-# countdown: 300
 Handler to [ship]. Comms check — you still with me out there?
 * [Reading you loud and clear.]
     Good. Numbers on my end look nominal. How's the crew holding up?
@@ -28,5 +27,7 @@ Handler to [ship]. Comms check — you still with me out there?
         -> close
 
 === close ===
+# countdown: 300
+# image: clear
 Copy. Handler out — check in again next relay.
 -> END

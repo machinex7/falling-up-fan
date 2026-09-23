@@ -55,11 +55,13 @@
   const SCENE_KNOTS = ['handler_checkin'];
   let sceneIndex = 0;
 
-  // Current speaker for lines that don't carry their own `# speaker:` tag
-  // override, and the countdown (seconds) queued to start once the
-  // player reaches the end of the current conversation — both set by
-  // tags encountered while gathering a beat (see applyTags), reset per
-  // scene so a later scene can't inherit an earlier one's leftovers.
+  // The speaker label for every line in the current scene (there's only
+  // ever one contact right now — see ink/story.ink's header comment on
+  // why this isn't a per-line override), and the countdown (seconds)
+  // queued to start once the player reaches the end of the current
+  // conversation — both set by tags encountered while gathering a beat
+  // (see applyTags), reset per scene so a later scene can't inherit an
+  // earlier one's leftovers.
   let currentContact = 'Unknown';
   let pendingCountdown = null;
   let hasActiveConversation = false;
@@ -67,6 +69,10 @@
   function showSceneObject(imageSrc) {
     sceneObjectImg.src = imageSrc;
     sceneObject.classList.add('is-visible');
+  }
+
+  function clearSceneObject() {
+    sceneObject.classList.remove('is-visible');
   }
 
   function appendLine(from, text, isYou) {
@@ -78,21 +84,23 @@
   }
 
   // Applies every tag attached to the line ink just produced (see
-  // ink/story.ink's header comment for the `contact`/`image`/`countdown`/
-  // `speaker` conventions) and returns a per-line speaker override, if
-  // any — the only one of these that doesn't persist past its own line.
+  // ink/story.ink's header comment for the `contact`/`image`/`countdown`
+  // conventions). `# image:` with no value (or the word `clear`) hides
+  // #scene-object instead of pointing it at a new src — the two are the
+  // same tag because "which image is showing" is one piece of state,
+  // not a separate show/hide concept.
   function applyTags(tags) {
-    let speakerOverride = null;
     tags.forEach(tag => {
       const sep = tag.indexOf(':');
       const key = (sep === -1 ? tag : tag.slice(0, sep)).trim();
       const value = sep === -1 ? '' : tag.slice(sep + 1).trim();
       if (key === 'contact') currentContact = value;
-      else if (key === 'speaker') speakerOverride = value;
-      else if (key === 'image') showSceneObject(value);
+      else if (key === 'image') {
+        if (value === '' || value.toLowerCase() === 'clear') clearSceneObject();
+        else showSceneObject(value);
+      }
       else if (key === 'countdown') pendingCountdown = Number(value);
     });
-    return speakerOverride;
   }
 
   // Runs the story forward, appending one transcript line per ink
@@ -102,8 +110,8 @@
   function runContinueLoop(story) {
     while (story.canContinue) {
       const text = story.Continue().trim();
-      const speakerOverride = applyTags(story.currentTags || []);
-      if (text) appendLine(speakerOverride || currentContact, text, false);
+      applyTags(story.currentTags || []);
+      if (text) appendLine(currentContact, text, false);
     }
   }
 

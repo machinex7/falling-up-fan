@@ -647,30 +647,44 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
   appending its name to `SCENE_KNOTS` — nothing else in `js/story.js`
   needs to change for a new scene, same as adding a scene to the old
   `scenes.json` array never touched `cutscenes.js`.
-- **Tags** (`# key: value`) carry the metadata that isn't narrative text
-  — attached right after a knot's heading, they arrive bundled with that
-  knot's first line of content (ink returns a line's own tags alongside
-  its text on the `Continue()` call that produces it), which is when
-  `js/story.js`'s `applyTags()` reads them:
+- **Tags** (`# key: value`) carry the metadata that isn't narrative text.
+  A tag attaches to whichever line follows it — ink returns a line's own
+  tags alongside its text on the `Continue()` call that produces it,
+  which is when `js/story.js`'s `applyTags()` reads them — so WHERE in a
+  knot a tag sits is a real authoring choice, not just decoration: put it
+  on the opening line for "true from the start of this scene," or on the
+  closing line for "true once this scene is over." The one test scene
+  uses both: `handler_checkin`'s opening line sets `contact`/`image`;
+  `close`'s line (right before `-> END`) sets `countdown` and clears the
+  image — see below for why those specifically belong at the end.
   - `# contact: Handler` — who the comms panel's header says this
-    conversation is with, and the default speaker for every line in the
-    scene that doesn't override it (below). Persists for the rest of the
-    scene once set, the same way `js/timer.js`'s `remaining` just IS
-    whatever it was last set to — it's not re-read per line.
-  - `# image: images/scenes/relay-probe.svg` — same `#scene-object`
-    fade-in as before; still just a path under `images/scenes/`.
-  - `# countdown: 300` — same "seconds, not `dd:hh:mi:ss`" convention as
-    before, and the same "start it once the scene is actually DONE, not
-    the moment it plays" timing: `js/story.js` doesn't dispatch
-    `'timer:start'` until the beat it's gathering ends with zero choices
-    AND ink has nothing left to continue (`finishBeat()`) — reached
-    immediately if a scene never offers a choice at all, or only once
-    the player has walked every branch down to its `-> END` if it does.
-  - `# speaker: <name>` — a PER-LINE override of the scene's `contact`,
-    for the future "more characters in one scene" case; attach it to one
-    specific line (same trailing-tag syntax) rather than the whole knot.
-    Nothing in the one test scene needs this yet, since it's a single
-    Handler conversation, but the mechanism is already wired up.
+    conversation is with, and the speaker label for every line in the
+    scene (there's only ever one contact right now; a future scene with
+    more than one character talking would need `applyTags()` extended
+    for that when it's actually needed, not before). Persists once set,
+    the same way `js/timer.js`'s `remaining` just IS whatever it was
+    last set to — it's not re-read per line.
+  - `# image: images/scenes/relay-probe.svg` — fades `#scene-object` in
+    over the starfield, a path under `images/scenes/`. `# image:` with
+    no value, or the literal word `clear`, does the opposite —
+    `clearSceneObject()` fades it back out. Same tag key both ways: which
+    image is showing (including "none") is one piece of state, not a
+    separate show/hide mechanism layered on top.
+  - `# countdown: 300` — seconds, not `dd:hh:mi:ss` (matches
+    `js/timer.js`'s own internal unit, so there's no parsing layer
+    between this file and the countdown it starts). Belongs on the
+    scene's CONCLUDING line, not its opening one, and that's not just
+    filing convenience: `js/story.js` reads whatever tags arrive on
+    whatever line it's currently gathering, in order, so a `countdown`
+    tag sitting on the opening line would already be "set" (in
+    `pendingCountdown`) well before the player has actually reached the
+    end of the conversation — true internally, but confusing to read in
+    the source, since nothing dispatches `'timer:start'` until
+    `finishBeat()` sees zero choices AND ink has nothing left to
+    continue, regardless of where the tag physically sits. Putting it on
+    the closing line makes the source say what the system does: the
+    countdown begins at the conclusion of the story, because that's
+    where the tag setting it lives.
   
   Any tag key `applyTags()` doesn't recognize is silently ignored, not
   an error — matches ink's own "tags are just freeform metadata, the
