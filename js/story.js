@@ -29,7 +29,6 @@
   const titleEl = document.getElementById('comms-title');
   const logEl = document.getElementById('comms-log');
   const repliesEl = document.getElementById('comms-replies');
-  const hullEl = document.getElementById('ro-hull');
   if (!sceneObject || !sceneObjectImg || !tile || !panel || !closeBtn ||
       !titleEl || !logEl || !repliesEl) return;
 
@@ -71,19 +70,29 @@
   let pendingCountdown = null;
   let hasActiveConversation = false;
 
-  // Ship state that lives in ink VARs (see ink/story.ink's header) —
-  // `hull` and `movement`. Ink is the one source of truth: the `# hull:`
-  // / `# movement:` tags just write those same VARs (see applyTags), and
-  // the observers below are the only place either one reaches the page,
-  // so `~ hull -= 10` in ink and `# hull: -10` behave identically.
+  // Ship state that lives in ink VARs (see ink/story.ink's header). Ink
+  // is the one source of truth: the matching tags just write those same
+  // VARs (see applyTags), and the observers below are the only place any
+  // of them reaches the page, so `~ hull -= 10` in ink and `# hull: -10`
+  // behave identically.
+  //
+  // Percentage stats: ink VAR name -> the console readout showing it. A
+  // new one is a VAR in story.ink plus an entry here — the tag, clamping
+  // and rendering all come for free.
+  const PERCENT_STATS = {
+    hull: 'ro-hull',
+    power: 'ro-power',
+    reactor: 'ro-reactor',
+  };
   const MOVEMENT_MODES = ['stopped', 'thruster', 'sideSpace'];
 
-  function clampHull(n) {
+  function clampPercent(n) {
     return Math.max(0, Math.min(100, Math.round(n)));
   }
 
-  function renderHull(value) {
-    if (hullEl) hullEl.textContent = String(clampHull(value)).padStart(3, '0') + '%';
+  function renderPercent(name, value) {
+    const el = document.getElementById(PERCENT_STATS[name]);
+    if (el) el.textContent = String(clampPercent(value)).padStart(3, '0') + '%';
   }
 
   // Exposed as body[data-movement] for CSS and as a 'ship:movement' DOM
@@ -99,22 +108,25 @@
   }
 
   function watchShipState(story) {
-    renderHull(story.variablesState.$('hull'));
+    Object.keys(PERCENT_STATS).forEach(name => {
+      renderPercent(name, story.variablesState.$(name));
+      story.ObserveVariable(name, (_name, value) => renderPercent(name, value));
+    });
     renderMovement(story.variablesState.$('movement'));
-    story.ObserveVariable('hull', (_name, value) => renderHull(value));
     story.ObserveVariable('movement', (_name, value) => renderMovement(value));
   }
 
-  // `# hull: 80` sets, `# hull: -15` / `# hull: +10` adjust.
-  function applyHullTag(story, value) {
+  // `# hull: 80` sets, `# hull: -15` / `# hull: +10` adjust — same for
+  // every PERCENT_STATS key.
+  function applyPercentTag(story, name, value) {
     const n = Number(value);
     if (value === '' || Number.isNaN(n)) {
-      console.warn(`story: bad hull tag value "${value}"`);
+      console.warn(`story: bad ${name} tag value "${value}"`);
       return;
     }
     const relative = value[0] === '+' || value[0] === '-';
-    const current = story.variablesState.$('hull');
-    story.variablesState.$('hull', clampHull(relative ? current + n : n));
+    const current = story.variablesState.$(name);
+    story.variablesState.$(name, clampPercent(relative ? current + n : n));
   }
 
   function applyMovementTag(story, value) {
@@ -158,7 +170,7 @@
         else showSceneObject(value);
       }
       else if (key === 'countdown') pendingCountdown = Number(value);
-      else if (key === 'hull') applyHullTag(story, value);
+      else if (key in PERCENT_STATS) applyPercentTag(story, key, value);
       else if (key === 'movement') applyMovementTag(story, value);
     });
   }

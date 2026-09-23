@@ -686,19 +686,24 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
     countdown begins at the conclusion of the story, because that's
     where the tag setting it lives.
   - `# hull: 80` / `# hull: -15` / `# hull: +10` — sets (bare number) or
-    adjusts (signed number) the ink `VAR hull`, clamped 0–100.
+    adjusts (signed number) the ink `VAR hull`, clamped 0–100. `# power:`
+    and `# reactor:` work identically on `VAR power` / `VAR reactor`.
   - `# movement: stopped | thruster | sideSpace` — sets the ink
     `VAR movement`, the ship's movement mode; any other value is ignored
     with a console warning.
 
-  `hull` and `movement` are **ink variables first, tags second**: both
-  are declared as `VAR`s at the top of `ink/story.ink` so the story can
+  `hull`, `power`, `reactor` and `movement` are **ink variables first,
+  tags second**: all are declared as `VAR`s at the top of `ink/story.ink` so the story can
   branch on them (`{ hull < 50: ... }`) or write them directly
   (`~ hull -= 10`), and the tags are just shorthand that writes the same
   VARs. `js/story.js` reaches the page only through
   `story.ObserveVariable()` on each, so both paths behave identically.
-  `hull` drives the console's `#ro-hull` readout (which is therefore no
-  longer in `js/readouts.js`'s random drift list); `movement` sets
+  The three percentages share one code path via `js/story.js`'s
+  `PERCENT_STATS` map (VAR name -> readout id: `#ro-hull`, `#ro-power`,
+  `#ro-reactor`) — a new percentage stat is a VAR plus one map entry, and
+  its tag comes for free. Those readouts are therefore no longer in
+  `js/readouts.js`'s random drift list (only Signal still drifts);
+  `movement` sets
   `body[data-movement]` and dispatches a `'ship:movement'` DOM event
   (`detail.mode`) — nothing reacts to it visually yet, that's the hook
   for whatever each mode should look like.

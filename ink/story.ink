@@ -33,6 +33,12 @@
 //       Writes the `hull` variable below (clamped 0–100). The console's
 //       Hull readout always shows it.
 //
+//   # power: 80  /  # power: -15  /  # power: +10
+//       Same as hull, for the `power` variable (Power readout).
+//
+//   # reactor: 80  /  # reactor: -15  /  # reactor: +10
+//       Same as hull, for the `reactor` variable (Reactor readout).
+//
 //   # movement: stopped | thruster | sideSpace
 //       Writes the `movement` variable below — the ship's current
 //       movement mode. Any other value is ignored (with a console
@@ -40,10 +46,14 @@
 //
 // ── VARIABLES ──────────────────────────────────────────────────────────
 // Readable anywhere for branching ({ hull < 50: ... }) and writable
-// with ~ as well as with the tags above — js/story.js watches both, so
-// `~ hull -= 10` and `# hull: -10` do the same thing.
+// with ~ as well as with the tags above — js/story.js watches all of
+// them, so `~ hull -= 10` and `# hull: -10` do the same thing. Values
+// written with ~ are clamped 0–100 on the readout but not in ink, so
+// keep them in range yourself (the tags clamp for you).
 
 VAR hull = 100              // 0–100, shown on the Hull readout
+VAR power = 72              // 0–100, shown on the Power readout
+VAR reactor = 100           // 0–100, shown on the Reactor readout
 VAR movement = "stopped"    // "stopped" | "thruster" | "sideSpace"
 
 -> handler_checkin
