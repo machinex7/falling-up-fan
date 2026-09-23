@@ -9,12 +9,23 @@ expected to keep changing and would just go stale here.
 A fan site for the band Falling Up, themed as a spacecraft flight deck /
 cockpit. `index.html` is the entire site so far: plain HTML markup that
 links out to separate CSS and JS files rather than inlining `<style>` /
-`<script>` (no build step, no dependencies beyond a Google Fonts link) —
-see "File layout" below for what lives where. Serving the directory with
-a static file server (e.g. `python3 -m http.server`) is no longer just
-the safer option, it's required: `js/monitor.js` fetches `data/albums.json`,
-and `fetch()` against a local file fails in most browsers under a bare
-`file://` open.
+`<script>` — see "File layout" below for what lives where. Serving the
+directory with a static file server (e.g. `python3 -m http.server`) is no
+longer just the safer option, it's required: `js/monitor.js` fetches
+`data/albums.json`, and `fetch()` against a local file fails in most
+browsers under a bare `file://` open.
+
+**Viewing/serving the site itself still has no build step and no runtime
+dependency on npm** — every JS dependency it actually loads in the browser
+(currently just `js/vendor/inkjs.js`) is vendored straight into the repo,
+not pulled from a CDN or bundled. The one thing that DOES need Node/npm is
+authoring the story: `ink/*.ink` source is compiled to `data/story.json`
+by `scripts/compile-ink.js` (via `npm run compile:ink`, or automatically
+by `.github/workflows/compile-ink.yml`) — see "The cutscene system"
+below. That compile step never runs in the visitor's browser and nothing
+about loading `index.html` requires it to have run recently either;
+`data/story.json` is a committed, generated file, same as any other
+static asset here.
 
 `members.html` and `connections.html` are linked from the console but
 don't exist yet — they're the planned next pages. The former `tracks.html`
@@ -28,6 +39,13 @@ that's ever relevant to future content.
 ```
 index.html          markup only — links the CSS files, loads the JS
                      files at the end of <body>
+ink/
+  story.ink          the cutscene system's actual content — hand-authored
+                     ink source (knots, choices, tags), entry point for
+                     scripts/compile-ink.js. INCLUDE more .ink files from
+                     here as the story grows (a character per file, a
+                     chapter per file, whatever); nothing else needs to
+                     change for that. See "The cutscene system" below.
 data/
   albums.json        the info monitor's Albums content — plain array
                       of { title, year, type, tracks }, where each
@@ -36,13 +54,25 @@ data/
                       correct or extend the catalog, nothing else
                       references it. Lyrics are placeholder "TODO"
                       strings to be filled in by hand later.
-  scenes.json         the cutscene system's content — a plain array of
-                      scene objects, meant to be hand-authored; see
-                      "The cutscene system" below for the schema.
+  story.json          GENERATED from ink/*.ink by scripts/compile-ink.js
+                      — never hand-edit this, edit the .ink source and
+                      recompile (or just push; the GitHub Action does it
+                      for you). Fetched by js/story.js. See "The cutscene
+                      system" below.
 images/
-  scenes/             art referenced by data/scenes.json's `image`
-                      field — currently just relay-probe.svg, the one
-                      test scene's placeholder ship art.
+  scenes/             art referenced by an ink scene's `# image:` tag —
+                      currently just relay-probe.svg, the one test
+                      scene's placeholder ship art.
+scripts/
+  compile-ink.js      compiles ink/story.ink (+ any INCLUDEd files) to
+                     data/story.json using inkjs's own pure-JS compiler
+                     (no inklecate, no .NET) — run via `npm run
+                     compile:ink`. See "The cutscene system" below.
+.github/workflows/
+  compile-ink.yml     runs scripts/compile-ink.js on every push that
+                     touches ink/** and commits the resulting
+                     data/story.json back to the same branch. See "The
+                     cutscene system" below.
 css/
   base.css           reset, :root palette/spacing variables, html/body
   cockpit.css        shell layout: plaque bar, hull walls, seams,
@@ -97,29 +127,36 @@ js/
                      then ticks down once a second and dispatches
                      'timer:complete' on hitting zero — see "The
                      mission timer" below
-  cutscenes.js       plays the next entry in data/scenes.json on
-                     'timer:complete' — fades in a scene's `image`
-                     over the starfield and/or hands its
-                     `communications` off to js/comms.js — see "The
+  story.js           drives data/story.json through the inkjs runtime on
+                     'timer:complete' — fades in a scene's `# image:`
+                     tag over the starfield, and/or opens #comms-panel,
+                     flashes #comms-tile, and renders whatever
+                     text/choices the ink Story hands back. Replaces
+                     what used to be two files (cutscenes.js + comms.js
+                     walking a hand-rolled JSON node graph) — see "The
                      cutscene system" below
-  comms.js           opens/closes #comms-panel, flashes #comms-tile
-                     while a conversation is unread, and walks a
-                     scene's `communications` branch graph — see "The
-                     cutscene system" below
+  vendor/inkjs.js     the inkjs runtime (Story class only, not the
+                     Compiler), vendored rather than CDN-loaded — see
+                     its own header comment and "The cutscene system"
+                     below for why
   monitor.js         opens/closes #info-monitor and swaps its
                      album-list/track-list/lyrics-view views —
                      see "The info monitor" below
 ```
 
-Split for size/readability, not for reuse or bundling — there's still no
-build step. When adding a new widget type, put its CSS in `console.css`
-alongside the existing widget faces (don't start a new file per widget),
-and give new interaction logic its own small IIFE in `js/`, following the
-existing files' pattern, rather than growing one of the existing ones into
-a grab-bag. `<link>` tags in `<head>` must keep `responsive.css` last; new
+Split for size/readability, not for reuse or bundling — the site itself
+still has no build step (see "What this is" above for the one narrow
+exception: compiling `ink/*.ink`, which never happens in the browser).
+When adding a new widget type, put its CSS in `console.css` alongside the
+existing widget faces (don't start a new file per widget), and give new
+interaction logic its own small IIFE in `js/`, following the existing
+files' pattern, rather than growing one of the existing ones into a
+grab-bag. `<link>` tags in `<head>` must keep `responsive.css` last; new
 `<script>` tags go at the end of `<body>`, in whatever order matches their
-dependencies (none of the current ones depend on each other, but keep that
-in mind if a new one starts to).
+dependencies — most of the current ones don't depend on each other, but
+`js/story.js` is a real exception: it reads `window.inkjs`, so
+`js/vendor/inkjs.js` has to be the `<script>` immediately before it, not
+just anywhere earlier in the list.
 
 ## Layout architecture
 
@@ -517,13 +554,13 @@ LAUNCH/`.nav-tile` (see "The ship's power state" above); the timer just
 doesn't start counting until it hears `'ship:launch'`, at which point a
 plain `setInterval` decrements a module-scoped `remaining` (seconds),
 re-renders once a second, and dispatches `'timer:complete'` on hitting
-zero — `js/cutscenes.js` is the listener on the other end (see "The
+zero — `js/story.js` is the listener on the other end (see "The
 cutscene system" below).
 
 The countdown isn't strictly one-shot, either: `js/timer.js` also
 listens for `'timer:start'` (`detail: { seconds }`), which restarts the
-same countdown from a new duration — a scene's own `countdown` field,
-dispatched by `js/cutscenes.js` once that scene is done, uses this to
+same countdown from a new duration — a scene's own `# countdown:` ink
+tag, dispatched by `js/story.js` once that scene is done, uses this to
 line up the next story beat's own timer without a second countdown
 instrument or a second `setInterval` loop. Both `'ship:launch'` and
 `'timer:start'` funnel through the same `startCountdown()`, so "the
@@ -532,118 +569,122 @@ at launch" are one code path, not two.
 
 ## The cutscene system
 
-`data/scenes.json` is a plain array of scene objects, meant to be
-hand-authored — this repo's version of `data/albums.json`'s "correct or
-extend it directly, nothing else references it" role, except for the
-site's narrative beats (`Stories.md` has the world-building notes to draw
-on) rather than catalog data. `js/cutscenes.js` plays them one at a time,
-in array order, off a module-scoped index — the trigger it currently
-listens for is `'timer:complete'` (dispatched by `js/timer.js` the moment
-the mission countdown hits zero), but that's just "the first trigger that
-existed," not something baked into the scene format: a future second
-timer, a location, or anything else just needs its own listener calling
-into the same `playNextScene()`, the same "pick the event, let every
-interested file react to it locally" pattern `'ship:launch'` already
-established. Right now `scenes.json` holds exactly one scene — enough to
-prove the plumbing end to end — with the rest left for hand-authoring.
+The story is authored in **ink** (`ink/story.ink`, inkle's narrative
+scripting language), not hand-written JSON — `Stories.md` has the
+world-building notes to draw on. `scripts/compile-ink.js` compiles it to
+`data/story.json` using inkjs's own pure-JS `Compiler` (no `inklecate`,
+no .NET — see that script's comments), which `js/story.js` loads into an
+inkjs `Story` and drives through the browser's `window.inkjs.Story`
+runtime (`js/vendor/inkjs.js`, vendored). **`data/story.json` is
+generated — never hand-edit it.** Edit `ink/story.ink`, then either run
+`npm run compile:ink` yourself or just push: `.github/workflows/
+compile-ink.yml` recompiles on every push touching `ink/**` and commits
+the result back to the same branch, so a plain `git pull` after CI runs
+is all a second machine needs — nothing about *viewing* the site needs
+Node installed (see "What this is" above).
 
-A scene object is:
+This replaced an earlier hand-rolled version of this system — a plain
+`data/scenes.json` array of `{ id, image, countdown, communications }`
+objects, with `js/cutscenes.js` walking a manually-indexed array and
+`js/comms.js` walking a hand-written `{ id, from, text, replies }` node
+graph — once it became clear the story was going to want real branching,
+variables, and more characters, and hand-authoring that graph in JSON
+was already getting unpleasant with just one scene. An ink `Story`
+object already tracks its own execution position and branch state
+internally; there's no separate graph-walker to maintain anymore, which
+is why `js/story.js` is one file where there used to be two — `cutscenes.js`
+and `comms.js`'s jobs (playing a scene, and rendering the conversation
+inside it) turned out to be one continuous flow once ink was doing the
+narrative bookkeeping, not two flows stitched together with a DOM event.
 
-```json
-{
-  "id": "handler-checkin",
-  "contact": "Handler",
-  "image": "images/scenes/relay-probe.svg",
-  "countdown": 300,
-  "communications": [ /* see below */ ]
-}
-```
+**Why compile in pure JS instead of the "real" ink toolchain
+(`inklecate`, a .NET console app):** `inkjs` (the JS port of ink) ships
+its own from-scratch compiler alongside its runtime — `require('inkjs/full')`
+exposes a `Compiler` class that takes ink source and produces the exact
+same JSON bytecode format `inklecate` would, entirely in Node, with zero
+.NET/Mono dependency. That's what makes `scripts/compile-ink.js` (and
+the GitHub Action that runs it) a plain `npm ci && node
+scripts/compile-ink.js` rather than a much heavier CI job installing a
+.NET SDK to build/run `inklecate`.
 
-`id` is just a human-readable label (nothing currently reads it back —
-it's there for whoever's hand-editing this file to keep scenes straight).
-`image`, `communications`, and `countdown` are all optional and
-independent: a scene can set any combination of them, including none (a
-beat that's pure narrative text once there's somewhere to show that,
-say). `contact` is who the conversation is with, used only for the
-comms panel's header — see below.
+**Why the runtime is vendored (`js/vendor/inkjs.js`) instead of
+CDN-loaded:** this site otherwise has zero runtime dependency on any
+external network fetch beyond the Google Fonts CSS link — a `<script
+src="https://cdn.../inkjs...">` would be the first time a *core
+interactive feature* (not a font) silently breaks for a real visitor if
+that CDN has a bad day, which is a worse failure mode than the site's
+existing "no build step" story ever had. A vendored copy is just
+`node_modules/inkjs/dist/ink.js` (the runtime-only UMD build — no
+`Compiler`, so it's the smaller of inkjs's two browser builds) copied
+straight into the repo with a small header noting its version and how to
+update it; nothing about *that* file's content is hand-written.
 
-**`countdown`** is a plain number of seconds — not a `dd:hh:mi:ss`
-string — matching `js/timer.js`'s own internal unit (`remaining`) so
-there's no parsing layer between this file and the countdown it starts;
-`.tile.timer`'s display formatting handles turning it back into
-`dd:hh:mi:ss` the same way it already does for the initial 15-minute
-mission clock. It's "the next countdown, to start once THIS scene is
-done" — not "how long this scene lasts" — so `js/cutscenes.js` doesn't
-dispatch `'timer:start'` the moment the scene plays; it waits for the
-scene's content to actually finish: immediately, if the scene has no
-`communications` (nothing left to wait on), or on `'comms:ended'`
-(dispatched by `js/comms.js` the moment the conversation reaches a leaf
-node) if it does — a scene with a conversation isn't "done" until the
-player has actually walked it to the end, even if that takes a while. A
-scene with no `countdown` just leaves the mission clock stopped at zero
-afterward, same as before this field existed — nothing currently forces
-every scene to chain into another one.
+**ink/story.ink's authoring conventions**, since none of this is
+enforced by inkjs itself — it's just what `js/story.js` expects to find:
 
-**The `image`** is not a new full-window `.scene` the way `.scene-ascent`
-and `.scene-space` are — the ask was for something to "appear in space in
-the window view" while still flying, not a scene cut, so it fades in
-*over* the live starfield instead of replacing it. `#scene-object` (inside
-`#scene-space`, alongside `#starfield`) is a pre-wired, empty, `opacity: 0`
-element; `js/cutscenes.js`'s `showSceneObject()` just sets its `<img>`'s
-`src` and adds `.is-visible`, and `css/scenes.css` does the actual
-crossfade — the same plain-opacity-transition trick every `.scene`
-already uses, just on a smaller element that coexists with one rather than
-swapping the active one. It's positioned off-center (`top`/`right`
-percentages) so it doesn't sit on top of the reticle, sized in `clamp()`/
-`vw` like everything else in this window so it scales with `#window` at
-any breakpoint with no JS measurement. `images/scenes/relay-probe.svg` is
-this test scene's placeholder art (a plain geometric satellite/relay
-silhouette, self-contained SVG, no external deps) — swap in real art per
-scene by pointing a future scene's `image` at a new file under
-`images/scenes/`; nothing about the mechanism cares what's actually drawn.
+- Each **top-level knot** (`=== knot_name ===`) is one scene, played by
+  name via `story.ChoosePathString(knotName)` — `js/story.js`'s
+  `SCENE_KNOTS` array is the ordered list of which knot to jump to on
+  each successive `'timer:complete'`, the ink-authored equivalent of the
+  old `scenes.json` array's *order*, while everything about one scene's
+  own branching CONTENT lives entirely in that knot, in ink, using ink's
+  own choices/diverts/weaves. Extend the story by adding a new knot and
+  appending its name to `SCENE_KNOTS` — nothing else in `js/story.js`
+  needs to change for a new scene, same as adding a scene to the old
+  `scenes.json` array never touched `cutscenes.js`.
+- **Tags** (`# key: value`) carry the metadata that isn't narrative text
+  — attached right after a knot's heading, they arrive bundled with that
+  knot's first line of content (ink returns a line's own tags alongside
+  its text on the `Continue()` call that produces it), which is when
+  `js/story.js`'s `applyTags()` reads them:
+  - `# contact: Handler` — who the comms panel's header says this
+    conversation is with, and the default speaker for every line in the
+    scene that doesn't override it (below). Persists for the rest of the
+    scene once set, the same way `js/timer.js`'s `remaining` just IS
+    whatever it was last set to — it's not re-read per line.
+  - `# image: images/scenes/relay-probe.svg` — same `#scene-object`
+    fade-in as before; still just a path under `images/scenes/`.
+  - `# countdown: 300` — same "seconds, not `dd:hh:mi:ss`" convention as
+    before, and the same "start it once the scene is actually DONE, not
+    the moment it plays" timing: `js/story.js` doesn't dispatch
+    `'timer:start'` until the beat it's gathering ends with zero choices
+    AND ink has nothing left to continue (`finishBeat()`) — reached
+    immediately if a scene never offers a choice at all, or only once
+    the player has walked every branch down to its `-> END` if it does.
+  - `# speaker: <name>` — a PER-LINE override of the scene's `contact`,
+    for the future "more characters in one scene" case; attach it to one
+    specific line (same trailing-tag syntax) rather than the whole knot.
+    Nothing in the one test scene needs this yet, since it's a single
+    Handler conversation, but the mechanism is already wired up.
+  
+  Any tag key `applyTags()` doesn't recognize is silently ignored, not
+  an error — matches ink's own "tags are just freeform metadata, the
+  engine doesn't interpret them" philosophy; a future convention (mood,
+  a sound cue, whatever) is just a new `else if` there.
+- **Choices are the player's own lines.** `* [Choice text]` (ink's
+  "once-only" choice — nothing here loops back to re-offer an already-
+  picked reply) renders as a `.reply-btn`; picking one calls
+  `story.ChooseChoiceIndex()` and appends the choice's own text to the
+  transcript as a `.from-you` line — the SAME text the player clicked,
+  never a separate "what actually got sent" concept. Nested choices
+  (`* *`, `* * *`, ...) are exactly ink's own weave syntax for "a choice
+  that's only offered after an earlier one" — the branching-then-
+  reconverging shape the one test scene demonstrates (two different
+  opening replies, both eventually diverting to `-> close`) needs
+  nothing beyond plain ink `-> knot_name` diverts.
+- **A knot ending in `-> END` with no further choices is a conversation's
+  leaf** — `js/story.js` detects this exactly as `story.currentChoices.length
+  === 0 && !story.canContinue` right after gathering a beat, renders
+  "Transmission ended," and (per the `countdown` tag above) starts the
+  next scene's timer. This is a hard boundary between one `SCENE_KNOTS`
+  entry and the next: don't divert from one scene's closing knot
+  straight into another scene's opening knot in the same breath (that
+  would play both in one uninterrupted beat, skipping the "wait for the
+  next timer" pause entirely) — let it hit `-> END` and let
+  `'timer:complete'` be what starts the next entry in `SCENE_KNOTS`.
 
-**`communications`** is a flat array of message nodes forming a branching
-conversation graph, not a linear script:
-
-```json
-{ "id": "start", "from": "Handler", "text": "...",
-  "replies": [
-    { "text": "Reading you loud and clear.", "next": "status" },
-    { "text": "...Barely. Signal's rough.", "next": "signal" }
-  ]
-}
-```
-
-The array's first element is always the entry point. Each node's `from`
-is who's speaking (rendered as that name in the transcript); each `reply`
-is a line the *player* can send, and `next` is the id of the node that
-follows it — so a conversation can branch (different replies leading to
-different follow-up nodes) and later reconverge (two different `next`s
-pointing at the same id), which the one test scene actually does: picking
-either first reply eventually lands on the same `"close"` node. A node
-with an empty `replies` array is a leaf — the conversation is over once
-reached: `js/comms.js` shows a plain "Transmission ended" line instead of
-reply buttons, and dispatches `'comms:ended'` (the trigger for a scene's
-own `countdown`, above). A leaf reached as the very FIRST node (a one-shot
-announcement with no back-and-forth at all) still dispatches it — same
-code path, `renderReplies()` doesn't care whether it's rendering the
-entry point or node three of a branch. There's no "narration"/
-system-message concept beyond `from` — if a scene needs one, giving it
-a `from` like `"System"` reads fine against the existing transcript
-styling without any code change.
-
-**Why branching, not just a script that auto-advances:** explicit choice —
-letting the player pick which line to send (even though nothing downstream
-currently reacts to *which* choice was made, beyond routing to a different
-`next`) reads as a two-way channel rather than a cutscene with extra
-clicks. If a future scene wants a choice to actually matter later (unlock
-a different subsequent scene, flip some story flag), that's a
-`js/comms.js` change (it would need to report which `next` got chosen
-somewhere), not a `scenes.json` schema change — the graph shape already
-supports it.
-
-**`js/comms.js` owns `#comms-tile`, `#comms-panel`, and walking that
-graph.** `#comms-tile` (row 5 markup) is the same round `.push-btn`/
+**`js/story.js` owns `#comms-tile`, `#comms-panel`, and driving the
+Story.** `#comms-tile` (row 5 markup) is the same round `.push-btn`/
 `.btn-lens` component every toggle button uses — NOT the `.tile.alert`
 lamp face the other four alert tiles still have, and deliberately not a
 `.toggle-btn` either: it isn't a latch the player clicks on/off, it's an
@@ -653,29 +694,29 @@ handling (that loop only wires up tiles matching one of those two class
 hooks) rather than needing an explicit exclusion. Its lens starts plain
 and unlit — `.btn-lens` with no color variant, the same "dark glass until
 lit" default every lens starts from — since there's nothing to indicate
-until the first `'comms:incoming'` event arrives (dispatched by
-`js/cutscenes.js` whenever a played scene has a non-empty
-`communications` array); the tile does nothing on click before that
-either, the same "inert until its trigger exists" idea `.tile.timer` uses
-while idle. From then on, `.is-pending` (`css/console.css`) lights the
-lens in the comms/terminal blue language — `--blue`/`--led-blue`/
-`--blue-glow` (base.css) — and blinks it with `.is-alert`'s own
-`alert-blink` keyframe and cadence, reused rather than redeclared, until
-the tile is clicked, at which point the flash clears and `#comms-panel`
-slides open.
+until `playScene()` first runs (on the first `'timer:complete'`); the
+tile does nothing on click before that either, the same "inert until its
+trigger exists" idea `.tile.timer` uses while idle. From then on,
+`.is-pending` (`css/console.css`) lights the lens in the comms/terminal
+blue language — `--blue`/`--led-blue`/`--blue-glow` (base.css) — and
+blinks it with `.is-alert`'s own `alert-blink` keyframe and cadence,
+reused rather than redeclared, until the tile is clicked, at which point
+the flash clears and `#comms-panel` slides open. `.is-pending` is only
+ever set once, right when a scene starts (`playScene()`) — picking a
+reply and getting a fresh batch of choices (`pickChoice()` →
+`finishBeat()`) deliberately does NOT re-flash the tile, since that
+would read as a new unread message arriving mid-conversation the player
+is already looking at, not "you have something new to check."
 
-Clicking a reply button appends the player's line to `#comms-log`
-(`.from-you`, right-aligned, vs. the other speaker's left-aligned
-default), looks up `next` in a `Map` built from the conversation's array
-once at `'comms:incoming'` time, appends *that* node's line, and
-re-renders the reply buttons (or the "ended" state) for the new node —
-`renderReplies()`/`pickReply()` in `js/comms.js`. There's no separate
-"resume state" to restore on reopen: the transcript and current reply
-buttons already live in the DOM inside `#comms-panel`, which only ever
-toggles visibility (`.is-open`), never gets torn down — closing and
-reopening the panel mid-conversation just shows what was already there,
-same as `#info-monitor` never re-fetching `albums.json` after its first
-open.
+There's no separate "resume state" to restore on reopen: the transcript
+and current reply buttons already live in the DOM inside `#comms-panel`,
+which only ever toggles visibility (`.is-open`), never gets torn down —
+closing and reopening the panel mid-conversation just shows what was
+already there, same as `#info-monitor` never re-fetching `albums.json`
+after its first open. (The ink `Story` object itself also just sits at
+wherever `ChooseChoiceIndex`/`ChoosePathString` last left it between
+calls — there's nothing to "resume" on ITS end either; `js/story.js`
+never resets or re-creates it.)
 
 **Why `#comms-panel` reuses `#info-monitor`'s own CSS classes wholesale**
 (`.info-monitor`, `.monitor-bezel`, `.monitor-screen`, `.monitor-header`,
@@ -706,11 +747,11 @@ this "shadow the token, don't fork the rule" trick again before
 duplicating a shared component's CSS just to reskin its color. It also
 inherits the same `#cockpit.unpowered` gating as every other non-
 `.launch`/non-`.nav-tile` control (unlike the Albums button, there's no
-reason comms should work before the ship is powered — a scene's
-`'comms:incoming'` can't fire before `'ship:launch'` anyway, since it's
-downstream of the mission timer, which itself doesn't start counting
-until launch). Getting `comms.css`'s slide-direction override to
-actually win required linking it *after* `monitor.css` in `index.html`'s
+reason comms should work before the ship is powered — `playScene()`
+can't run before `'ship:launch'` anyway, since it's downstream of the
+mission timer, which itself doesn't start counting until launch).
+Getting `comms.css`'s slide-direction override to actually win required
+linking it *after* `monitor.css` in `index.html`'s
 `<head>` — both `.info-monitor` and `.comms-panel` are single-class
 selectors setting the same `transform` property, so without that order
 the last-declared rule (whichever css file happens to load second)
@@ -1020,6 +1061,8 @@ than something flattened). If a future animation reaches for
 `steps(1, ...)` for that same "no easing, instant flip" look, use
 `jump-end` (or omit the second argument) — never `jump-none` at count 1.
 
+## Testing approach
+
 There's no test suite. Verification so far has been: serve the file with
 `python3 -m http.server`, drive it with Playwright (already available via
 `/opt/pw-browsers/chromium` + `NODE_PATH=/opt/node22/lib/node_modules`) to
@@ -1028,6 +1071,16 @@ run small interaction scripts (click a control, check the resulting state
 or that hit-testing resolves correctly). Do this before calling a visual or
 interactive change done — screenshots are cheap and this UI has broken in
 non-obvious ways (see the gotcha above) more than once.
+
+**After editing `ink/story.ink`, run `npm run compile:ink` before testing
+in the browser** — `js/story.js` only ever reads `data/story.json`, never
+the `.ink` source directly, so a stale compiled file means the site keeps
+playing the OLD story with no error of any kind (the fetch succeeds, it's
+just yesterday's JSON). `scripts/compile-ink.js` exits non-zero with a
+`[ink ERROR]`-prefixed message on a real authoring mistake (bad syntax, a
+divert to a knot that doesn't exist, etc.) — read that before assuming a
+"the choice didn't do what I expected" report is a `js/story.js` bug
+rather than the ink source itself.
 
 ## Other explicit constraints from the user
 

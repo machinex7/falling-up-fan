@@ -139,12 +139,12 @@
             <canvas id="starfield"></canvas>
 
             <!-- CUTSCENE OBJECT — the "ship or station appears in
-                 space" case from data/scenes.json's per-scene `image`
-                 field (js/cutscenes.js). Sits over the live starfield
-                 rather than swapping it out, and crossfades in via the
-                 same opacity-transition trick every .scene already
-                 uses (css/scenes.css). Empty/hidden until a scene
-                 actually sets an image. -->
+                 space" case from an ink scene's `# image:` tag
+                 (js/story.js). Sits over the live starfield rather than
+                 swapping it out, and crossfades in via the same
+                 opacity-transition trick every .scene already uses
+                 (css/scenes.css). Empty/hidden until a scene actually
+                 sets an image. -->
             <div class="scene-object" id="scene-object">
               <img id="scene-object-img" alt="">
             </div>
@@ -333,13 +333,13 @@
             <div class="alert-lamp"></div>
             <div class="tile-label">Hull</div>
           </div>
-          <!-- COMMS — the pending-conversation button js/comms.js
-               owns: the same round push-btn/lens face every toggle
-               button uses (console.css), dark/unlit at rest, flashing
-               blue (.is-pending) once a scene hands off a
-               conversation, and opening #comms-panel on click. A
-               <button> like #albums-tile, not a .toggle-btn — it
-               isn't a latch, so it's deliberately excluded from
+          <!-- COMMS — the pending-conversation button js/story.js owns:
+               the same round push-btn/lens face every toggle button
+               uses (console.css), dark/unlit at rest, flashing blue
+               (.is-pending) once a scene's ink content offers a
+               choice, and opening #comms-panel on click. A <button>
+               like #albums-tile, not a .toggle-btn — it isn't a
+               latch, so it's deliberately excluded from
                js/controls.js's generic toggle/alert click handling by
                not carrying either of those classes. -->
           <button type="button" id="comms-tile" class="tile comms" aria-haspopup="true" aria-expanded="false" aria-controls="comms-panel">
@@ -405,16 +405,16 @@
       </div>
 
       <!-- ═══ COMMS PANEL ═══
-           A second slide-out screen (js/comms.js), reusing #info-
+           A second slide-out screen (js/story.js), reusing #info-
            monitor's own chrome classes wholesale (.info-monitor/
            .monitor-bezel/.monitor-screen/.monitor-header/
            .monitor-close/.monitor-body) rather than restyling a CRT
            terminal from scratch a second time — the only thing
            css/comms.css overrides is which side it parks/slides from.
            Content-wise it's its own thing: #comms-log is a running
-           transcript, #comms-replies holds whatever reply choices the
-           current conversation node offers. Empty/inert until a scene
-           actually hands off a conversation via 'comms:incoming'. -->
+           transcript, #comms-replies holds whatever choices the ink
+           story's current point offers. Empty/inert until 'timer:
+           complete' plays a scene with ink content in it. -->
       <div id="comms-panel" class="info-monitor comms-panel" aria-hidden="true">
         <div class="monitor-bezel hull">
           <div class="bolt tl"></div>
@@ -468,8 +468,11 @@
 <script src="js/window-scenes.js"></script>
 <script src="js/power.js"></script>
 <script src="js/timer.js"></script>
-<script src="js/cutscenes.js"></script>
-<script src="js/comms.js"></script>
+<!-- ink runtime, vendored not CDN-loaded (see js/vendor/inkjs.js's own
+     header) — Story class only, no compiler; that's a build-time-only
+     scripts/compile-ink.js concern, see AGENTS.md -->
+<script src="js/vendor/inkjs.js"></script>
+<script src="js/story.js"></script>
 <script src="js/monitor.js"></script>
 </body>
 </html>

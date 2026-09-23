@@ -1,0 +1,49 @@
+name: Compile ink story
+
+# Recompiles data/story.json from ink/*.ink and commits the result back to
+# the same branch, so the site (which just fetches data/story.json as a
+# plain static file — no build step of its own, see AGENTS.md) always has
+# an up-to-date compiled story without anyone running `npm run compile:ink`
+# by hand. Scoped to pushes that actually touch the story source or the
+# compiler script — a push that only changes data/story.json itself (i.e.
+# this workflow's own commit) doesn't match, so it can't retrigger itself.
+on:
+  push:
+    paths:
+      - "ink/**"
+      - "scripts/compile-ink.js"
+      - "package.json"
+      - "package-lock.json"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # Fails the job (non-zero exit) on a real ink compile error, per
+      # scripts/compile-ink.js — a broken story never gets this far.
+      - run: npm run compile:ink
+
+      - name: Commit compiled story if it changed
+        run: |
+          if git diff --quiet -- data/story.json; then
+            echo "data/story.json unchanged, nothing to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/story.json
+          git commit -m "Recompile ink story [skip ci]"
+          git push
