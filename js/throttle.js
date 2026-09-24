@@ -6,7 +6,8 @@
 // A track with data-stat="<name>" is a ship-state lever instead: it
 // doesn't move its own handle, it asks for that value via a
 // 'control:set' event (detail: { name, value }) — js/story.js applies
-// the story's rules (e.g. shield can't exceed reactor) and
+// the story's rules (e.g. the shield can't draw more than the reactor
+// puts out) and
 // js/instruments.js then positions the handle wherever the value
 // actually landed (via --lever-pos; see .lever in console.css).
 // ═══════════════════════════════════════════════════════

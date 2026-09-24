@@ -81,12 +81,11 @@
   // owns every readout/gauge/warning light that shows one. A new stat is
   // a VAR in story.ink plus its name here.
   const PERCENT_STATS = ['hull', 'power', 'reactor', 'o2', 'shield'];
-  // Stats computed from others rather than stored in ink — each mirrors
-  // an ink function of the same name (keep the formulas in sync), and
-  // is re-announced whenever one of its inputs changes.
-  const DERIVED_STATS = {
-    integrity: { from: ['hull', 'shield'], compute: get => get('hull') + get('shield') },
-  };
+  // Stats computed from others rather than stored — each is an ink
+  // function of the same name in story.ink ("COMPUTED STATS"), called
+  // directly so the formula lives only there. Re-announced after any
+  // ship-state change.
+  const DERIVED_STATS = ['integrity', 'reactor_load', 'reactor_use'];
   // Stats the pilot can set from a console lever ('control:set' events
   // from js/throttle.js). Each goes through story.ink's set_<name>()
   // function, so the player obeys the same rules the story does.
@@ -97,10 +96,17 @@
     document.dispatchEvent(new CustomEvent('ship:stat', { detail: { name, value } }));
   }
 
-  function announceDerived(story, changed) {
-    const get = n => story.variablesState.$(n);
-    Object.entries(DERIVED_STATS).forEach(([name, d]) => {
-      if (!changed || d.from.includes(changed)) announceStat(name, d.compute(get));
+  // Observers fire in the middle of ink's own evaluation, where it can't
+  // run another function — so batch every change in one evaluation into
+  // a single recompute once it's finished (ink evaluation is always
+  // synchronous, so a microtask is guaranteed to land after it).
+  let derivedQueued = false;
+  function announceDerived(story) {
+    if (derivedQueued) return;
+    derivedQueued = true;
+    queueMicrotask(() => {
+      derivedQueued = false;
+      DERIVED_STATS.forEach(name => announceStat(name, story.EvaluateFunction(name)));
     });
   }
 
@@ -124,10 +130,10 @@
       announceStat(name, story.variablesState.$(name));
       story.ObserveVariable(name, (_name, value) => {
         announceStat(name, value);
-        announceDerived(story, name);
+        announceDerived(story);
       });
     });
-    announceDerived(story, null);
+    announceDerived(story);
     renderMovement(story.variablesState.$('movement'));
     story.ObserveVariable('movement', (_name, value) => renderMovement(value));
   }

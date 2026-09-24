@@ -134,8 +134,9 @@ js/
                      'timer:complete' on hitting zero — see "The
                      mission timer" below
   instruments.js     every console instrument showing a ship-state
-                     value (readouts, the O2 gauge, the warning
-                     lights, the Shield/Reactor lever positions),
+                     value (readouts, the O2 gauge, the Reactor usage
+                     bar, the warning lights, the Shield/Reactor lever
+                     positions),
                      driven by 'ship:stat' events from story.js — see "The
                      cutscene system" below
   story.js           drives data/story.json through the inkjs runtime on
@@ -729,17 +730,29 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
   would otherwise mask the inline value.
 
   **Power vs reactor vs shield vs integrity** (the user's model):
-  `power` is energy left to spend; `reactor` is how hard the reactor is
-  running (50 = half capacity, room to do more); `shield` is power put
-  into the shield and is drawn from the reactor, so `shield <= reactor`
-  always (lowering the reactor drags the shield down; the shield can't
-  be raised past it). `integrity` is NOT stored — it's `hull + shield`
-  (0–200, so its readout has `data-unit=""` for no `%`), exposed to ink
-  as an `integrity()` function and to the page by `js/story.js`'s
-  `DERIVED_STATS`, which re-announces it whenever an input changes —
-  the two formulas must match. The `shield <= reactor` rule lives only
-  in ink (`keep_shield_within_reactor()`, called by `set_level`), and
-  the pilot's levers go through it too: `js/throttle.js` sends
+  `power` is energy left to spend. `reactor` is the reactor's output
+  LIMIT in points (0–100, set by the pilot's Reactor lever) — it defines
+  what 100% on the Reactor bar means, not how much is being used.
+  `shield` (0–100%) is power put into the shield; each shield % costs
+  `SHIELD_COST` (a `CONST`, 0.5) reactor points, so a full shield draws
+  50. Three stats are computed, never stored, and live only as ink
+  functions in `story.ink`'s "COMPUTED STATS" section: `integrity()` =
+  `hull + shield` (0–200, readout has `data-unit=""` for no `%`),
+  `reactor_load()` = points in use (future consumers add here), and
+  `reactor_use()` = load as a floored % of the limit. `js/story.js`'s
+  `DERIVED_STATS` calls those by name with `story.EvaluateFunction()`
+  rather than re-implementing them — but NOT from inside an observer
+  (ink can't run a function mid-evaluation), so changes are batched and
+  recomputed in a `queueMicrotask`, which always lands after ink's
+  synchronous evaluation finishes. Mind ink arithmetic when editing
+  them: `a * 100 / b` parses as `a * (100 / b)` with integer division,
+  hence the explicit parentheses in `reactor_use()`.
+
+  The load can never exceed the limit: `keep_shield_within_reactor()`
+  (called by every `set_level`) cuts the shield back to
+  `INT(reactor / SHIELD_COST)` when it does, so raising the shield stops
+  at the limit and lowering the reactor drags the shield down. The
+  pilot's levers go through the same rule: `js/throttle.js` sends
   `'control:set'`, `js/story.js` runs `story.EvaluateFunction('set_<name>')`
   (safe — UI events can't interrupt a synchronous `Continue()`, and it
   doesn't disturb the conversation's position), and the resulting
@@ -749,11 +762,21 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
   reactor use yet — explicitly deferred. The old decorative Shield
   toggle button was removed so there's one Shield control.
 
+  **The Reactor bar** (`#bar-reactor_use`, the cargo bar's face in the
+  slot the old Reactor % readout had) fills to `reactor_use` — full
+  width is whatever limit the lever sets — green normally, yellow above
+  80%, red at the limit. `instruments.js` colors any `#bar-<name>` via
+  `data-level` from the same `THRESHOLDS` the warning lights use, so the
+  bar and the Reactor light (`data-stat="reactor_use"`) always agree.
+  `.bar-fill.live` shortens the fill transition so the bar keeps up
+  with a dragged lever.
+
   **Warning lights** (`data-stat` alert tiles; Hull, Reactor, O2,
   Integrity): Hull/O2/Integrity flash yellow below 70 and red below 20;
-  Reactor is inverted — yellow above 80, red above 95 — since low
-  reactor use is fine and running hot is the danger (per-stat
-  `THRESHOLDS` in `instruments.js`, `below` or `above`). `instruments.js` sets
+  Reactor follows `reactor_use` and is inverted — yellow above 80%,
+  red at 100% of the limit — since spare capacity is fine and maxing
+  out is the danger (per-stat `THRESHOLDS` in `instruments.js`, `below`
+  or `above`; `reactor_use` is floored, so only a true 100 is red). `instruments.js` sets
   `data-level="warn"|"critical"` and console.css colors the lamp via a
   `--lamp`/`--lamp-glow` pair (the same lit look `.is-alert` uses, just
   a different color). Clicking a lit one adds `.is-acked`, which stops

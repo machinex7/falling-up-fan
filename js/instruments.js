@@ -1,7 +1,8 @@
 // ═══════════════════════════════════════════════════════
 // INSTRUMENTS — everything on the console that shows a ship-state
-// value (hull/power/reactor/o2/shield ink VARs plus derived integrity,
-// announced by js/story.js as 'ship:stat' { name, value }). Found by
+// value (hull/power/reactor/o2/shield ink VARs plus the computed
+// integrity/reactor_load/reactor_use, announced by js/story.js as
+// 'ship:stat' { name, value }). Found by
 // id/attribute convention, so a stat just lights up whichever of these
 // exist for it:
 //   #ro-<name>                     readout digits ("072%"; data-unit
@@ -9,10 +10,12 @@
 //   #gauge-<name>-arc / -text      arc gauge fill + label
 //   .tile.alert[data-stat=<name>]  warning light
 //   .throttle-track[data-stat=<name>]  lever handle position
+//   #bar-<name>                    bar fill width, colored by the same
+//                                  THRESHOLDS as the warning lights
 //
 // Warning lights: flash yellow / red when a stat crosses its
 // THRESHOLDS (data-level on the tile, colored in console.css) — low is
-// bad for most stats, high is bad for the reactor (running too hard). Clicking a lit one acknowledges it — stops the flash,
+// bad for most stats, high is bad for reactor use (maxed out). Clicking a lit one acknowledges it — stops the flash,
 // stays lit — until the severity changes, which flashes again.
 // ═══════════════════════════════════════════════════════
 (function () {
@@ -20,7 +23,9 @@
   // `above`: warn/critical when it climbs over them.
   const THRESHOLDS = {
     default: { below: { warn: 70, critical: 20 } },
-    reactor: { above: { warn: 80, critical: 95 } },
+    // % of the reactor's limit in use: yellow above 80, red AT the limit
+    // (reactor_use is floored, so only a true 100 counts as maxed)
+    reactor_use: { above: { warn: 80, critical: 99 } },
   };
 
   function severity(name, v) {
@@ -39,6 +44,15 @@
   function renderReadout(name, v) {
     const el = document.getElementById(`ro-${name}`);
     if (el) el.textContent = String(v).padStart(3, '0') + (el.dataset.unit ?? '%');
+  }
+
+  function renderBar(name, v) {
+    const fill = document.getElementById(`bar-${name}`);
+    if (!fill) return;
+    fill.style.width = `${v}%`;
+    const level = severity(name, v);
+    if (level) fill.dataset.level = level;
+    else delete fill.dataset.level;
   }
 
   function renderLever(name, v) {
@@ -86,5 +100,6 @@
     renderGauge(name, v);
     renderLamp(name, v);
     renderLever(name, v);
+    renderBar(name, v);
   });
 })();

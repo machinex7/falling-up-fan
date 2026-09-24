@@ -35,32 +35,41 @@
 //
 //   hull      0–100, remaining hull integrity (Hull readout + light).
 //   power     0–100, energy left to use (Power readout).
-//   reactor   0–100, how hard the reactor is running — 50 means half
-//             its capacity, with room to do more (Reactor readout,
-//             light, and the pilot's Reactor Out lever).
-//   shield    0–100, power put into the shield (the pilot's Shield Pwr
-//             lever). Drawn from the reactor, so it can never be higher
-//             than `reactor`: lowering the reactor pulls the shield
-//             down with it.
+//   reactor   0–100 points, the reactor's output LIMIT — how much
+//             energy it's allowed to put out (the pilot's Reactor
+//             lever). It's what 100% on the Reactor bar means.
+//   shield    0–100%, power put into the shield (the pilot's Shield
+//             lever). Each shield % costs SHIELD_COST (0.5) reactor
+//             points to run, so a full shield uses 50 points.
 //   o2        0–100 (O2 gauge + light).
 //
-//   integrity()  NOT a variable — a function returning hull + shield
-//                (0–200), shown on the Integrity readout + light. A weak
-//                hull can be covered by more shield, at the cost of
-//                running the reactor harder. Branch on it like
-//                { integrity() < 50: ... }.
+//   Computed from the variables above (functions, NOT variables —
+//   call them with ()):
+//     integrity()     hull + shield (0–200): Integrity readout + light.
+//                     A weak hull can be covered by more shield, at the
+//                     cost of more reactor load.
+//     reactor_load()  reactor points in use right now (shield *
+//                     SHIELD_COST; add future systems here).
+//     reactor_use()   reactor_load() as a % of the `reactor` limit,
+//                     0–100: the Reactor bar's fill (green, yellow
+//                     above 80, red at the limit) and the Reactor light.
+//   Branch on them like { integrity() < 50: ... }.
+//
+//   The load can never exceed the limit: raising the shield past what
+//   the reactor puts out stops at the limit, and lowering the reactor
+//   below the current load pulls the shield down with it.
 //
 //   Warning lights flash yellow / red; clicking one stops the flashing
 //   but keeps it lit:
 //     Hull, O2, Integrity   yellow below 70, red below 20
-//     Reactor               yellow above 80, red above 95 (running hot)
+//     Reactor               yellow above 80% used, red at 100% (maxed)
 //
-//   The pilot can move the Shield Pwr and Reactor Out levers at any time
-//   after launch; those call set_shield()/set_reactor() below, so they
-//   obey the same rules as the story.
+//   The pilot can move the Shield and Reactor levers at any time after
+//   launch; those call set_shield()/set_reactor() below, so they obey
+//   the same rules as the story.
 //
 //   Change stats with the helpers at the bottom of this file, which keep
-//   them in range (0–100, and shield <= reactor):
+//   them in range (0–100, and load within the reactor limit):
 //     ~ damage(15)              hull -15
 //     ~ repair(10)              hull +10
 //     ~ adjust(power, -20)      any stat, +/-
@@ -75,6 +84,8 @@
 //                             ~ movement = thruster
 //                           Being a LIST, a misspelled mode is a compile
 //                           error, not a silent no-op.
+
+CONST SHIELD_COST = 0.5     // reactor points per shield %
 
 VAR hull = 100
 VAR power = 72
@@ -129,12 +140,27 @@ Copy. Handler out — check in again next relay.
 === function set_reactor(to)
 ~ set_level(reactor, to)
 
-// The shield runs on reactor output, so it can't exceed it.
+// The shield runs on reactor output, so its load can't exceed the
+// reactor's limit — cut the shield back to what the reactor can carry.
 === function keep_shield_within_reactor()
-{ shield > reactor:
-    ~ shield = reactor
+{ reactor_load() > reactor:
+    ~ shield = INT(reactor / SHIELD_COST)
 }
 
-// Keep in sync with js/story.js's DERIVED_STATS.integrity.
+// ── COMPUTED STATS ─────────────────────────────────────────────────────
+// js/story.js calls each of these by name (its DERIVED_STATS list) to
+// update the console, so the formulas live only here.
+
 === function integrity()
 ~ return hull + shield
+
+=== function reactor_load()
+~ return shield * SHIELD_COST
+
+// Parenthesized on purpose: ink reads `a * 100 / b` as `a * (100 / b)`
+// with whole-number division, which rounds badly.
+=== function reactor_use()
+{ reactor <= 0:
+    ~ return 0
+}
+~ return FLOOR((reactor_load() * 100) / reactor)

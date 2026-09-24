@@ -2,7 +2,7 @@
 // READOUT DRIFT — small live-feeling number nudges
 // ═══════════════════════════════════════════════════════
 (function () {
-  // ro-power/ro-hull/ro-reactor deliberately absent — they're story
+  // ro-power/ro-hull deliberately absent — they're story
   // state now, owned by js/story.js (ink VARs), not decorative drift
   const ids = ['ro-signal'];
   setInterval(() => {

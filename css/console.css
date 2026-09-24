@@ -387,6 +387,13 @@ button.tile {
 }
 .bar-fill.c-amber { background: linear-gradient(90deg, var(--amber), var(--led-amber)); box-shadow: 0 0 6px var(--amber-glow); }
 .bar-fill.c-cyan  { background: linear-gradient(90deg, var(--cyan),  var(--led-cyan));  box-shadow: 0 0 6px var(--cyan-glow); }
+.bar-fill.c-green { background: linear-gradient(90deg, var(--green), var(--led-green)); box-shadow: 0 0 6px var(--green-glow); }
+/* a ship-state bar (js/instruments.js) warns with the same colors as the
+   warning lights; .live follows a dragged lever closely instead of the
+   slow page-load fill */
+.bar-fill[data-level="warn"]     { background: var(--yellow); box-shadow: 0 0 6px var(--yellow-glow); }
+.bar-fill[data-level="critical"] { background: var(--red);    box-shadow: 0 0 6px var(--red-glow); }
+.bar-fill.live { transition-duration: 0.25s; }
 
 /* alert light tile — small round lamp, off by default */
 .alert-lamp {

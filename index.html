@@ -189,8 +189,13 @@
             <div class="r-value" id="ro-hull">100%</div>
             <div class="tile-label">Hull</div>
           </div>
-          <div class="tile readout c-green">
-            <div class="r-value" id="ro-reactor">050%</div>
+          <!-- reactor load as a share of the output limit the Reactor
+               lever sets (full width = the limit), not a raw % —
+               js/instruments.js sizes and colors the fill -->
+          <div class="tile bar">
+            <div class="bar-track">
+              <div class="bar-fill c-green live" id="bar-reactor_use"></div>
+            </div>
             <div class="tile-label">Reactor</div>
           </div>
           <!-- hull + shield, 0–200, so no % -->
@@ -333,7 +338,7 @@
             <div class="alert-lamp"></div>
             <div class="tile-label">O2</div>
           </div>
-          <div class="tile alert" data-stat="reactor">
+          <div class="tile alert" data-stat="reactor_use">
             <div class="alert-lamp"></div>
             <div class="tile-label">Reactor</div>
           </div>
