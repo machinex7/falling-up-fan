@@ -685,28 +685,37 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
     the closing line makes the source say what the system does: the
     countdown begins at the conclusion of the story, because that's
     where the tag setting it lives.
-  - `# hull: 80` / `# hull: -15` / `# hull: +10` — sets (bare number) or
-    adjusts (signed number) the ink `VAR hull`, clamped 0–100. `# power:`
-    and `# reactor:` work identically on `VAR power` / `VAR reactor`.
-  - `# movement: stopped | thruster | sideSpace` — sets the ink
-    `VAR movement`, the ship's movement mode; any other value is ignored
-    with a console warning.
 
-  `hull`, `power`, `reactor` and `movement` are **ink variables first,
-  tags second**: all are declared as `VAR`s at the top of `ink/story.ink` so the story can
-  branch on them (`{ hull < 50: ... }`) or write them directly
-  (`~ hull -= 10`), and the tags are just shorthand that writes the same
-  VARs. `js/story.js` reaches the page only through
-  `story.ObserveVariable()` on each, so both paths behave identically.
+  **Tags are for per-line presentation cues only** (`contact`, `image`,
+  `countdown`). Ongoing ship state is NOT tagged — see below.
+
+  **Ship state lives in ink variables, not tags.** `hull`, `power`,
+  `reactor` (`VAR`s, 0–100) and `movement` (a `LIST`: `stopped`,
+  `thruster`, `sideSpace`) are declared at the top of `ink/story.ink`;
+  `js/story.js` binds to them with `story.ObserveVariable()`, so the page
+  updates whenever the story writes one, with no tag involved. An earlier
+  pass also had `# hull:`/`# power:`/`# reactor:`/`# movement:` tags that
+  wrote the same variables — dropped by explicit call, since two ways to
+  do one thing (with different clamping behavior) was worse than one.
+  Clamping lives on the ink side instead, in small helper functions at
+  the bottom of `story.ink` (`set_level(ref stat, to)`,
+  `adjust(ref stat, by)`, `damage(n)`, `repair(n)`) — `ref` parameters
+  write the global through ink's normal assignment path, so observers
+  still fire. `movement` is a `LIST` rather than a string specifically so
+  a misspelled mode is a compile error instead of a silent no-op; its
+  observer receives an `InkList`, which `String()` turns into the item
+  name.
+
   The three percentages share one code path via `js/story.js`'s
   `PERCENT_STATS` map (VAR name -> readout id: `#ro-hull`, `#ro-power`,
-  `#ro-reactor`) — a new percentage stat is a VAR plus one map entry, and
-  its tag comes for free. Those readouts are therefore no longer in
-  `js/readouts.js`'s random drift list (only Signal still drifts);
-  `movement` sets
+  `#ro-reactor`) — a new percentage stat is a `VAR` plus one map entry.
+  Those readouts are therefore no longer in `js/readouts.js`'s random
+  drift list (only Signal still drifts). `movement` sets
   `body[data-movement]` and dispatches a `'ship:movement'` DOM event
-  (`detail.mode`) — nothing reacts to it visually yet, that's the hook
-  for whatever each mode should look like.
+  (`detail.mode`) — nothing reacts to it visually yet, that's the hook for
+  whatever each mode should look like. For one-off *effects* (as opposed
+  to state), ink's `EXTERNAL` + `story.BindExternalFunction()` is the
+  matching mechanism — nothing uses it yet.
 
   **Keep `ink/story.ink`'s header comment the canonical tag/VAR list** —
   every new tag or ship-state VAR gets documented there, since that's

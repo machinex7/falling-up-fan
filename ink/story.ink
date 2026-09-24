@@ -9,10 +9,10 @@
 // in automatically, no changes needed there.
 //
 // ── TAGS ───────────────────────────────────────────────────────────────
-// A tag (# key: value) applies when the line it's attached to is shown,
-// so put "from the start of the scene" tags on the opening line and
-// "once the scene is over" tags on the closing line. Unknown keys are
-// ignored.
+// Tags are for per-line presentation cues. A tag (# key: value) applies
+// when the line it's attached to is shown, so put "from the start of the
+// scene" tags on the opening line and "once the scene is over" tags on
+// the closing line. Unknown keys are ignored.
 //
 //   # contact: Handler
 //       Who the comms panel is talking to — header title and speaker
@@ -27,34 +27,34 @@
 //       Seconds until the next scene. Starts once the conversation
 //       ends, so put it on the scene's closing line.
 //
-//   # hull: 80      set the hull to 80%
-//   # hull: -15     damage: subtract 15%
-//   # hull: +10     repair: add 10%
-//       Writes the `hull` variable below (clamped 0–100). The console's
-//       Hull readout always shows it.
+// ── SHIP STATE (variables) ─────────────────────────────────────────────
+// Ongoing ship state lives in the variables below, not in tags.
+// js/story.js watches each one, so the console updates the moment the
+// story changes it — no tag needed. Branch on them anywhere
+// ({ hull < 50: ... }, { movement == sideSpace: ... }).
 //
-//   # power: 80  /  # power: -15  /  # power: +10
-//       Same as hull, for the `power` variable (Power readout).
+//   hull, power, reactor    0–100, shown on the Hull / Power / Reactor
+//                           readouts. Change them with the helpers at
+//                           the bottom of this file, which keep them in
+//                           range:
+//                             ~ damage(15)              hull -15
+//                             ~ repair(10)              hull +10
+//                             ~ adjust(power, -20)      any stat, +/-
+//                             ~ set_level(reactor, 40)  any stat, exact
+//                           (A plain `~ hull = 80` works too, but isn't
+//                           clamped — the readout caps what it shows,
+//                           branches see the raw value.)
 //
-//   # reactor: 80  /  # reactor: -15  /  # reactor: +10
-//       Same as hull, for the `reactor` variable (Reactor readout).
-//
-//   # movement: stopped | thruster | sideSpace
-//       Writes the `movement` variable below — the ship's current
-//       movement mode. Any other value is ignored (with a console
-//       warning).
-//
-// ── VARIABLES ──────────────────────────────────────────────────────────
-// Readable anywhere for branching ({ hull < 50: ... }) and writable
-// with ~ as well as with the tags above — js/story.js watches all of
-// them, so `~ hull -= 10` and `# hull: -10` do the same thing. Values
-// written with ~ are clamped 0–100 on the readout but not in ink, so
-// keep them in range yourself (the tags clamp for you).
+//   movement                the ship's movement mode, one of the LIST
+//                           items: stopped, thruster, sideSpace.
+//                             ~ movement = thruster
+//                           Being a LIST, a misspelled mode is a compile
+//                           error, not a silent no-op.
 
-VAR hull = 100              // 0–100, shown on the Hull readout
-VAR power = 72              // 0–100, shown on the Power readout
-VAR reactor = 100           // 0–100, shown on the Reactor readout
-VAR movement = "stopped"    // "stopped" | "thruster" | "sideSpace"
+VAR hull = 100
+VAR power = 72
+VAR reactor = 100
+LIST movement = (stopped), thruster, sideSpace
 
 -> handler_checkin
 
@@ -78,3 +78,19 @@ Handler to [ship]. Comms check — you still with me out there?
 # image: clear
 Copy. Handler out — check in again next relay.
 -> END
+
+// ── SHIP STATE HELPERS ─────────────────────────────────────────────────
+// Clamp every write to 0–100. `ref` means the function changes the
+// variable you pass in, e.g. ~ adjust(power, -20).
+
+=== function set_level(ref stat, to)
+~ stat = MAX(0, MIN(100, to))
+
+=== function adjust(ref stat, by)
+~ set_level(stat, stat + by)
+
+=== function damage(amount)
+~ adjust(hull, -amount)
+
+=== function repair(amount)
+~ adjust(hull, amount)

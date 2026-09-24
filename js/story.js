@@ -70,15 +70,14 @@
   let pendingCountdown = null;
   let hasActiveConversation = false;
 
-  // Ship state that lives in ink VARs (see ink/story.ink's header). Ink
-  // is the one source of truth: the matching tags just write those same
-  // VARs (see applyTags), and the observers below are the only place any
-  // of them reaches the page, so `~ hull -= 10` in ink and `# hull: -10`
-  // behave identically.
+  // Ship state that lives in ink variables (see ink/story.ink's "SHIP
+  // STATE" header). Ink is the one source of truth — there are no tags
+  // for these; the observers below are the only place any of them
+  // reaches the page, whether the story wrote them with a plain `~` or
+  // one of story.ink's clamping helpers (damage/repair/adjust/set_level).
   //
   // Percentage stats: ink VAR name -> the console readout showing it. A
-  // new one is a VAR in story.ink plus an entry here — the tag, clamping
-  // and rendering all come for free.
+  // new one is a VAR in story.ink plus an entry here.
   const PERCENT_STATS = {
     hull: 'ro-hull',
     power: 'ro-power',
@@ -95,10 +94,13 @@
     if (el) el.textContent = String(clampPercent(value)).padStart(3, '0') + '%';
   }
 
-  // Exposed as body[data-movement] for CSS and as a 'ship:movement' DOM
-  // event (detail.mode) for any other file that needs to react — same
-  // loose event pattern as 'ship:launch'/'timer:complete'.
-  function renderMovement(mode) {
+  // `movement` is an ink LIST, so the value arrives as an InkList —
+  // String() gives the item name ("thruster"). Exposed as
+  // body[data-movement] for CSS and as a 'ship:movement' DOM event
+  // (detail.mode) for any other file that needs to react — same loose
+  // event pattern as 'ship:launch'/'timer:complete'.
+  function renderMovement(value) {
+    const mode = String(value);
     if (!MOVEMENT_MODES.includes(mode)) {
       console.warn(`story: unknown movement mode "${mode}" — expected one of ${MOVEMENT_MODES.join(', ')}`);
       return;
@@ -114,27 +116,6 @@
     });
     renderMovement(story.variablesState.$('movement'));
     story.ObserveVariable('movement', (_name, value) => renderMovement(value));
-  }
-
-  // `# hull: 80` sets, `# hull: -15` / `# hull: +10` adjust — same for
-  // every PERCENT_STATS key.
-  function applyPercentTag(story, name, value) {
-    const n = Number(value);
-    if (value === '' || Number.isNaN(n)) {
-      console.warn(`story: bad ${name} tag value "${value}"`);
-      return;
-    }
-    const relative = value[0] === '+' || value[0] === '-';
-    const current = story.variablesState.$(name);
-    story.variablesState.$(name, clampPercent(relative ? current + n : n));
-  }
-
-  function applyMovementTag(story, value) {
-    if (!MOVEMENT_MODES.includes(value)) {
-      console.warn(`story: unknown movement mode "${value}" — expected one of ${MOVEMENT_MODES.join(', ')}`);
-      return;
-    }
-    story.variablesState.$('movement', value);
   }
 
   function showSceneObject(imageSrc) {
@@ -159,7 +140,7 @@
   // #scene-object instead of pointing it at a new src — the two are the
   // same tag because "which image is showing" is one piece of state,
   // not a separate show/hide concept.
-  function applyTags(story, tags) {
+  function applyTags(tags) {
     tags.forEach(tag => {
       const sep = tag.indexOf(':');
       const key = (sep === -1 ? tag : tag.slice(0, sep)).trim();
@@ -170,8 +151,6 @@
         else showSceneObject(value);
       }
       else if (key === 'countdown') pendingCountdown = Number(value);
-      else if (key in PERCENT_STATS) applyPercentTag(story, key, value);
-      else if (key === 'movement') applyMovementTag(story, value);
     });
   }
 
@@ -182,7 +161,7 @@
   function runContinueLoop(story) {
     while (story.canContinue) {
       const text = story.Continue().trim();
-      applyTags(story, story.currentTags || []);
+      applyTags(story.currentTags || []);
       if (text) appendLine(currentContact, text, false);
     }
   }
