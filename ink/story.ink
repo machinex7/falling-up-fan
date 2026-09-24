@@ -50,8 +50,10 @@
 //                running the reactor harder. Branch on it like
 //                { integrity() < 50: ... }.
 //
-//   Warning lights (Hull, Reactor, O2, Integrity) flash yellow below 70
-//   and red below 20; clicking one stops the flashing but keeps it lit.
+//   Warning lights flash yellow / red; clicking one stops the flashing
+//   but keeps it lit:
+//     Hull, O2, Integrity   yellow below 70, red below 20
+//     Reactor               yellow above 80, red above 95 (running hot)
 //
 //   The pilot can move the Shield Pwr and Reactor Out levers at any time
 //   after launch; those call set_shield()/set_reactor() below, so they
@@ -76,7 +78,7 @@
 
 VAR hull = 100
 VAR power = 72
-VAR reactor = 100
+VAR reactor = 50
 VAR o2 = 94
 VAR shield = 0
 LIST movement = (stopped), thruster, sideSpace

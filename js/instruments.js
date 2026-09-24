@@ -10,14 +10,24 @@
 //   .tile.alert[data-stat=<name>]  warning light
 //   .throttle-track[data-stat=<name>]  lever handle position
 //
-// Warning lights: flash yellow below WARN_BELOW, red below
-// CRITICAL_BELOW, off otherwise (data-level on the tile, colored in
-// console.css). Clicking a lit one acknowledges it — stops the flash,
+// Warning lights: flash yellow / red when a stat crosses its
+// THRESHOLDS (data-level on the tile, colored in console.css) — low is
+// bad for most stats, high is bad for the reactor (running too hard). Clicking a lit one acknowledges it — stops the flash,
 // stays lit — until the severity changes, which flashes again.
 // ═══════════════════════════════════════════════════════
 (function () {
-  const WARN_BELOW = 70;
-  const CRITICAL_BELOW = 20;
+  // `below`: warn/critical when the value drops under these.
+  // `above`: warn/critical when it climbs over them.
+  const THRESHOLDS = {
+    default: { below: { warn: 70, critical: 20 } },
+    reactor: { above: { warn: 80, critical: 95 } },
+  };
+
+  function severity(name, v) {
+    const t = THRESHOLDS[name] || THRESHOLDS.default;
+    if (t.below) return v < t.below.critical ? 'critical' : v < t.below.warn ? 'warn' : '';
+    return v > t.above.critical ? 'critical' : v > t.above.warn ? 'warn' : '';
+  }
   // keep in sync with the gauge <circle>s' stroke-dasharray in index.html
   const GAUGE_SWEEP = 122.5; // the 270° track's length
   const GAUGE_CIRC = 163.4;  // full circumference
@@ -56,7 +66,7 @@
   function renderLamp(name, v) {
     const tile = document.querySelector(`.tile.alert[data-stat="${name}"]`);
     if (!tile) return;
-    const level = v < CRITICAL_BELOW ? 'critical' : v < WARN_BELOW ? 'warn' : '';
+    const level = severity(name, v);
     if ((tile.dataset.level || '') === level) return; // same severity: keep any ack
     if (level) tile.dataset.level = level;
     else delete tile.dataset.level;

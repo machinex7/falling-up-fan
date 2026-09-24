@@ -115,7 +115,8 @@ js/
   throttle.js        pointer-based drag on .throttle-track (bound to the
                      whole tile — see the 3D click-targeting gotcha);
                      data-stat tracks (Shield/Reactor levers) send
-                     'control:set' instead of moving themselves
+                     'control:set' instead of moving themselves. All
+                     three levers are 2 grid rows tall (like LAUNCH)
   parallax.js        device-tilt drift on stars/console/armrests via
                      DeviceOrientation; also owns the #motion-enable
                      iOS-permission pill (button lives in index.html,
@@ -749,8 +750,10 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
   toggle button was removed so there's one Shield control.
 
   **Warning lights** (`data-stat` alert tiles; Hull, Reactor, O2,
-  Integrity): off at 70+, flashing
-  yellow below 70, flashing red below 20 — `instruments.js` sets
+  Integrity): Hull/O2/Integrity flash yellow below 70 and red below 20;
+  Reactor is inverted — yellow above 80, red above 95 — since low
+  reactor use is fine and running hot is the danger (per-stat
+  `THRESHOLDS` in `instruments.js`, `below` or `above`). `instruments.js` sets
   `data-level="warn"|"critical"` and console.css colors the lamp via a
   `--lamp`/`--lamp-glow` pair (the same lit look `.is-alert` uses, just
   a different color). Clicking a lit one adds `.is-acked`, which stops
