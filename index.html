@@ -208,10 +208,10 @@
             <svg viewBox="0 0 68 68">
               <g transform="rotate(135 34 34)">
                 <circle cx="34" cy="34" r="26" fill="none" stroke="#123522" stroke-width="5" stroke-dasharray="122.5 40.9" stroke-linecap="round"/>
-                <circle cx="34" cy="34" r="26" fill="none" stroke="var(--green)" stroke-width="5" stroke-dasharray="0 163.4" stroke-linecap="round"
+                <circle id="gauge-o2-arc" cx="34" cy="34" r="26" fill="none" stroke="var(--green)" stroke-width="5" stroke-dasharray="0 163.4" stroke-linecap="round"
                   style="animation: gauge-fill-green 1.4s cubic-bezier(0.4,0,0.2,1) 0.6s forwards;"/>
               </g>
-              <text x="34" y="39" text-anchor="middle" fill="var(--led-green)" font-family="VT323" font-size="15">94%</text>
+              <text id="gauge-o2-text" x="34" y="39" text-anchor="middle" fill="var(--led-green)" font-family="VT323" font-size="15">94%</text>
             </svg>
             <div class="tile-label">O2</div>
           </div>
@@ -325,15 +325,18 @@
             <div class="tile-label">Cargo</div>
           </div>
 
-          <div class="tile alert is-alert">
+          <!-- data-stat: driven by that ink variable via js/instruments.js
+               (yellow < 70, red < 20, click to acknowledge) rather than
+               js/controls.js's plain click-toggle -->
+          <div class="tile alert" data-stat="o2">
             <div class="alert-lamp"></div>
             <div class="tile-label">O2</div>
           </div>
-          <div class="tile alert">
+          <div class="tile alert" data-stat="reactor">
             <div class="alert-lamp"></div>
             <div class="tile-label">Reactor</div>
           </div>
-          <div class="tile alert is-alert">
+          <div class="tile alert" data-stat="hull">
             <div class="alert-lamp"></div>
             <div class="tile-label">Hull</div>
           </div>
@@ -472,6 +475,7 @@
 <script src="js/window-scenes.js"></script>
 <script src="js/power.js"></script>
 <script src="js/timer.js"></script>
+<script src="js/instruments.js"></script>
 <!-- ink runtime, CDN-loaded (unpkg mirrors npm) rather than vendored —
      see AGENTS.md's "The cutscene system" for why. Pinned to an exact
      version so a future inkjs release can't silently change behavior

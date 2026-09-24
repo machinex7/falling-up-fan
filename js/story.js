@@ -76,22 +76,15 @@
   // reaches the page, whether the story wrote them with a plain `~` or
   // one of story.ink's clamping helpers (damage/repair/adjust/set_level).
   //
-  // Percentage stats: ink VAR name -> the console readout showing it. A
-  // new one is a VAR in story.ink plus an entry here.
-  const PERCENT_STATS = {
-    hull: 'ro-hull',
-    power: 'ro-power',
-    reactor: 'ro-reactor',
-  };
+  // Percentage stats (0–100 ink VARs). This file only announces them as
+  // a 'ship:stat' DOM event (detail: { name, value }); js/instruments.js
+  // owns every readout/gauge/warning light that shows one. A new stat is
+  // a VAR in story.ink plus its name here.
+  const PERCENT_STATS = ['hull', 'power', 'reactor', 'o2'];
   const MOVEMENT_MODES = ['stopped', 'thruster', 'sideSpace'];
 
-  function clampPercent(n) {
-    return Math.max(0, Math.min(100, Math.round(n)));
-  }
-
-  function renderPercent(name, value) {
-    const el = document.getElementById(PERCENT_STATS[name]);
-    if (el) el.textContent = String(clampPercent(value)).padStart(3, '0') + '%';
+  function announceStat(name, value) {
+    document.dispatchEvent(new CustomEvent('ship:stat', { detail: { name, value } }));
   }
 
   // `movement` is an ink LIST, so the value arrives as an InkList —
@@ -110,9 +103,9 @@
   }
 
   function watchShipState(story) {
-    Object.keys(PERCENT_STATS).forEach(name => {
-      renderPercent(name, story.variablesState.$(name));
-      story.ObserveVariable(name, (_name, value) => renderPercent(name, value));
+    PERCENT_STATS.forEach(name => {
+      announceStat(name, story.variablesState.$(name));
+      story.ObserveVariable(name, (_name, value) => announceStat(name, value));
     });
     renderMovement(story.variablesState.$('movement'));
     story.ObserveVariable('movement', (_name, value) => renderMovement(value));

@@ -398,13 +398,22 @@ button.tile {
   box-shadow: inset 0 0 3px rgba(0,0,0,0.85);
 }
 .tile.alert { cursor: pointer; }
-.tile.alert.is-alert .alert-lamp {
-  background: var(--red);
-  border-color: var(--red);
-  box-shadow: 0 0 9px 2px var(--red-glow), inset 0 0 2px rgba(255,255,255,0.4);
+/* Lit states. .is-alert is the decorative click-toggle (js/controls.js);
+   data-level is set by js/instruments.js from a ship-state variable
+   (warn = yellow, critical = red). Each state only picks the lamp
+   color — the lit look itself is shared. .is-acked (clicking a
+   data-level lamp) stops the blink but leaves it lit. */
+.tile.alert.is-alert,
+.tile.alert[data-level="critical"] { --lamp: var(--red);    --lamp-glow: var(--red-glow); }
+.tile.alert[data-level="warn"]     { --lamp: var(--yellow); --lamp-glow: var(--yellow-glow); }
+.tile.alert:is(.is-alert, [data-level="warn"], [data-level="critical"]) .alert-lamp {
+  background: var(--lamp);
+  border-color: var(--lamp);
+  box-shadow: 0 0 9px 2px var(--lamp-glow), inset 0 0 2px rgba(255,255,255,0.4);
   animation: alert-blink 1s steps(1, jump-end) infinite;
 }
-.tile.alert.is-alert .tile-label { color: var(--red); }
+.tile.alert:is(.is-alert, [data-level="warn"], [data-level="critical"]) .tile-label { color: var(--lamp); }
+.tile.alert.is-acked .alert-lamp { animation: none; }
 
 /* #comms-tile — the same round .push-btn/.btn-lens component every
    toggle button uses (console.css's push-btn section above), not the

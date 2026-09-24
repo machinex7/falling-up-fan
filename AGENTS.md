@@ -129,6 +129,11 @@ js/
                      then ticks down once a second and dispatches
                      'timer:complete' on hitting zero — see "The
                      mission timer" below
+  instruments.js     every console instrument showing a ship-state
+                     percentage (readouts, the O2 gauge, the
+                     O2/Reactor/Hull warning lights), driven by
+                     'ship:stat' events from story.js — see "The
+                     cutscene system" below
   story.js           drives data/story.json through the inkjs runtime on
                      'timer:complete' — fades in a scene's `# image:`
                      tag over the starfield, and/or opens #comms-panel,
@@ -690,7 +695,7 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
   `countdown`). Ongoing ship state is NOT tagged — see below.
 
   **Ship state lives in ink variables, not tags.** `hull`, `power`,
-  `reactor` (`VAR`s, 0–100) and `movement` (a `LIST`: `stopped`,
+  `reactor`, `o2` (`VAR`s, 0–100) and `movement` (a `LIST`: `stopped`,
   `thruster`, `sideSpace`) are declared at the top of `ink/story.ink`;
   `js/story.js` binds to them with `story.ObserveVariable()`, so the page
   updates whenever the story writes one, with no tag involved. An earlier
@@ -706,11 +711,28 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
   observer receives an `InkList`, which `String()` turns into the item
   name.
 
-  The three percentages share one code path via `js/story.js`'s
-  `PERCENT_STATS` map (VAR name -> readout id: `#ro-hull`, `#ro-power`,
-  `#ro-reactor`) — a new percentage stat is a `VAR` plus one map entry.
-  Those readouts are therefore no longer in `js/readouts.js`'s random
-  drift list (only Signal still drifts). `movement` sets
+  The percentages share one code path: `js/story.js`'s `PERCENT_STATS`
+  list observes each VAR and re-announces it as a `'ship:stat'` DOM
+  event (`detail: { name, value }`); `js/instruments.js` owns
+  everything that displays one, found by naming convention — `#ro-<name>`
+  (readout digits), `#gauge-<name>-arc`/`-text` (arc gauge; O2 today),
+  `.tile.alert[data-stat=<name>]` (warning light; O2/Reactor/Hull). A
+  new stat is a `VAR` plus its name in `PERCENT_STATS`, and gets
+  whichever of those elements exist for it. Those readouts/gauges are
+  no longer decorative (`js/readouts.js` only drifts Signal now), and
+  the gauge's page-load fill animation is left to finish before
+  `instruments.js` takes the arc over, since a `forwards` CSS animation
+  would otherwise mask the inline value.
+
+  **Warning lights** (`data-stat` alert tiles): off at 70+, flashing
+  yellow below 70, flashing red below 20 — `instruments.js` sets
+  `data-level="warn"|"critical"` and console.css colors the lamp via a
+  `--lamp`/`--lamp-glow` pair (the same lit look `.is-alert` uses, just
+  a different color). Clicking a lit one adds `.is-acked`, which stops
+  the blink but leaves it lit in its color; the ack clears whenever the
+  severity changes (worse OR better), so a new condition always flashes
+  again. `js/controls.js` skips `data-stat` tiles; tiles without it (Nav)
+  are still the plain decorative red click-toggle (`.is-alert`). `movement` sets
   `body[data-movement]` and dispatches a `'ship:movement'` DOM event
   (`detail.mode`) — nothing reacts to it visually yet, that's the hook for
   whatever each mode should look like. For one-off *effects* (as opposed

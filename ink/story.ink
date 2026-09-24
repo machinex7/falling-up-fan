@@ -33,10 +33,14 @@
 // story changes it — no tag needed. Branch on them anywhere
 // ({ hull < 50: ... }, { movement == sideSpace: ... }).
 //
-//   hull, power, reactor    0–100, shown on the Hull / Power / Reactor
-//                           readouts. Change them with the helpers at
-//                           the bottom of this file, which keep them in
-//                           range:
+//   hull, power, reactor, o2
+//                           0–100. hull/power/reactor show on their
+//                           readouts, o2 on the O2 gauge. hull, reactor
+//                           and o2 also drive their warning lights:
+//                           flashing yellow below 70, flashing red below
+//                           20 (clicking the light stops the flashing).
+//                           Change them with the helpers at the bottom
+//                           of this file, which keep them in range:
 //                             ~ damage(15)              hull -15
 //                             ~ repair(10)              hull +10
 //                             ~ adjust(power, -20)      any stat, +/-
@@ -54,6 +58,7 @@
 VAR hull = 100
 VAR power = 72
 VAR reactor = 100
+VAR o2 = 94
 LIST movement = (stopped), thruster, sideSpace
 
 -> handler_checkin
