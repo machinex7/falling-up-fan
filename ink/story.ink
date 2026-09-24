@@ -33,21 +33,40 @@
 // story changes it — no tag needed. Branch on them anywhere
 // ({ hull < 50: ... }, { movement == sideSpace: ... }).
 //
-//   hull, power, reactor, o2
-//                           0–100. hull/power/reactor show on their
-//                           readouts, o2 on the O2 gauge. hull, reactor
-//                           and o2 also drive their warning lights:
-//                           flashing yellow below 70, flashing red below
-//                           20 (clicking the light stops the flashing).
-//                           Change them with the helpers at the bottom
-//                           of this file, which keep them in range:
-//                             ~ damage(15)              hull -15
-//                             ~ repair(10)              hull +10
-//                             ~ adjust(power, -20)      any stat, +/-
-//                             ~ set_level(reactor, 40)  any stat, exact
-//                           (A plain `~ hull = 80` works too, but isn't
-//                           clamped — the readout caps what it shows,
-//                           branches see the raw value.)
+//   hull      0–100, remaining hull integrity (Hull readout + light).
+//   power     0–100, energy left to use (Power readout).
+//   reactor   0–100, how hard the reactor is running — 50 means half
+//             its capacity, with room to do more (Reactor readout,
+//             light, and the pilot's Reactor Out lever).
+//   shield    0–100, power put into the shield (the pilot's Shield Pwr
+//             lever). Drawn from the reactor, so it can never be higher
+//             than `reactor`: lowering the reactor pulls the shield
+//             down with it.
+//   o2        0–100 (O2 gauge + light).
+//
+//   integrity()  NOT a variable — a function returning hull + shield
+//                (0–200), shown on the Integrity readout + light. A weak
+//                hull can be covered by more shield, at the cost of
+//                running the reactor harder. Branch on it like
+//                { integrity() < 50: ... }.
+//
+//   Warning lights (Hull, Reactor, O2, Integrity) flash yellow below 70
+//   and red below 20; clicking one stops the flashing but keeps it lit.
+//
+//   The pilot can move the Shield Pwr and Reactor Out levers at any time
+//   after launch; those call set_shield()/set_reactor() below, so they
+//   obey the same rules as the story.
+//
+//   Change stats with the helpers at the bottom of this file, which keep
+//   them in range (0–100, and shield <= reactor):
+//     ~ damage(15)              hull -15
+//     ~ repair(10)              hull +10
+//     ~ adjust(power, -20)      any stat, +/-
+//     ~ set_level(reactor, 40)  any stat, exact
+//     ~ set_shield(60)          same as set_level(shield, 60)
+//     ~ set_reactor(80)         same as set_level(reactor, 80)
+//   (A plain `~ hull = 80` works too, but skips those rules — the
+//   readout caps what it shows, branches see the raw value.)
 //
 //   movement                the ship's movement mode, one of the LIST
 //                           items: stopped, thruster, sideSpace.
@@ -59,6 +78,7 @@ VAR hull = 100
 VAR power = 72
 VAR reactor = 100
 VAR o2 = 94
+VAR shield = 0
 LIST movement = (stopped), thruster, sideSpace
 
 -> handler_checkin
@@ -90,6 +110,7 @@ Copy. Handler out — check in again next relay.
 
 === function set_level(ref stat, to)
 ~ stat = MAX(0, MIN(100, to))
+~ keep_shield_within_reactor()
 
 === function adjust(ref stat, by)
 ~ set_level(stat, stat + by)
@@ -99,3 +120,19 @@ Copy. Handler out — check in again next relay.
 
 === function repair(amount)
 ~ adjust(hull, amount)
+
+=== function set_shield(to)
+~ set_level(shield, to)
+
+=== function set_reactor(to)
+~ set_level(reactor, to)
+
+// The shield runs on reactor output, so it can't exceed it.
+=== function keep_shield_within_reactor()
+{ shield > reactor:
+    ~ shield = reactor
+}
+
+// Keep in sync with js/story.js's DERIVED_STATS.integrity.
+=== function integrity()
+~ return hull + shield

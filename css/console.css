@@ -539,7 +539,22 @@ button.tile {
 }
 
 /* throttle tile — vertical drag lever, 2 columns wide */
-.tile.throttle { grid-column: span 4; }
+.tile.throttle { grid-column: span 4; touch-action: none; cursor: ns-resize; }  /* whole tile is the drag target — see js/throttle.js */
+/* .lever: the same lever face for a ship-state control (Shield,
+   Reactor) — narrower plate, no polish-wear patch (reserved for the
+   main throttle's grip, see ::after below), and a slimmer handle that
+   travels strictly INSIDE its track: 0 sits on the floor, 1 touches
+   the top (--lever-pos, 0–1, set by js/instruments.js), so it never
+   overhangs onto the label the way the free-moving throttle can. */
+.tile.throttle.lever { grid-column: span 2; }
+.tile.throttle.lever .throttle-handle {
+  --handle-h: clamp(7px, 2vw, 10px);
+  height: var(--handle-h);
+  transform: translateX(-50%);
+  bottom: calc((100% - var(--handle-h)) * var(--lever-pos, 0));
+}
+.tile.throttle.lever .throttle-handle::before { inset: 2px 6px; }
+.tile.throttle.lever .throttle-handle::after { content: none; }
 .throttle-track {
   position: relative;
   width: clamp(22px, 6vw, 30px);

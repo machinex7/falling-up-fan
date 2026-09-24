@@ -112,7 +112,10 @@ js/
                      otherwise unchanged
   controls.js        toggle/knob/alert click handling on .tile
   readouts.js        readout drift (setInterval) + cargo bar fill-in
-  throttle.js        pointer-based drag on .throttle-track
+  throttle.js        pointer-based drag on .throttle-track (bound to the
+                     whole tile — see the 3D click-targeting gotcha);
+                     data-stat tracks (Shield/Reactor levers) send
+                     'control:set' instead of moving themselves
   parallax.js        device-tilt drift on stars/console/armrests via
                      DeviceOrientation; also owns the #motion-enable
                      iOS-permission pill (button lives in index.html,
@@ -130,9 +133,9 @@ js/
                      'timer:complete' on hitting zero — see "The
                      mission timer" below
   instruments.js     every console instrument showing a ship-state
-                     percentage (readouts, the O2 gauge, the
-                     O2/Reactor/Hull warning lights), driven by
-                     'ship:stat' events from story.js — see "The
+                     value (readouts, the O2 gauge, the warning
+                     lights, the Shield/Reactor lever positions),
+                     driven by 'ship:stat' events from story.js — see "The
                      cutscene system" below
   story.js           drives data/story.json through the inkjs runtime on
                      'timer:complete' — fades in a scene's `# image:`
@@ -209,7 +212,7 @@ control needs inside it.
 The nav links (Members/Tracks/Connections) are now visually prominent
 pushbuttons — a deliberate reversal of an earlier "no more prominent than
 decorative" rule, changed by explicit user request. Toggles
-(Auto/Beacon/Shield/etc.) are also `.push-btn`s now: a round pushbutton you
+(Auto/Beacon/Cabin Lt/etc.) are also `.push-btn`s now: a round pushbutton you
 click to latch on/off, not the sliding lever-in-a-slot design from earlier
 — also an explicit user request, not an oversight if you see it differ
 from older screenshots or commit history.
@@ -345,7 +348,7 @@ Two reusable modifier classes carry this: `.knob.worn` and
 `.push-btn.worn` (console.css, near each control's base rule), applied in
 the markup only to controls the story treats as constantly handled — the
 Nav/Comm console knobs and the wall's main power knob, and the toggles
-that stay engaged day-to-day (Auto, Shield, Cabin Lt) — not every knob or
+that stay engaged day-to-day (Auto, Cabin Lt) — not every knob or
 button on the deck. The throttle handle gets its own one-off treatment on
 `.throttle-handle::after` rather than a shared class, since it's the
 single most-handled control on the whole panel (every course correction
@@ -695,7 +698,7 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
   `countdown`). Ongoing ship state is NOT tagged — see below.
 
   **Ship state lives in ink variables, not tags.** `hull`, `power`,
-  `reactor`, `o2` (`VAR`s, 0–100) and `movement` (a `LIST`: `stopped`,
+  `reactor`, `o2`, `shield` (`VAR`s, 0–100) and `movement` (a `LIST`: `stopped`,
   `thruster`, `sideSpace`) are declared at the top of `ink/story.ink`;
   `js/story.js` binds to them with `story.ObserveVariable()`, so the page
   updates whenever the story writes one, with no tag involved. An earlier
@@ -724,7 +727,29 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
   `instruments.js` takes the arc over, since a `forwards` CSS animation
   would otherwise mask the inline value.
 
-  **Warning lights** (`data-stat` alert tiles): off at 70+, flashing
+  **Power vs reactor vs shield vs integrity** (the user's model):
+  `power` is energy left to spend; `reactor` is how hard the reactor is
+  running (50 = half capacity, room to do more); `shield` is power put
+  into the shield and is drawn from the reactor, so `shield <= reactor`
+  always (lowering the reactor drags the shield down; the shield can't
+  be raised past it). `integrity` is NOT stored — it's `hull + shield`
+  (0–200, so its readout has `data-unit=""` for no `%`), exposed to ink
+  as an `integrity()` function and to the page by `js/story.js`'s
+  `DERIVED_STATS`, which re-announces it whenever an input changes —
+  the two formulas must match. The `shield <= reactor` rule lives only
+  in ink (`keep_shield_within_reactor()`, called by `set_level`), and
+  the pilot's levers go through it too: `js/throttle.js` sends
+  `'control:set'`, `js/story.js` runs `story.EvaluateFunction('set_<name>')`
+  (safe — UI events can't interrupt a synchronous `Continue()`, and it
+  doesn't disturb the conversation's position), and the resulting
+  `'ship:stat'` is what actually moves the lever handle, so a blocked
+  drag visibly stops at the cap. `PLAYER_CONTROLS` in story.js
+  whitelists which stats a lever may set. Power does NOT drain from
+  reactor use yet — explicitly deferred. The old decorative Shield
+  toggle button was removed so there's one Shield control.
+
+  **Warning lights** (`data-stat` alert tiles; Hull, Reactor, O2,
+  Integrity): off at 70+, flashing
   yellow below 70, flashing red below 20 — `instruments.js` sets
   `data-level="warn"|"critical"` and console.css colors the lamp via a
   `--lamp`/`--lamp-glow` pair (the same lit look `.is-alert` uses, just

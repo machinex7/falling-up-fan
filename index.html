@@ -193,6 +193,11 @@
             <div class="r-value" id="ro-reactor">100%</div>
             <div class="tile-label">Reactor</div>
           </div>
+          <!-- hull + shield, 0–200, so no % -->
+          <div class="tile readout c-green">
+            <div class="r-value" id="ro-integrity" data-unit="">100</div>
+            <div class="tile-label">Integrity</div>
+          </div>
           <div class="tile gauge">
             <svg viewBox="0 0 68 68">
               <g transform="rotate(135 34 34)">
@@ -306,10 +311,6 @@
           </div>
           <div class="tile is-on">
             <div class="push-btn round toggle-btn is-on worn"><div class="btn-lens"></div></div>
-            <div class="tile-label">Shield</div>
-          </div>
-          <div class="tile is-on">
-            <div class="push-btn round toggle-btn is-on worn"><div class="btn-lens"></div></div>
             <div class="tile-label">Cabin Lt</div>
           </div>
           <div class="tile">
@@ -340,6 +341,10 @@
             <div class="alert-lamp"></div>
             <div class="tile-label">Hull</div>
           </div>
+          <div class="tile alert" data-stat="integrity">
+            <div class="alert-lamp"></div>
+            <div class="tile-label">Integrity</div>
+          </div>
           <!-- COMMS — the pending-conversation button js/story.js owns:
                the same round push-btn/lens face every toggle button
                uses (console.css), dark/unlit at rest, flashing blue
@@ -363,6 +368,21 @@
               <div class="throttle-handle" style="bottom: 62%;"></div>
             </div>
             <div class="tile-label">Throttle</div>
+          </div>
+          <!-- ship-state levers: data-stat routes a drag through the ink
+               story's set_<name>() (js/throttle.js -> js/story.js), and
+               js/instruments.js places the handle where the value lands -->
+          <div class="tile throttle lever">
+            <div class="throttle-track" data-stat="shield">
+              <div class="throttle-handle" style="--lever-pos: 0;"></div>
+            </div>
+            <div class="tile-label">Shield</div>
+          </div>
+          <div class="tile throttle lever">
+            <div class="throttle-track" data-stat="reactor">
+              <div class="throttle-handle" style="--lever-pos: 1;"></div>
+            </div>
+            <div class="tile-label">Reactor</div>
           </div>
 
         </div>

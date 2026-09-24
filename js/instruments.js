@@ -1,11 +1,14 @@
 // ═══════════════════════════════════════════════════════
 // INSTRUMENTS — everything on the console that shows a ship-state
-// percentage (hull/power/reactor/o2, ink VARs announced by js/story.js
-// as 'ship:stat' { name, value }). Found by id/attribute convention, so
-// a stat just lights up whichever of these exist for it:
-//   #ro-<name>                     readout digits ("072%")
+// value (hull/power/reactor/o2/shield ink VARs plus derived integrity,
+// announced by js/story.js as 'ship:stat' { name, value }). Found by
+// id/attribute convention, so a stat just lights up whichever of these
+// exist for it:
+//   #ro-<name>                     readout digits ("072%"; data-unit
+//                                  overrides the "%")
 //   #gauge-<name>-arc / -text      arc gauge fill + label
 //   .tile.alert[data-stat=<name>]  warning light
+//   .throttle-track[data-stat=<name>]  lever handle position
 //
 // Warning lights: flash yellow below WARN_BELOW, red below
 // CRITICAL_BELOW, off otherwise (data-level on the tile, colored in
@@ -19,11 +22,18 @@
   const GAUGE_SWEEP = 122.5; // the 270° track's length
   const GAUGE_CIRC = 163.4;  // full circumference
 
-  const clamp = n => Math.max(0, Math.min(100, Math.round(n)));
+  // everything is 0–100 except these
+  const MAX = { integrity: 200 };
+  const clamp = (name, n) => Math.max(0, Math.min(MAX[name] ?? 100, Math.round(n)));
 
   function renderReadout(name, v) {
     const el = document.getElementById(`ro-${name}`);
-    if (el) el.textContent = String(v).padStart(3, '0') + '%';
+    if (el) el.textContent = String(v).padStart(3, '0') + (el.dataset.unit ?? '%');
+  }
+
+  function renderLever(name, v) {
+    const handle = document.querySelector(`.throttle-track[data-stat="${name}"] .throttle-handle`);
+    if (handle) handle.style.setProperty('--lever-pos', v / 100);
   }
 
   function renderGauge(name, v) {
@@ -61,9 +71,10 @@
 
   document.addEventListener('ship:stat', e => {
     const { name } = e.detail;
-    const v = clamp(e.detail.value);
+    const v = clamp(name, e.detail.value);
     renderReadout(name, v);
     renderGauge(name, v);
     renderLamp(name, v);
+    renderLever(name, v);
   });
 })();

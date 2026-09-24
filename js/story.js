@@ -80,11 +80,28 @@
   // a 'ship:stat' DOM event (detail: { name, value }); js/instruments.js
   // owns every readout/gauge/warning light that shows one. A new stat is
   // a VAR in story.ink plus its name here.
-  const PERCENT_STATS = ['hull', 'power', 'reactor', 'o2'];
+  const PERCENT_STATS = ['hull', 'power', 'reactor', 'o2', 'shield'];
+  // Stats computed from others rather than stored in ink — each mirrors
+  // an ink function of the same name (keep the formulas in sync), and
+  // is re-announced whenever one of its inputs changes.
+  const DERIVED_STATS = {
+    integrity: { from: ['hull', 'shield'], compute: get => get('hull') + get('shield') },
+  };
+  // Stats the pilot can set from a console lever ('control:set' events
+  // from js/throttle.js). Each goes through story.ink's set_<name>()
+  // function, so the player obeys the same rules the story does.
+  const PLAYER_CONTROLS = ['shield', 'reactor'];
   const MOVEMENT_MODES = ['stopped', 'thruster', 'sideSpace'];
 
   function announceStat(name, value) {
     document.dispatchEvent(new CustomEvent('ship:stat', { detail: { name, value } }));
+  }
+
+  function announceDerived(story, changed) {
+    const get = n => story.variablesState.$(n);
+    Object.entries(DERIVED_STATS).forEach(([name, d]) => {
+      if (!changed || d.from.includes(changed)) announceStat(name, d.compute(get));
+    });
   }
 
   // `movement` is an ink LIST, so the value arrives as an InkList —
@@ -105,8 +122,12 @@
   function watchShipState(story) {
     PERCENT_STATS.forEach(name => {
       announceStat(name, story.variablesState.$(name));
-      story.ObserveVariable(name, (_name, value) => announceStat(name, value));
+      story.ObserveVariable(name, (_name, value) => {
+        announceStat(name, value);
+        announceDerived(story, name);
+      });
     });
+    announceDerived(story, null);
     renderMovement(story.variablesState.$('movement'));
     story.ObserveVariable('movement', (_name, value) => renderMovement(value));
   }
@@ -237,6 +258,17 @@
         playScene(story, knotName);
       })
       .catch(err => console.error('data/story.json failed to load', err));
+  });
+
+  // A lever moved — never fires mid-Continue() (UI events can't
+  // interrupt synchronous ink evaluation), so it's safe to run an ink
+  // function here; the observers above then update the console.
+  document.addEventListener('control:set', e => {
+    const { name, value } = e.detail;
+    if (!PLAYER_CONTROLS.includes(name)) return;
+    storyPromise
+      .then(story => story.EvaluateFunction(`set_${name}`, [value]))
+      .catch(err => console.error(`story: set_${name} failed`, err));
   });
 
   tile.addEventListener('click', openPanel);
