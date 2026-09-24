@@ -80,7 +80,7 @@
   // a 'ship:stat' DOM event (detail: { name, value }); js/instruments.js
   // owns every readout/gauge/warning light that shows one. A new stat is
   // a VAR in story.ink plus its name here.
-  const PERCENT_STATS = ['hull', 'power', 'reactor', 'o2', 'shield'];
+  const PERCENT_STATS = ['hull', 'power', 'reactor', 'o2', 'shield', 'cargo'];
   // Stats computed from others rather than stored — each is an ink
   // function of the same name in story.ink ("COMPUTED STATS"), called
   // directly so the formula lives only there. Re-announced after any

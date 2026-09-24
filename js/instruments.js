@@ -23,6 +23,7 @@
   // `above`: warn/critical when it climbs over them.
   const THRESHOLDS = {
     default: { below: { warn: 70, critical: 20 } },
+    cargo: null, // a fill level, not a health stat — never warns
     // % of the reactor's limit in use: yellow above 80, red at or over
     // the limit (reactor_use is floored, so only a true 100+ is red; it
     // can exceed 100 when overloaded, but displays clamp to 100)
@@ -30,7 +31,8 @@
   };
 
   function severity(name, v) {
-    const t = THRESHOLDS[name] || THRESHOLDS.default;
+    const t = name in THRESHOLDS ? THRESHOLDS[name] : THRESHOLDS.default;
+    if (!t) return '';
     if (t.below) return v < t.below.critical ? 'critical' : v < t.below.warn ? 'warn' : '';
     return v > t.above.critical ? 'critical' : v > t.above.warn ? 'warn' : '';
   }

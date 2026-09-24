@@ -16,14 +16,6 @@
   }, 2600);
 })();
 
-// ═══════════════════════════════════════════════════════
-// BAR FILL — animate to its target width after mount, same
-// power-up feel as the arc gauges
-// ═══════════════════════════════════════════════════════
-(function () {
-  const fill = document.getElementById('bar-cargo');
-  if (!fill) return;
-  requestAnimationFrame(() => {
-    setTimeout(() => { fill.style.width = '72%'; }, 200);
-  });
-})();
+// (The Cargo bar used to fill to a fixed 72% here; it's the ink `cargo`
+// VAR now, drawn by js/instruments.js — its slow CSS width transition
+// still gives the same power-up fill on load.)

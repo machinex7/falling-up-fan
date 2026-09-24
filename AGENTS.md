@@ -111,7 +111,8 @@ js/
                      rather than being #window's only background, but
                      otherwise unchanged
   controls.js        toggle/knob/alert click handling on .tile
-  readouts.js        readout drift (setInterval) + cargo bar fill-in
+  readouts.js        readout drift (setInterval) — only Signal now; the
+                     cargo bar moved to instruments.js (ink `cargo`)
   throttle.js        pointer-based drag on .throttle-track (bound to the
                      whole tile — see the 3D click-targeting gotcha);
                      data-stat tracks (Shield/Reactor levers) send
@@ -135,7 +136,7 @@ js/
                      mission timer" below
   instruments.js     every console instrument showing a ship-state
                      value (readouts, the O2 gauge, the Reactor usage
-                     bar, the warning lights, the Shield/Reactor lever
+                     and Cargo bars, the warning lights, the Shield/Reactor lever
                      positions),
                      driven by 'ship:stat' events from story.js — see "The
                      cutscene system" below
@@ -700,7 +701,7 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
   `countdown`). Ongoing ship state is NOT tagged — see below.
 
   **Ship state lives in ink variables, not tags.** `hull`, `power`,
-  `reactor`, `o2`, `shield` (`VAR`s, 0–100) and `movement` (a `LIST`: `stopped`,
+  `reactor`, `o2`, `shield`, `cargo` (`VAR`s, 0–100) and `movement` (a `LIST`: `stopped`,
   `thruster`, `sideSpace`) are declared at the top of `ink/story.ink`;
   `js/story.js` binds to them with `story.ObserveVariable()`, so the page
   updates whenever the story writes one, with no tag involved. An earlier
@@ -774,7 +775,10 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
   `data-level` from the same `THRESHOLDS` the warning lights use, so the
   bar and the Reactor light (`data-stat="reactor_use"`) always agree.
   `.bar-fill.live` shortens the fill transition so the bar keeps up
-  with a dragged lever.
+  with a dragged lever. The Cargo bar (`#bar-cargo`) uses the same
+  `#bar-<name>` path for the ink `cargo` VAR, but is story-set only (no
+  lever) and has `THRESHOLDS.cargo = null`, so it keeps its own amber
+  color and never warns — a full or empty hold isn't a fault.
 
   **Warning lights** (`data-stat` alert tiles; Hull, Reactor, O2,
   Integrity): Hull/O2/Integrity flash yellow below 70 and red below 20;

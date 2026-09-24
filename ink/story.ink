@@ -42,6 +42,9 @@
 //             lever). Each shield % costs SHIELD_COST (0.5) reactor
 //             points to run, so a full shield uses 50 points.
 //   o2        0–100 (O2 gauge + light).
+//   cargo     0–100, how full the cargo hold is (Cargo bar). Set it
+//             from the story only — no rules or warnings attached yet.
+//               ~ set_level(cargo, 40)   or   ~ adjust(cargo, -10)
 //
 //   Computed from the variables above (functions, NOT variables —
 //   call them with ()):
@@ -96,6 +99,7 @@ VAR power = 72
 VAR reactor = 50
 VAR o2 = 94
 VAR shield = 0
+VAR cargo = 72
 LIST movement = (stopped), thruster, sideSpace
 
 -> handler_checkin
