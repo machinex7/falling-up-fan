@@ -50,14 +50,18 @@
 //                     cost of more reactor load.
 //     reactor_load()  reactor points in use right now (shield *
 //                     SHIELD_COST; add future systems here).
-//     reactor_use()   reactor_load() as a % of the `reactor` limit,
-//                     0–100: the Reactor bar's fill (green, yellow
-//                     above 80, red at the limit) and the Reactor light.
-//   Branch on them like { integrity() < 50: ... }.
+//     reactor_use()   reactor_load() as a % of the `reactor` limit:
+//                     the Reactor bar's fill (green, yellow above 80,
+//                     red at or over the limit) and the Reactor light.
+//                     Goes past 100 when overloaded (e.g. 150); the bar
+//                     just stays full and red.
+//     overloaded()    true when reactor_load() is over the limit.
+//   Branch on them like { integrity() < 50: ... } or
+//   { overloaded(): The reactor is screaming. }.
 //
-//   The load can never exceed the limit: raising the shield past what
-//   the reactor puts out stops at the limit, and lowering the reactor
-//   below the current load pulls the shield down with it.
+//   The load CAN exceed the limit — the pilot is allowed to overload the
+//   reactor. Nothing happens on its own when they do; any penalty is up
+//   to the story (check overloaded() / reactor_use()).
 //
 //   Warning lights flash yellow / red; clicking one stops the flashing
 //   but keeps it lit:
@@ -69,7 +73,7 @@
 //   the same rules as the story.
 //
 //   Change stats with the helpers at the bottom of this file, which keep
-//   them in range (0–100, and load within the reactor limit):
+//   them in range (0–100):
 //     ~ damage(15)              hull -15
 //     ~ repair(10)              hull +10
 //     ~ adjust(power, -20)      any stat, +/-
@@ -123,7 +127,6 @@ Copy. Handler out — check in again next relay.
 
 === function set_level(ref stat, to)
 ~ stat = MAX(0, MIN(100, to))
-~ keep_shield_within_reactor()
 
 === function adjust(ref stat, by)
 ~ set_level(stat, stat + by)
@@ -140,13 +143,6 @@ Copy. Handler out — check in again next relay.
 === function set_reactor(to)
 ~ set_level(reactor, to)
 
-// The shield runs on reactor output, so its load can't exceed the
-// reactor's limit — cut the shield back to what the reactor can carry.
-=== function keep_shield_within_reactor()
-{ reactor_load() > reactor:
-    ~ shield = INT(reactor / SHIELD_COST)
-}
-
 // ── COMPUTED STATS ─────────────────────────────────────────────────────
 // js/story.js calls each of these by name (its DERIVED_STATS list) to
 // update the console, so the formulas live only here.
@@ -161,6 +157,13 @@ Copy. Handler out — check in again next relay.
 // with whole-number division, which rounds badly.
 === function reactor_use()
 { reactor <= 0:
+    // any draw on a zero limit is a total overload
+    { reactor_load() > 0:
+        ~ return 999
+    }
     ~ return 0
 }
 ~ return FLOOR((reactor_load() * 100) / reactor)
+
+=== function overloaded()
+~ return reactor_load() > reactor

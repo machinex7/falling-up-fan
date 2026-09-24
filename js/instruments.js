@@ -23,8 +23,9 @@
   // `above`: warn/critical when it climbs over them.
   const THRESHOLDS = {
     default: { below: { warn: 70, critical: 20 } },
-    // % of the reactor's limit in use: yellow above 80, red AT the limit
-    // (reactor_use is floored, so only a true 100 counts as maxed)
+    // % of the reactor's limit in use: yellow above 80, red at or over
+    // the limit (reactor_use is floored, so only a true 100+ is red; it
+    // can exceed 100 when overloaded, but displays clamp to 100)
     reactor_use: { above: { warn: 80, critical: 99 } },
   };
 

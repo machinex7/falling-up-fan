@@ -748,16 +748,20 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
   them: `a * 100 / b` parses as `a * (100 / b)` with integer division,
   hence the explicit parentheses in `reactor_use()`.
 
-  The load can never exceed the limit: `keep_shield_within_reactor()`
-  (called by every `set_level`) cuts the shield back to
-  `INT(reactor / SHIELD_COST)` when it does, so raising the shield stops
-  at the limit and lowering the reactor drags the shield down. The
-  pilot's levers go through the same rule: `js/throttle.js` sends
+  **The load may exceed the limit — overloading is allowed by explicit
+  call.** An earlier pass capped the shield so the load could never
+  pass the limit (`keep_shield_within_reactor()`); it was removed so the
+  pilot can overload, with penalties to be written in the story later.
+  Nothing reacts to an overload automatically: `reactor_use()` simply
+  goes past 100 (999 for any draw on a zero limit) and `overloaded()`
+  reports it for the story to branch on. Don't re-add a cap or an
+  automatic penalty in JS. The pilot's levers go through the same ink
+  helpers as the story (so any future rule added there applies to both): `js/throttle.js` sends
   `'control:set'`, `js/story.js` runs `story.EvaluateFunction('set_<name>')`
   (safe — UI events can't interrupt a synchronous `Continue()`, and it
   doesn't disturb the conversation's position), and the resulting
-  `'ship:stat'` is what actually moves the lever handle, so a blocked
-  drag visibly stops at the cap. `PLAYER_CONTROLS` in story.js
+  `'ship:stat'` is what actually moves the lever handle, so a drag
+  always shows where the value really landed. `PLAYER_CONTROLS` in story.js
   whitelists which stats a lever may set. Power does NOT drain from
   reactor use yet — explicitly deferred. The old decorative Shield
   toggle button was removed so there's one Shield control.
@@ -765,7 +769,8 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
   **The Reactor bar** (`#bar-reactor_use`, the cargo bar's face in the
   slot the old Reactor % readout had) fills to `reactor_use` — full
   width is whatever limit the lever sets — green normally, yellow above
-  80%, red at the limit. `instruments.js` colors any `#bar-<name>` via
+  80%, red at or over the limit (an overload stays full-width red; the
+  displayed value is clamped to 100, the ink value isn't). `instruments.js` colors any `#bar-<name>` via
   `data-level` from the same `THRESHOLDS` the warning lights use, so the
   bar and the Reactor light (`data-stat="reactor_use"`) always agree.
   `.bar-fill.live` shortens the fill transition so the bar keeps up
@@ -774,8 +779,8 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
   **Warning lights** (`data-stat` alert tiles; Hull, Reactor, O2,
   Integrity): Hull/O2/Integrity flash yellow below 70 and red below 20;
   Reactor follows `reactor_use` and is inverted — yellow above 80%,
-  red at 100% of the limit — since spare capacity is fine and maxing
-  out is the danger (per-stat `THRESHOLDS` in `instruments.js`, `below`
+  red at or over 100% of the limit — since spare capacity is fine and
+  maxing out or overloading is the danger (per-stat `THRESHOLDS` in `instruments.js`, `below`
   or `above`; `reactor_use` is floored, so only a true 100 is red). `instruments.js` sets
   `data-level="warn"|"critical"` and console.css colors the lamp via a
   `--lamp`/`--lamp-glow` pair (the same lit look `.is-alert` uses, just
