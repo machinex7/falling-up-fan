@@ -555,10 +555,14 @@ button.tile {
    main throttle's grip, see ::after below), and a slimmer handle that
    travels strictly INSIDE its track: 0 sits on the floor, 1 touches
    the top (--lever-pos, 0–1, set by js/instruments.js), so it never
-   overhangs onto the label the way the free-moving throttle can. */
+   overhangs onto the label. */
 .tile.throttle.lever { grid-column: span 2; }
-.tile.throttle.lever .throttle-handle {
-  --handle-h: clamp(7px, 2vw, 10px);
+.tile.throttle.lever .throttle-handle { --handle-h: clamp(7px, 2vw, 10px); }
+/* any ship-state lever (data-stat — Shield, Reactor, and the main
+   Drive Charge lever too) sits inside its track at --lever-pos; the
+   main one keeps its full-size grip, .lever above just slims it */
+.throttle-track[data-stat] .throttle-handle {
+  --handle-h: clamp(13px, 3.6vw, 17px);
   height: var(--handle-h);
   transform: translateX(-50%);
   bottom: calc((100% - var(--handle-h)) * var(--lever-pos, 0));

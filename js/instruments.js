@@ -13,6 +13,8 @@
 //   .throttle-track[data-stat=<name>]  lever handle position
 //   #bar-<name>                    bar fill width, colored by the same
 //                                  THRESHOLDS as the warning lights
+//   .tile[data-stat=<name>] .toggle-btn  on/off button (true/false
+//                                  stats, e.g. signal_boost)
 //
 // Warning lights: flash yellow / red when a stat crosses its
 // THRESHOLDS (data-level on the tile, colored in console.css) — low is
@@ -42,7 +44,7 @@
   const GAUGE_CIRC = 163.4;  // full circumference
 
   // everything is 0–100 except these
-  const MAX = { integrity: 200 };
+  const MAX = { integrity: 200, signal_strength: 200 };
   const clamp = (name, n) => Math.max(0, Math.min(MAX[name] ?? 100, Math.round(n)));
 
   function renderReadout(name, v) {
@@ -61,6 +63,14 @@
     const level = severity(name, v);
     if (level) fill.dataset.level = level;
     else delete fill.dataset.level;
+  }
+
+  function renderToggle(name, on) {
+    const tile = document.querySelector(`.tile[data-stat="${name}"]`);
+    const btn = tile && tile.querySelector('.toggle-btn');
+    if (!btn) return;
+    btn.classList.toggle('is-on', on);
+    tile.classList.toggle('is-on', on);
   }
 
   function renderLever(name, v) {
@@ -103,6 +113,10 @@
 
   document.addEventListener('ship:stat', e => {
     const { name } = e.detail;
+    if (typeof e.detail.value === 'boolean') {
+      renderToggle(name, e.detail.value);
+      return;
+    }
     const v = clamp(name, e.detail.value);
     renderReadout(name, v);
     renderGauge(name, v);

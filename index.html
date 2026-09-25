@@ -178,11 +178,13 @@
 
           <!-- row 1: readouts + gauges -->
           <div class="tile readout c-amber">
-            <div class="r-value" id="ro-power">072%</div>
+            <!-- projected_power(): what Power will be once this scene
+                 ends and its reactor cost is spent -->
+            <div class="r-value" id="ro-projected_power">088%</div>
             <div class="tile-label">Power</div>
           </div>
           <div class="tile readout c-green">
-            <div class="r-value" id="ro-signal">090%</div>
+            <div class="r-value" id="ro-signal_strength" data-max="100">040%</div>
             <div class="tile-label">Signal</div>
           </div>
           <div class="tile readout c-amber">
@@ -323,6 +325,12 @@
             <div class="push-btn round toggle-btn"><div class="btn-lens"></div></div>
             <div class="tile-label">Nav Lt</div>
           </div>
+          <!-- ship state (ink signal_boost): js/controls.js asks the story
+               to flip it, js/instruments.js lights it -->
+          <div class="tile" data-stat="signal_boost">
+            <div class="push-btn round toggle-btn"><div class="btn-lens"></div></div>
+            <div class="tile-label">Sgnl Bst</div>
+          </div>
 
           <!-- row 5: bar, alert lights, throttle -->
           <div class="tile bar">
@@ -370,8 +378,8 @@
           </div>
 
           <div class="tile throttle">
-            <div class="throttle-track" id="throttle-main">
-              <div class="throttle-handle" style="bottom: 62%;"></div>
+            <div class="throttle-track" id="throttle-main" data-stat="drive">
+              <div class="throttle-handle" style="--lever-pos: 0;"></div>
             </div>
             <div class="tile-label">Drive Charge</div>
           </div>
@@ -495,7 +503,6 @@
 
 <script src="js/starfield.js"></script>
 <script src="js/controls.js"></script>
-<script src="js/readouts.js"></script>
 <script src="js/throttle.js"></script>
 <script src="js/parallax.js"></script>
 <script src="js/window-scenes.js"></script>

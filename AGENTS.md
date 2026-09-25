@@ -110,16 +110,19 @@ js/
                      ResizeObserver — now mounted inside #scene-space
                      rather than being #window's only background, but
                      otherwise unchanged
-  controls.js        toggle/knob/alert click handling on .tile
-  readouts.js        readout drift (setInterval) — only Signal now; the
-                     cargo bar moved to instruments.js (ink `cargo`)
+  controls.js        toggle/knob/alert click handling on .tile; a
+                     toggle tile with data-stat (SGNL BST) sends
+                     'control:set' to the story instead of flipping
+                     itself
+  (readouts.js is gone — it only drifted decorative readouts, and every
+   readout is ink-driven ship state now)
   throttle.js        pointer-based drag on .throttle-track (bound to the
                      whole tile — see the 3D click-targeting gotcha);
-                     data-stat tracks (Shield/Reactor levers) send
-                     'control:set' instead of moving themselves. All
-                     three levers are 2 grid rows tall (like LAUNCH); the main
-                     one (#throttle-main, "throttle" in code/CSS) is
-                     labelled "Drive Charge" on the console
+                     data-stat tracks send 'control:set' instead of
+                     moving themselves — now all three: Drive Charge
+                     (#throttle-main, "throttle" in code/CSS, ink
+                     `drive`), Shield and Reactor. All three are 2 grid
+                     rows tall (like LAUNCH)
   parallax.js        device-tilt drift on stars/console/armrests via
                      DeviceOrientation; also owns the #motion-enable
                      iOS-permission pill (button lives in index.html,
@@ -727,7 +730,7 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
   `.tile.alert[data-stat=<name>]` (warning light; O2/Reactor/Hull). A
   new stat is a `VAR` plus its name in `PERCENT_STATS`, and gets
   whichever of those elements exist for it. Those readouts/gauges are
-  no longer decorative (`js/readouts.js` only drifts Signal now), and
+  no longer decorative (nothing drifts randomly any more), and
   the gauge's page-load fill animation is left to finish before
   `instruments.js` takes the arc over, since a `forwards` CSS animation
   would otherwise mask the inline value.
@@ -738,7 +741,11 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
   what 100% on the Reactor bar means, not how much is being used.
   `shield` (0–100%) is power put into the shield; each shield % costs
   `SHIELD_COST` (a `CONST`, 0.5) reactor points, so a full shield draws
-  50. Three stats are computed, never stored, and live only as ink
+  50. `drive` (the Drive Charge lever) costs `DRIVE_COST` (0.5) per %
+  the same way, and `signal_boost` (the SGNL BST toggle, a bool VAR)
+  draws a flat `SIGNAL_BOOST_COST` (5) while on and adds `SIGNAL_BOOST`
+  (50) to `signal_strength()` (base `signal` + boost; the Signal
+  readout, `data-max="100"` so "100+" above). Several stats are computed, never stored, and live only as ink
   functions in `story.ink`'s "COMPUTED STATS" section: `integrity()` =
   `hull + shield` (0–200; the readout has `data-unit=""` for no `%` and
   `data-max="100"`, so it displays at most 100 and "100+" above — a
@@ -767,9 +774,21 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
   doesn't disturb the conversation's position), and the resulting
   `'ship:stat'` is what actually moves the lever handle, so a drag
   always shows where the value really landed. `PLAYER_CONTROLS` in story.js
-  whitelists which stats a lever may set. Power does NOT drain from
-  reactor use yet — explicitly deferred. The old decorative Shield
-  toggle button was removed so there's one Shield control.
+  whitelists which stats a lever or data-stat toggle may set. The old
+  decorative Shield toggle button was removed so there's one Shield
+  control.
+
+  **Power is spent per scene, previewed live** (the user's model):
+  `power` (starts at 100) is a pool. Each scene costs `power_cost()` =
+  the Reactor LEVER SETTING ÷ `REACTOR_PER_POWER` (4), whole-number
+  division — deliberately the limit, not the load, so a reactor turned
+  up costs power even if idle. The Power readout (`#ro-projected_power`)
+  shows `projected_power()` = `MAX(0, power - power_cost())`, i.e. what
+  Power WILL be, updating live as the levers move; the real `power` VAR
+  only drops when the scene's conversation ends — `js/story.js`'s
+  `finishBeat()` calls ink's `consume_power()` at the leaf (safe: ink
+  has finished evaluating). Nothing happens at 0 power yet; penalties
+  are the story's to add later.
 
   **The Reactor bar** (`#bar-reactor_use`, the cargo bar's face in the
   slot the old Reactor % readout had) fills to `reactor_use` — full

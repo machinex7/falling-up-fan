@@ -80,16 +80,20 @@
   // a 'ship:stat' DOM event (detail: { name, value }); js/instruments.js
   // owns every readout/gauge/warning light that shows one. A new stat is
   // a VAR in story.ink plus its name here.
-  const PERCENT_STATS = ['hull', 'power', 'reactor', 'o2', 'shield', 'cargo'];
+  const PERCENT_STATS = ['hull', 'power', 'reactor', 'o2', 'shield', 'cargo', 'drive', 'signal'];
+  // true/false ink VARs, announced the same way (instruments.js shows
+  // them on a data-stat toggle button).
+  const TOGGLE_STATS = ['signal_boost'];
   // Stats computed from others rather than stored — each is an ink
   // function of the same name in story.ink ("COMPUTED STATS"), called
   // directly so the formula lives only there. Re-announced after any
   // ship-state change.
-  const DERIVED_STATS = ['integrity', 'reactor_load', 'reactor_use'];
-  // Stats the pilot can set from a console lever ('control:set' events
-  // from js/throttle.js). Each goes through story.ink's set_<name>()
-  // function, so the player obeys the same rules the story does.
-  const PLAYER_CONTROLS = ['shield', 'reactor'];
+  const DERIVED_STATS = ['integrity', 'reactor_load', 'reactor_use', 'signal_strength', 'projected_power'];
+  // Stats the pilot can set from the console ('control:set' events from
+  // js/throttle.js levers and js/controls.js toggle buttons). Each goes
+  // through story.ink's set_<name>() function, so the player obeys the
+  // same rules the story does.
+  const PLAYER_CONTROLS = ['shield', 'reactor', 'drive', 'signal_boost'];
   const MOVEMENT_MODES = ['stopped', 'thruster', 'sideSpace'];
 
   function announceStat(name, value) {
@@ -126,7 +130,7 @@
   }
 
   function watchShipState(story) {
-    PERCENT_STATS.forEach(name => {
+    [...PERCENT_STATS, ...TOGGLE_STATS].forEach(name => {
       announceStat(name, story.variablesState.$(name));
       story.ObserveVariable(name, (_name, value) => {
         announceStat(name, value);
@@ -216,6 +220,10 @@
       return;
     }
     renderEnded();
+    // The scene is over: spend its power (story.ink's consume_power(),
+    // power -> projected_power()). Safe here — ink has finished
+    // evaluating this beat.
+    story.EvaluateFunction('consume_power');
     if (pendingCountdown !== null) {
       document.dispatchEvent(new CustomEvent('timer:start', { detail: { seconds: pendingCountdown } }));
       pendingCountdown = null;
