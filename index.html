@@ -198,9 +198,10 @@
             </div>
             <div class="tile-label">Reactor</div>
           </div>
-          <!-- hull + shield, 0–200, so no % -->
+          <!-- hull + shield: shown up to 100, "100+" above (data-max);
+               no % since it's a sum, not a percentage -->
           <div class="tile readout c-green">
-            <div class="r-value" id="ro-integrity" data-unit="">100</div>
+            <div class="r-value" id="ro-integrity" data-unit="" data-max="100">100</div>
             <div class="tile-label">Integrity</div>
           </div>
           <div class="tile gauge">
@@ -372,7 +373,7 @@
             <div class="throttle-track" id="throttle-main">
               <div class="throttle-handle" style="bottom: 62%;"></div>
             </div>
-            <div class="tile-label">Throttle</div>
+            <div class="tile-label">Drive Charge</div>
           </div>
           <!-- ship-state levers: data-stat routes a drag through the ink
                story's set_<name>() (js/throttle.js -> js/story.js), and

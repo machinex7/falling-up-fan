@@ -49,6 +49,9 @@
 //   Computed from the variables above (functions, NOT variables —
 //   call them with ()):
 //     integrity()     hull + shield (0–200): Integrity readout + light.
+//                     The readout tops out at 100 and shows "100+" when
+//                     it's higher; integrity() itself returns the real
+//                     sum, so the story can still tell how far over.
 //                     A weak hull can be covered by more shield, at the
 //                     cost of more reactor load.
 //     reactor_load()  reactor points in use right now (shield *

@@ -117,7 +117,9 @@ js/
                      whole tile — see the 3D click-targeting gotcha);
                      data-stat tracks (Shield/Reactor levers) send
                      'control:set' instead of moving themselves. All
-                     three levers are 2 grid rows tall (like LAUNCH)
+                     three levers are 2 grid rows tall (like LAUNCH); the main
+                     one (#throttle-main, "throttle" in code/CSS) is
+                     labelled "Drive Charge" on the console
   parallax.js        device-tilt drift on stars/console/armrests via
                      DeviceOrientation; also owns the #motion-enable
                      iOS-permission pill (button lives in index.html,
@@ -738,7 +740,9 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
   `SHIELD_COST` (a `CONST`, 0.5) reactor points, so a full shield draws
   50. Three stats are computed, never stored, and live only as ink
   functions in `story.ink`'s "COMPUTED STATS" section: `integrity()` =
-  `hull + shield` (0–200, readout has `data-unit=""` for no `%`),
+  `hull + shield` (0–200; the readout has `data-unit=""` for no `%` and
+  `data-max="100"`, so it displays at most 100 and "100+" above — a
+  display cap only, the ink value stays the real sum),
   `reactor_load()` = points in use (future consumers add here), and
   `reactor_use()` = load as a floored % of the limit. `js/story.js`'s
   `DERIVED_STATS` calls those by name with `story.EvaluateFunction()`

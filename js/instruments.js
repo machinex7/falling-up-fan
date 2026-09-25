@@ -6,7 +6,8 @@
 // id/attribute convention, so a stat just lights up whichever of these
 // exist for it:
 //   #ro-<name>                     readout digits ("072%"; data-unit
-//                                  overrides the "%")
+//                                  overrides the "%", data-max caps the
+//                                  display: over it reads "100+")
 //   #gauge-<name>-arc / -text      arc gauge fill + label
 //   .tile.alert[data-stat=<name>]  warning light
 //   .throttle-track[data-stat=<name>]  lever handle position
@@ -46,7 +47,11 @@
 
   function renderReadout(name, v) {
     const el = document.getElementById(`ro-${name}`);
-    if (el) el.textContent = String(v).padStart(3, '0') + (el.dataset.unit ?? '%');
+    if (!el) return;
+    const max = el.dataset.max ? Number(el.dataset.max) : null;
+    el.textContent = max !== null && v > max
+      ? `${max}+`
+      : String(v).padStart(3, '0') + (el.dataset.unit ?? '%');
   }
 
   function renderBar(name, v) {
