@@ -206,28 +206,6 @@
             <div class="r-value" id="ro-integrity" data-unit="" data-max="100">100</div>
             <div class="tile-label">Integrity</div>
           </div>
-          <div class="tile gauge">
-            <svg viewBox="0 0 68 68">
-              <g transform="rotate(135 34 34)">
-                <circle cx="34" cy="34" r="26" fill="none" stroke="#0f3a44" stroke-width="5" stroke-dasharray="122.5 40.9" stroke-linecap="round"/>
-                <circle cx="34" cy="34" r="26" fill="none" stroke="var(--cyan)" stroke-width="5" stroke-dasharray="0 163.4" stroke-linecap="round"
-                  style="animation: gauge-fill-cyan 1.4s cubic-bezier(0.4,0,0.2,1) 0.3s forwards;"/>
-              </g>
-              <text x="34" y="39" text-anchor="middle" fill="var(--led-cyan)" font-family="VT323" font-size="15">68%</text>
-            </svg>
-            <div class="tile-label">Thrust</div>
-          </div>
-          <div class="tile gauge">
-            <svg viewBox="0 0 68 68">
-              <g transform="rotate(135 34 34)">
-                <circle cx="34" cy="34" r="26" fill="none" stroke="#123522" stroke-width="5" stroke-dasharray="122.5 40.9" stroke-linecap="round"/>
-                <circle id="gauge-o2-arc" cx="34" cy="34" r="26" fill="none" stroke="var(--green)" stroke-width="5" stroke-dasharray="0 163.4" stroke-linecap="round"
-                  style="animation: gauge-fill-green 1.4s cubic-bezier(0.4,0,0.2,1) 0.6s forwards;"/>
-              </g>
-              <text id="gauge-o2-text" x="34" y="39" text-anchor="middle" fill="var(--led-green)" font-family="VT323" font-size="15">94%</text>
-            </svg>
-            <div class="tile-label">O2</div>
-          </div>
 
           <!-- MISSION TIMER — counts down from 15:00 (dd:hh:mi:ss) once
                LAUNCH fires 'ship:launch' (js/power.js); reads 00:00:15:00
@@ -343,10 +321,6 @@
           <!-- data-stat: driven by that ink variable via js/instruments.js
                (yellow < 70, red < 20, click to acknowledge) rather than
                js/controls.js's plain click-toggle -->
-          <div class="tile alert" data-stat="o2">
-            <div class="alert-lamp"></div>
-            <div class="tile-label">O2</div>
-          </div>
           <div class="tile alert" data-stat="reactor_use">
             <div class="alert-lamp"></div>
             <div class="tile-label">Reactor</div>

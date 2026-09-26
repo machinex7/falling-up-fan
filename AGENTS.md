@@ -140,7 +140,7 @@ js/
                      'timer:complete' on hitting zero — see "The
                      mission timer" below
   instruments.js     every console instrument showing a ship-state
-                     value (readouts, the O2 gauge, the Reactor usage
+                     value (readouts, the Reactor usage
                      and Cargo bars, the warning lights, the Shield/Reactor lever
                      positions),
                      driven by 'ship:stat' events from story.js — see "The
@@ -706,7 +706,7 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
   `countdown`). Ongoing ship state is NOT tagged — see below.
 
   **Ship state lives in ink variables, not tags.** `hull`, `power`,
-  `reactor`, `o2`, `shield`, `cargo` (`VAR`s, 0–100) and `movement` (a `LIST`: `stopped`,
+  `reactor`, `shield`, `cargo` (`VAR`s, 0–100) and `movement` (a `LIST`: `stopped`,
   `thruster`, `sideSpace`) are declared at the top of `ink/story.ink`;
   `js/story.js` binds to them with `story.ObserveVariable()`, so the page
   updates whenever the story writes one, with no tag involved. An earlier
@@ -726,8 +726,10 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
   list observes each VAR and re-announces it as a `'ship:stat'` DOM
   event (`detail: { name, value }`); `js/instruments.js` owns
   everything that displays one, found by naming convention — `#ro-<name>`
-  (readout digits), `#gauge-<name>-arc`/`-text` (arc gauge; O2 today),
-  `.tile.alert[data-stat=<name>]` (warning light; O2/Reactor/Hull). A
+  (readout digits), `#gauge-<name>-arc`/`-text` (arc gauge; none bound
+  right now — the Thrust and O2 gauges and the O2 light were removed by
+  explicit call, and the Fuel gauge is still decorative),
+  `.tile.alert[data-stat=<name>]` (warning light; Reactor/Hull/Integrity). A
   new stat is a `VAR` plus its name in `PERCENT_STATS`, and gets
   whichever of those elements exist for it. Those readouts/gauges are
   no longer decorative (nothing drifts randomly any more), and
@@ -803,8 +805,8 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
   lever) and has `THRESHOLDS.cargo = null`, so it keeps its own amber
   color and never warns — a full or empty hold isn't a fault.
 
-  **Warning lights** (`data-stat` alert tiles; Hull, Reactor, O2,
-  Integrity): Hull/O2/Integrity flash yellow below 70 and red below 20;
+  **Warning lights** (`data-stat` alert tiles; Hull, Reactor,
+  Integrity): Hull/Integrity flash yellow below 70 and red below 20;
   Reactor follows `reactor_use` and is inverted — yellow above 80%,
   red at or over 100% of the limit — since spare capacity is fine and
   maxing out or overloading is the danger (per-stat `THRESHOLDS` in `instruments.js`, `below`

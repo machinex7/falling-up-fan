@@ -80,7 +80,7 @@
   // a 'ship:stat' DOM event (detail: { name, value }); js/instruments.js
   // owns every readout/gauge/warning light that shows one. A new stat is
   // a VAR in story.ink plus its name here.
-  const PERCENT_STATS = ['hull', 'power', 'reactor', 'o2', 'shield', 'cargo', 'drive', 'signal'];
+  const PERCENT_STATS = ['hull', 'power', 'reactor', 'shield', 'cargo', 'drive', 'signal'];
   // true/false ink VARs, announced the same way (instruments.js shows
   // them on a data-stat toggle button).
   const TOGGLE_STATS = ['signal_boost'];

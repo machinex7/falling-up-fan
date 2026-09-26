@@ -50,7 +50,6 @@
 //   signal_boost  true/false, the pilot's SGNL BST button. While on,
 //             adds SIGNAL_BOOST (50) to the Signal readout and draws
 //             SIGNAL_BOOST_COST (5) reactor points.
-//   o2        0–100 (O2 gauge + light).
 //   cargo     0–100, how full the cargo hold is (Cargo bar). Set it
 //             from the story only — no rules or warnings attached yet.
 //               ~ set_level(cargo, 40)   or   ~ adjust(cargo, -10)
@@ -87,7 +86,7 @@
 //
 //   Warning lights flash yellow / red; clicking one stops the flashing
 //   but keeps it lit:
-//     Hull, O2, Integrity   yellow below 70, red below 20
+//     Hull, Integrity       yellow below 70, red below 20
 //     Reactor               yellow above 80% used, red at 100% (maxed)
 //
 //   The pilot can move the Shield, Reactor and Drive Charge levers and
@@ -128,7 +127,6 @@ CONST REACTOR_PER_POWER = 4     // reactor lever points per 1 power spent
 VAR hull = 100
 VAR power = 100
 VAR reactor = 50
-VAR o2 = 94
 VAR shield = 0
 VAR cargo = 72
 VAR drive = 0

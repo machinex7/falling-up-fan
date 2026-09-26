@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════
 // INSTRUMENTS — everything on the console that shows a ship-state
-// value (hull/power/reactor/o2/shield ink VARs plus the computed
+// value (hull/power/reactor/shield/... ink VARs plus the computed
 // integrity/reactor_load/reactor_use, announced by js/story.js as
 // 'ship:stat' { name, value }). Found by
 // id/attribute convention, so a stat just lights up whichever of these
