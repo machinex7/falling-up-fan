@@ -8,7 +8,9 @@
 //   #ro-<name>                     readout digits ("072%"; data-unit
 //                                  overrides the "%", data-max caps the
 //                                  display: over it reads "100+")
-//   #gauge-<name>-arc / -text      arc gauge fill + label
+//   #gauge-<name>-arc / -text      arc gauge fill + label (a
+//                                  .tile.gauge[data-stat=<name>] is also
+//                                  tinted by THRESHOLDS via data-level)
 //   .tile.alert[data-stat=<name>]  warning light
 //   .throttle-track[data-stat=<name>]  lever handle position
 //   #bar-<name>                    bar fill width, colored by the same
@@ -26,6 +28,7 @@
   // `above`: warn/critical when it climbs over them.
   const THRESHOLDS = {
     default: { below: { warn: 70, critical: 20 } },
+    projected_power: { below: { warn: 30, critical: 10 } },
     cargo: null, // a fill level, not a health stat — never warns
     // % of the reactor's limit in use: yellow above 80, red at or over
     // the limit (reactor_use is floored, so only a true 100+ is red; it
@@ -82,15 +85,23 @@
     const arc = document.getElementById(`gauge-${name}-arc`);
     const text = document.getElementById(`gauge-${name}-text`);
     if (text) text.textContent = `${v}%`;
+    const tile = document.querySelector(`.tile.gauge[data-stat="${name}"]`);
+    if (tile) {
+      const level = severity(name, v);
+      if (level) tile.dataset.level = level;
+      else delete tile.dataset.level;
+    }
     if (!arc) return;
     const set = () => {
       const len = GAUGE_SWEEP * v / 100;
       arc.style.animation = 'none';
       arc.style.strokeDasharray = `${len} ${GAUGE_CIRC - len}`;
     };
-    // let the page-load power-up fill (a CSS animation, which would
-    // override an inline value) finish before taking the arc over
-    const running = arc.getAnimations();
+    // let a page-load power-up fill (a CSS *animation*, which would
+    // override an inline value) finish before taking the arc over —
+    // but not the arc's own smoothing *transition*, or every lever drag
+    // would queue up behind the last one
+    const running = arc.getAnimations().filter(a => a instanceof CSSAnimation);
     if (running.length) Promise.all(running.map(a => a.finished)).then(set, set);
     else set();
   }

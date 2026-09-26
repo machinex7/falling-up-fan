@@ -277,7 +277,9 @@
 
 .sticky-note.on-console {
   top: -10px;
-  left: 5%;
+  /* top-RIGHT of the console: it used to hang over the top-left Power
+     tile, which was fine for digits but hid the Power dial */
+  right: 4%;
   transform: rotate(-8deg);
 }
 .sticky-note.on-wall {

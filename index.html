@@ -177,10 +177,21 @@
         <div id="deck-grid">
 
           <!-- row 1: readouts + gauges -->
-          <div class="tile readout c-amber">
-            <!-- projected_power(): what Power will be once this scene
-                 ends and its reactor cost is spent -->
-            <div class="r-value" id="ro-projected_power">088%</div>
+          <!-- POWER DIAL: two arcs on one track — the dim "ghost" arc is
+               the power you have now, the bright arc (and the number) is
+               projected_power(), what's left after this scene's reactor
+               cost. The gap between them is the price of the current
+               lever settings. data-stat="projected_power" lets
+               js/instruments.js tint the whole dial by warning level. -->
+          <div class="tile gauge wide" data-stat="projected_power">
+            <svg viewBox="0 0 68 68">
+              <g transform="rotate(135 34 34)">
+                <circle class="gauge-track" cx="34" cy="34" r="26" stroke-dasharray="122.5 40.9"/>
+                <circle class="gauge-arc ghost" id="gauge-power-arc" cx="34" cy="34" r="26" stroke-dasharray="0 163.4"/>
+                <circle class="gauge-arc" id="gauge-projected_power-arc" cx="34" cy="34" r="26" stroke-dasharray="0 163.4"/>
+              </g>
+              <text class="gauge-text" id="gauge-projected_power-text" x="34" y="39" text-anchor="middle">88%</text>
+            </svg>
             <div class="tile-label">Power</div>
           </div>
           <div class="tile readout c-green">

@@ -37,7 +37,9 @@
 //   power     0–100, energy left in the pool; starts at 100. Spent at
 //             the END OF EACH SCENE (see power_cost() below) — the
 //             Power readout shows projected_power(), what it WILL be
-//             after this scene, live as the levers move.
+//             after this scene, live as the levers move. It's a dial:
+//             a faint arc for power now, a bright arc + number for
+//             projected_power(); yellow below 30, red below 10.
 //   reactor   0–100 points, the reactor's output LIMIT — how much
 //             energy it's allowed to put out (the pilot's Reactor
 //             lever). It's what 100% on the Reactor bar means, and

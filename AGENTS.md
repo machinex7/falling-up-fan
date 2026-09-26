@@ -195,7 +195,10 @@ table columns force one shared width across every row (widest cell in a
 column wins globally), which fights the intentionally dense, uneven,
 non-aligned look this panel is going for. Grid gives the same row/col-span
 capability via utility classes (`.span-*`, `.rowspan-*`) without that forced
-alignment. `grid-auto-flow: dense` lets items pack into gaps rather than
+alignment. **Gotcha:** the `.span-*` utilities are declared *before*
+`.tile`'s own `grid-column: span 2` at the same specificity, so on a
+`.tile` they silently lose — give a tile its width with a
+`.tile.<kind>` rule instead (e.g. `.tile.readout`, `.tile.gauge.wide`). `grid-auto-flow: dense` lets items pack into gaps rather than
 forcing new rows.
 
 Each control is a `.tile` — a layout wrapper (control + caption) that is
@@ -397,7 +400,8 @@ a person in the room:
 stuck to the dash, which reads as "lived in" faster than any amount of
 hull texture. Two on purpose, deliberately not matching (`.on-console` is
 a fresh yellow one hanging off `#console`'s own top edge into the gap
-toward the window; `.on-wall`, inside `.wall.right`, is a smaller
+toward the window — at the top-RIGHT now, moved from top-left because
+it hid the Power dial there; `.on-wall`, inside `.wall.right`, is a smaller
 `.faded` blue-gray one that also inherits the wall's own
 `filter: brightness(0.62)` for free) — a whole drawer of identically-worn
 notes would read as set dressing, not a habit. Every note is
@@ -726,10 +730,8 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
   list observes each VAR and re-announces it as a `'ship:stat'` DOM
   event (`detail: { name, value }`); `js/instruments.js` owns
   everything that displays one, found by naming convention — `#ro-<name>`
-  (readout digits), `#gauge-<name>-arc`/`-text` (arc gauge; no gauge
-  tiles on the deck right now — Thrust, O2 and Fuel were all removed by
-  explicit call, O2's warning light too; `.tile.gauge` CSS and
-  `renderGauge()` are kept for the next one),
+  (readout digits), `#gauge-<name>-arc`/`-text` (arc gauge — the Power dial is the only one; Thrust, O2 and Fuel were
+  removed by explicit call, O2's warning light too),
   `.tile.alert[data-stat=<name>]` (warning light; Reactor/Hull/Integrity). A
   new stat is a `VAR` plus its name in `PERCENT_STATS`, and gets
   whichever of those elements exist for it. Those readouts/gauges are
@@ -785,13 +787,25 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
   `power` (starts at 100) is a pool. Each scene costs `power_cost()` =
   the Reactor LEVER SETTING ÷ `REACTOR_PER_POWER` (4), whole-number
   division — deliberately the limit, not the load, so a reactor turned
-  up costs power even if idle. The Power readout (`#ro-projected_power`)
-  shows `projected_power()` = `MAX(0, power - power_cost())`, i.e. what
+  up costs power even if idle. The Power dial (a `.tile.gauge`,
+  top-left, replacing the old digit readout by explicit call) draws two
+  arcs on one track: a faint `.ghost` arc for current `power`
+  (`#gauge-power-arc`) and a bright arc plus number for
+  `projected_power()` (`#gauge-projected_power-arc`/`-text`), so the
+  sliver between them is this scene's cost — the dial shows
+  `projected_power()` = `MAX(0, power - power_cost())`, i.e. what
   Power WILL be, updating live as the levers move; the real `power` VAR
   only drops when the scene's conversation ends — `js/story.js`'s
   `finishBeat()` calls ink's `consume_power()` at the leaf (safe: ink
   has finished evaluating). Nothing happens at 0 power yet; penalties
-  are the story's to add later.
+  are the story's to add later. The dial tile carries
+  `data-stat="projected_power"`, so `instruments.js` tints it by
+  `THRESHOLDS.projected_power` (yellow below 30, red below 10) through
+  the `--gauge`/`--gauge-led`/`--gauge-track` custom properties in
+  console.css. Gauges have no page-load keyframe any more — the arc's
+  own `stroke-dasharray` transition does the fill-up — and
+  `renderGauge()` only waits on CSS *animations*, not that transition,
+  so lever drags don't queue up behind it.
 
   **The Reactor bar** (`#bar-reactor_use`, the cargo bar's face in the
   slot the old Reactor % readout had) fills to `reactor_use` — full

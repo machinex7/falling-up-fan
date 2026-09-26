@@ -291,8 +291,44 @@ button.tile {
   animation: lamp-pulse 3.4s ease-in-out infinite;
 }
 
-/* gauge tile */
+/* gauge tile — a 270° arc dial. Colors come from three custom
+   properties (amber by default) that the warning levels swap, the same
+   "pick the color, share the look" idea as the alert lamps' --lamp. */
 .tile.gauge svg { width: clamp(26px, 7vw, 40px); height: auto; }
+/* .wide: the readout's 4-column footprint (the Power dial took over the
+   Power readout's slot). Not the .span-4 utility — .tile's own
+   `grid-column: span 2` comes later in this file and beats it. */
+.tile.gauge.wide { grid-column: span 4; }
+.tile.gauge {
+  --gauge: var(--amber);
+  --gauge-led: var(--led-amber);
+  --gauge-track: #3a2408;
+  --gauge-glow: var(--amber-glow);
+}
+.tile.gauge[data-level="warn"]     { --gauge: var(--yellow); --gauge-led: var(--yellow); --gauge-track: #3a3208; --gauge-glow: var(--yellow-glow); }
+.tile.gauge[data-level="critical"] { --gauge: var(--red);    --gauge-led: var(--red);    --gauge-track: #3a0e0e; --gauge-glow: var(--red-glow); }
+.gauge-track,
+.gauge-arc {
+  fill: none;
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+.gauge-track { stroke: var(--gauge-track); }
+.gauge-arc {
+  stroke: var(--gauge);
+  filter: drop-shadow(0 0 2px var(--gauge-glow));
+  transition: stroke-dasharray 0.5s cubic-bezier(0.4,0,0.2,1), stroke 0.3s;
+}
+/* the "what you have now" arc behind the projected one: same color,
+   faint, no glow — the visible sliver past the bright arc is this
+   scene's cost */
+.gauge-arc.ghost { opacity: 0.3; filter: none; }
+.gauge-text {
+  fill: var(--gauge-led);
+  font-family: var(--font-led);
+  font-size: 15px;
+  transition: fill 0.3s;
+}
 
 /* equalizer tile */
 .eq-bars {
