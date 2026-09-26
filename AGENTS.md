@@ -726,9 +726,10 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
   list observes each VAR and re-announces it as a `'ship:stat'` DOM
   event (`detail: { name, value }`); `js/instruments.js` owns
   everything that displays one, found by naming convention — `#ro-<name>`
-  (readout digits), `#gauge-<name>-arc`/`-text` (arc gauge; none bound
-  right now — the Thrust and O2 gauges and the O2 light were removed by
-  explicit call, and the Fuel gauge is still decorative),
+  (readout digits), `#gauge-<name>-arc`/`-text` (arc gauge; no gauge
+  tiles on the deck right now — Thrust, O2 and Fuel were all removed by
+  explicit call, O2's warning light too; `.tile.gauge` CSS and
+  `renderGauge()` are kept for the next one),
   `.tile.alert[data-stat=<name>]` (warning light; Reactor/Hull/Integrity). A
   new stat is a `VAR` plus its name in `PERCENT_STATS`, and gets
   whichever of those elements exist for it. Those readouts/gauges are
