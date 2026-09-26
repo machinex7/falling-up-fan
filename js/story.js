@@ -111,22 +111,34 @@
     queueMicrotask(() => {
       derivedQueued = false;
       DERIVED_STATS.forEach(name => announceStat(name, story.EvaluateFunction(name)));
+      announceFlight(story);
     });
   }
 
-  // `movement` is an ink LIST, so the value arrives as an InkList —
-  // String() gives the item name ("thruster"). Exposed as
-  // body[data-movement] for CSS and as a 'ship:movement' DOM event
-  // (detail.mode) for any other file that needs to react — same loose
-  // event pattern as 'ship:launch'/'timer:complete'.
-  function renderMovement(value) {
-    const mode = String(value);
-    if (!MOVEMENT_MODES.includes(mode)) {
-      console.warn(`story: unknown movement mode "${mode}" — expected one of ${MOVEMENT_MODES.join(', ')}`);
+  // Flight modes (see story.ink's "FLIGHT MODES" header): `movement` is
+  // the mode the story ORDERS, `engaged_movement` the one the ship is
+  // actually in. Both are ink LISTs, so values arrive as InkLists —
+  // String() gives the item name ("thruster"). Announced together, with
+  // whether the big button may be pressed, as 'ship:flight' (detail:
+  // { ordered, engaged, ready }) for js/power.js. The ENGAGED mode is
+  // also exposed as body[data-movement] for CSS and as a 'ship:movement'
+  // DOM event (detail.mode) whenever it changes — the hook for whatever
+  // each mode should look like.
+  let lastEngaged = null;
+  function announceFlight(story) {
+    const ordered = String(story.variablesState.$('movement'));
+    const engaged = String(story.variablesState.$('engaged_movement'));
+    const bad = [ordered, engaged].find(m => !MOVEMENT_MODES.includes(m));
+    if (bad !== undefined) {
+      console.warn(`story: unknown movement mode "${bad}" — expected one of ${MOVEMENT_MODES.join(', ')}`);
       return;
     }
-    document.body.dataset.movement = mode;
-    document.dispatchEvent(new CustomEvent('ship:movement', { detail: { mode } }));
+    const ready = Boolean(story.EvaluateFunction('launch_ready'));
+    document.dispatchEvent(new CustomEvent('ship:flight', { detail: { ordered, engaged, ready } }));
+    if (engaged === lastEngaged) return;
+    lastEngaged = engaged;
+    document.body.dataset.movement = engaged;
+    document.dispatchEvent(new CustomEvent('ship:movement', { detail: { mode: engaged } }));
   }
 
   function watchShipState(story) {
@@ -137,9 +149,12 @@
         announceDerived(story);
       });
     });
+    // the flight modes feed launch_ready()/power_cost(), so they just
+    // trigger the same recompute (which also announces them)
+    ['movement', 'engaged_movement'].forEach(name => {
+      story.ObserveVariable(name, () => announceDerived(story));
+    });
     announceDerived(story);
-    renderMovement(story.variablesState.$('movement'));
-    story.ObserveVariable('movement', (_name, value) => renderMovement(value));
   }
 
   function showSceneObject(imageSrc) {
@@ -220,10 +235,6 @@
       return;
     }
     renderEnded();
-    // The scene is over: spend its power (story.ink's consume_power(),
-    // power -> projected_power()). Safe here — ink has finished
-    // evaluating this beat.
-    story.EvaluateFunction('consume_power');
     if (pendingCountdown !== null) {
       document.dispatchEvent(new CustomEvent('timer:start', { detail: { seconds: pendingCountdown } }));
       pendingCountdown = null;
@@ -283,6 +294,16 @@
     storyPromise
       .then(story => story.EvaluateFunction(`set_${name}`, [value]))
       .catch(err => console.error(`story: set_${name} failed`, err));
+  });
+
+  // The big button, pressed after the initial launch (js/power.js):
+  // engage the ordered flight mode through story.ink's engage(), which
+  // re-checks the criteria and spends the power itself. Same "safe to
+  // run an ink function from a UI event" reasoning as 'control:set'.
+  document.addEventListener('control:engage', () => {
+    storyPromise
+      .then(story => story.EvaluateFunction('engage'))
+      .catch(err => console.error('story: engage failed', err));
   });
 
   tile.addEventListener('click', openPanel);

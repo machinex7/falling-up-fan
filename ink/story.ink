@@ -34,16 +34,17 @@
 // ({ hull < 50: ... }, { movement == sideSpace: ... }).
 //
 //   hull      0–100, remaining hull integrity (Hull readout + light).
-//   power     0–100, energy left in the pool; starts at 100. Spent at
-//             the END OF EACH SCENE (see power_cost() below) — the
-//             Power readout shows projected_power(), what it WILL be
-//             after this scene, live as the levers move. It's a dial:
-//             a faint arc for power now, a bright arc + number for
+//   power     0–100, energy left in the pool; starts at 100. Spent only
+//             when the pilot presses LAUNCH to engage thruster or
+//             sideSpace (see power_cost() and FLIGHT MODES below) — the
+//             Power dial shows projected_power(), what it WILL be after
+//             that launch, live as the levers move. It's a dial: a faint
+//             arc for power now, a bright arc + number for
 //             projected_power(); yellow below 30, red below 10.
 //   reactor   0–100 points, the reactor's output LIMIT — how much
 //             energy it's allowed to put out (the pilot's Reactor
 //             lever). It's what 100% on the Reactor bar means, and
-//             it's what power_cost() charges for.
+//             it's what power_cost() charges for at launch.
 //   shield    0–100%, power put into the shield (the pilot's Shield
 //             lever). Costs SHIELD_COST (0.5) reactor points per %.
 //   drive     0–100%, the drive's charge (the pilot's Drive Charge
@@ -68,11 +69,16 @@
 //                     charge + signal boost (add future systems here).
 //     signal_strength()  signal, +SIGNAL_BOOST while SGNL BST is on:
 //                     the Signal readout (shows "100+" above 100).
-//     power_cost()    what this scene will cost: 1 power per
-//                     REACTOR_PER_POWER (4) points of the Reactor lever
-//                     setting (whether or not they're used).
+//     power_cost()    what pressing LAUNCH will cost right now: 1 power
+//                     per REACTOR_PER_POWER (4) points of the Reactor
+//                     lever setting (whether or not they're used) —
+//                     0 unless a thruster/sideSpace launch is pending.
 //     projected_power()  power - power_cost(), never below 0: the
-//                     Power readout.
+//                     Power dial.
+//     launch_pending()   the story has ordered a mode the pilot hasn't
+//                     engaged yet.
+//     launch_ready()  launch_pending() AND the criteria are met — the
+//                     big button is only pressable while this is true.
 //     reactor_use()   reactor_load() as a % of the `reactor` limit:
 //                     the Reactor bar's fill (green, yellow above 80,
 //                     red at or over the limit) and the Reactor light.
@@ -96,10 +102,8 @@
 //   set_reactor(), set_drive() and set_signal_boost() below, so they
 //   obey the same rules as the story.
 //
-//   Spending power: when a scene's conversation ends (no choices left,
-//   -> END), js/story.js calls consume_power() below automatically,
-//   which sets power to projected_power(). Don't call it yourself too,
-//   or the scene is charged twice.
+//   Spending power: only engage() below spends it, when the pilot
+//   presses LAUNCH for thruster or sideSpace. Scenes cost nothing.
 //
 //   Change stats with the helpers at the bottom of this file, which keep
 //   them in range (0–100):
@@ -114,11 +118,29 @@
 //   (A plain `~ hull = 80` works too, but skips those rules — the
 //   readout caps what it shows, branches see the raw value.)
 //
-//   movement                the ship's movement mode, one of the LIST
-//                           items: stopped, thruster, sideSpace.
+// ── FLIGHT MODES ───────────────────────────────────────────────────────
+//   movement                the flight mode the story ORDERS, one of the
+//                           LIST items: stopped, thruster, sideSpace.
 //                             ~ movement = thruster
-//                           Being a LIST, a misspelled mode is a compile
-//                           error, not a silent no-op.
+//                           Setting it does NOT engage the mode — it
+//                           tells the pilot what to engage. Being a
+//                           LIST, a misspelled mode is a compile error,
+//                           not a silent no-op.
+//   engaged_movement        the flight mode the ship is ACTUALLY in. Only
+//                           the pilot changes it, via the big button
+//                           (engage() below). Branch on this for "are we
+//                           moving yet": { engaged_movement == thruster: }
+//
+//   While the two differ, the big button asks the pilot to engage the
+//   ordered mode:
+//     thruster / sideSpace  reads LAUNCH, pressable only once the Drive
+//                           Charge lever is all the way up (drive 100);
+//                           set the other levers (reactor etc.) as
+//                           desired first — pressing it spends
+//                           power_cost() power.
+//     stopped               reads STOP, always pressable, costs nothing.
+//   The very first press (the launch out of the silo) is the exception:
+//   no criteria, no power, and it doesn't touch either variable.
 
 CONST SHIELD_COST = 0.5         // reactor points per shield %
 CONST DRIVE_COST = 0.5          // reactor points per drive charge %
@@ -135,6 +157,7 @@ VAR drive = 0
 VAR signal = 40
 VAR signal_boost = false
 LIST movement = (stopped), thruster, sideSpace
+VAR engaged_movement = stopped
 
 -> handler_checkin
 
@@ -187,9 +210,29 @@ Copy. Handler out — check in again next relay.
 === function set_signal_boost(on)
 ~ signal_boost = on
 
-// Called by js/story.js when each scene ends — see the header.
-=== function consume_power()
+// ── FLIGHT MODES ───────────────────────────────────────────────────────
+// See the header. js/story.js calls engage() when the pilot presses the
+// big button after the initial launch; returns whether it engaged.
+
+=== function launch_pending()
+~ return engaged_movement != movement
+
+=== function launch_ready()
+{ not launch_pending():
+    ~ return false
+}
+{ movement == stopped:
+    ~ return true
+}
+~ return drive >= 100
+
+=== function engage()
+{ not launch_ready():
+    ~ return false
+}
 ~ power = projected_power()
+~ engaged_movement = movement
+~ return true
 
 // ── COMPUTED STATS ─────────────────────────────────────────────────────
 // js/story.js calls each of these by name (its DERIVED_STATS list) to
@@ -211,8 +254,12 @@ Copy. Handler out — check in again next relay.
 }
 ~ return signal
 
-// whole-number division: 1 power per full REACTOR_PER_POWER points
+// whole-number division: 1 power per full REACTOR_PER_POWER points.
+// Only a pending thruster/sideSpace launch costs anything.
 === function power_cost()
+{ not launch_pending() || movement == stopped:
+    ~ return 0
+}
 ~ return reactor / REACTOR_PER_POWER
 
 === function projected_power()
