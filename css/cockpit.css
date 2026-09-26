@@ -225,6 +225,17 @@
      position:absolute; inset:0 — #window/#console stay in normal flow,
      unaffected, since an absolute child is taken out of it */
   position: relative;
+  /* a no-op transform, purely so #shell's `perspective` (meant for the
+     side walls) stops at this box instead of reaching #console. Without
+     it Chromium PAINTS #console with only its own perspective(1600px)
+     but HIT-TESTS it as if #shell's 500px perspective applied too — the
+     two disagree by up to a whole tile row, so clicks on a visible
+     control landed on a neighbor or on bare console (~50% of each
+     tile's area missed at every breakpoint). Being transformed makes
+     this box the thing #shell's perspective applies to (flat at z=0, so
+     it looks the same) and flattens #console's own 3D inside it. See
+     AGENTS.md's 3D click-targeting gotcha before removing. */
+  transform: translateZ(0);
 }
 
 /* ── sticky notes: someone's been living here ──

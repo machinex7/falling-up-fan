@@ -457,9 +457,10 @@ tilted wall), and `.armrest` was a tall, narrow rectangle merely leaned a
 few degrees — it read as a post standing up in the corner, not an arm
 extending forward.
 
-`#console` is now tilted to 18deg (see the comment on that rule for why
-not further — a real ceiling from the click-hit-testing gotcha below,
-not just eyeballing it) and gained a sibling, `.console-riser`
+`#console` is now tilted to 18deg (the comment on that rule once called
+this a hard ceiling from the click-hit-testing gotcha below; that was
+really the nested-perspective bug described there, now fixed, so the
+angle is a visual choice again) and gained a sibling, `.console-riser`
 (`console.css`, markup in `index.html` right after `#console` closes): a
 short vertical "kick panel" that picks up exactly where the angled top's
 bottom edge sits on screen (that edge doesn't move under `rotateX`
@@ -1208,17 +1209,29 @@ UNAVAILABLE.` row plus a console error) rather than a silent blank panel.
 
 ## A real gotcha: 3D transforms break naive click targeting
 
-Because the console is tilted in 3D, a small control's *rendered* position
-can drift from its untransformed layout bounding-box center enough that
-point-based hit-testing (`elementFromPoint`, and what Playwright's `.click()`
-relies on) lands on a sibling or parent instead of the control itself —
-this affects real users' clicks too, not just automated tests. The
-established fix: bind interactive handlers to the whole `.tile` (a larger,
-more reliable target) rather than the tiny inner shape, and give
-interactive tiles a bit of invisible padding. If you add a new draggable or
-clickable widget, sanity-check it the way prior work did: query
-`elementFromPoint` at the element's own computed center and confirm it
-resolves back to that element (or a descendant) before trusting it works.
+This used to be written up as "the tilt shifts small controls away from
+their layout center," and worked around by binding handlers to whole
+`.tile`s and capping the console's tilt. The real cause turned out to be
+narrower: `#shell` carries `perspective: 500px` for the side walls, and
+`#console` sits inside it (via `#forward`) with its own
+`perspective(1600px) rotateX(18deg)`. Chromium PAINTED the console using
+only its own perspective but HIT-TESTED it as if `#shell`'s 500px also
+applied, so the clickable version of every tile sat up to a row away
+from the drawn one — roughly half of each tile's visible area sent
+clicks to a neighbor or to bare console, at every breakpoint. Fix:
+`#forward { transform: translateZ(0) }` (cockpit.css), a visual no-op
+that stops `#shell`'s perspective at `#forward`; after it, every point
+of every tile resolves to itself at phone/tablet/desktop widths.
+
+Lessons if you add more 3D: never nest an element with its own
+`perspective()`/3D transform inside an ancestor that has the
+`perspective` *property* without a transformed box in between; give each
+3D piece its own perspective instead. And test hit-testing over the
+tile's whole rendered area, not just one center point — sample a grid of
+points inside `getBoundingClientRect()` and check `elementFromPoint`
+resolves back to that tile (or a descendant). Binding handlers to the
+whole `.tile` is still the pattern (bigger target), but it was never
+what fixed this.
 
 ## Another real gotcha: `steps(1, jump-none)` is invalid CSS
 
