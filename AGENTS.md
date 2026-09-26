@@ -110,9 +110,19 @@ js/
                      ResizeObserver — now mounted inside #scene-space
                      rather than being #window's only background, but
                      otherwise unchanged
-  controls.js        toggle/knob/alert click handling on .tile
-  readouts.js        readout drift (setInterval) + cargo bar fill-in
-  throttle.js        pointer-based drag on .throttle-track
+  controls.js        toggle/knob/alert click handling on .tile; a
+                     toggle tile with data-stat (SGNL BST) sends
+                     'control:set' to the story instead of flipping
+                     itself
+  (readouts.js is gone — it only drifted decorative readouts, and every
+   readout is ink-driven ship state now)
+  throttle.js        pointer-based drag on .throttle-track (bound to the
+                     whole tile — see the 3D click-targeting gotcha);
+                     data-stat tracks send 'control:set' instead of
+                     moving themselves — now all three: Drive Charge
+                     (#throttle-main, "throttle" in code/CSS, ink
+                     `drive`), Shield and Reactor. All three are 2 grid
+                     rows tall (like LAUNCH)
   parallax.js        device-tilt drift on stars/console/armrests via
                      DeviceOrientation; also owns the #motion-enable
                      iOS-permission pill (button lives in index.html,
@@ -129,6 +139,12 @@ js/
                      then ticks down once a second and dispatches
                      'timer:complete' on hitting zero — see "The
                      mission timer" below
+  instruments.js     every console instrument showing a ship-state
+                     value (readouts, the Reactor usage
+                     and Cargo bars, the warning lights, the Shield/Reactor lever
+                     positions),
+                     driven by 'ship:stat' events from story.js — see "The
+                     cutscene system" below
   story.js           drives data/story.json through the inkjs runtime on
                      'timer:complete' — fades in a scene's `# image:`
                      tag over the starfield, and/or opens #comms-panel,
@@ -179,7 +195,10 @@ table columns force one shared width across every row (widest cell in a
 column wins globally), which fights the intentionally dense, uneven,
 non-aligned look this panel is going for. Grid gives the same row/col-span
 capability via utility classes (`.span-*`, `.rowspan-*`) without that forced
-alignment. `grid-auto-flow: dense` lets items pack into gaps rather than
+alignment. **Gotcha:** the `.span-*` utilities are declared *before*
+`.tile`'s own `grid-column: span 2` at the same specificity, so on a
+`.tile` they silently lose — give a tile its width with a
+`.tile.<kind>` rule instead (e.g. `.tile.readout`, `.tile.gauge.wide`). `grid-auto-flow: dense` lets items pack into gaps rather than
 forcing new rows.
 
 Each control is a `.tile` — a layout wrapper (control + caption) that is
@@ -204,7 +223,7 @@ control needs inside it.
 The nav links (Members/Tracks/Connections) are now visually prominent
 pushbuttons — a deliberate reversal of an earlier "no more prominent than
 decorative" rule, changed by explicit user request. Toggles
-(Auto/Beacon/Shield/etc.) are also `.push-btn`s now: a round pushbutton you
+(Auto/Beacon/Cabin Lt/etc.) are also `.push-btn`s now: a round pushbutton you
 click to latch on/off, not the sliding lever-in-a-slot design from earlier
 — also an explicit user request, not an oversight if you see it differ
 from older screenshots or commit history.
@@ -340,7 +359,7 @@ Two reusable modifier classes carry this: `.knob.worn` and
 `.push-btn.worn` (console.css, near each control's base rule), applied in
 the markup only to controls the story treats as constantly handled — the
 Nav/Comm console knobs and the wall's main power knob, and the toggles
-that stay engaged day-to-day (Auto, Shield, Cabin Lt) — not every knob or
+that stay engaged day-to-day (Auto, Cabin Lt) — not every knob or
 button on the deck. The throttle handle gets its own one-off treatment on
 `.throttle-handle::after` rather than a shared class, since it's the
 single most-handled control on the whole panel (every course correction
@@ -381,7 +400,8 @@ a person in the room:
 stuck to the dash, which reads as "lived in" faster than any amount of
 hull texture. Two on purpose, deliberately not matching (`.on-console` is
 a fresh yellow one hanging off `#console`'s own top edge into the gap
-toward the window; `.on-wall`, inside `.wall.right`, is a smaller
+toward the window — at the top-RIGHT now, moved from top-left because
+it hid the Power dial there; `.on-wall`, inside `.wall.right`, is a smaller
 `.faded` blue-gray one that also inherits the wall's own
 `filter: brightness(0.62)` for free) — a whole drawer of identically-worn
 notes would read as set dressing, not a habit. Every note is
@@ -685,7 +705,144 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
     the closing line makes the source say what the system does: the
     countdown begins at the conclusion of the story, because that's
     where the tag setting it lives.
-  
+
+  **Tags are for per-line presentation cues only** (`contact`, `image`,
+  `countdown`). Ongoing ship state is NOT tagged — see below.
+
+  **Ship state lives in ink variables, not tags.** `hull`, `power`,
+  `reactor`, `shield`, `cargo` (`VAR`s, 0–100) and `movement` (a `LIST`: `stopped`,
+  `thruster`, `sideSpace`) are declared at the top of `ink/story.ink`;
+  `js/story.js` binds to them with `story.ObserveVariable()`, so the page
+  updates whenever the story writes one, with no tag involved. An earlier
+  pass also had `# hull:`/`# power:`/`# reactor:`/`# movement:` tags that
+  wrote the same variables — dropped by explicit call, since two ways to
+  do one thing (with different clamping behavior) was worse than one.
+  Clamping lives on the ink side instead, in small helper functions at
+  the bottom of `story.ink` (`set_level(ref stat, to)`,
+  `adjust(ref stat, by)`, `damage(n)`, `repair(n)`) — `ref` parameters
+  write the global through ink's normal assignment path, so observers
+  still fire. `movement` is a `LIST` rather than a string specifically so
+  a misspelled mode is a compile error instead of a silent no-op; its
+  observer receives an `InkList`, which `String()` turns into the item
+  name.
+
+  The percentages share one code path: `js/story.js`'s `PERCENT_STATS`
+  list observes each VAR and re-announces it as a `'ship:stat'` DOM
+  event (`detail: { name, value }`); `js/instruments.js` owns
+  everything that displays one, found by naming convention — `#ro-<name>`
+  (readout digits), `#gauge-<name>-arc`/`-text` (arc gauge — the Power dial is the only one; Thrust, O2 and Fuel were
+  removed by explicit call, O2's warning light too),
+  `.tile.alert[data-stat=<name>]` (warning light; Reactor/Hull/Integrity). A
+  new stat is a `VAR` plus its name in `PERCENT_STATS`, and gets
+  whichever of those elements exist for it. Those readouts/gauges are
+  no longer decorative (nothing drifts randomly any more), and
+  the gauge's page-load fill animation is left to finish before
+  `instruments.js` takes the arc over, since a `forwards` CSS animation
+  would otherwise mask the inline value.
+
+  **Power vs reactor vs shield vs integrity** (the user's model):
+  `power` is energy left to spend. `reactor` is the reactor's output
+  LIMIT in points (0–100, set by the pilot's Reactor lever) — it defines
+  what 100% on the Reactor bar means, not how much is being used.
+  `shield` (0–100%) is power put into the shield; each shield % costs
+  `SHIELD_COST` (a `CONST`, 0.5) reactor points, so a full shield draws
+  50. `drive` (the Drive Charge lever) costs `DRIVE_COST` (0.5) per %
+  the same way, and `signal_boost` (the SGNL BST toggle, a bool VAR)
+  draws a flat `SIGNAL_BOOST_COST` (5) while on and adds `SIGNAL_BOOST`
+  (50) to `signal_strength()` (base `signal` + boost; the Signal
+  readout, `data-max="100"` so "100+" above). Several stats are computed, never stored, and live only as ink
+  functions in `story.ink`'s "COMPUTED STATS" section: `integrity()` =
+  `hull + shield` (0–200; the readout has `data-unit=""` for no `%` and
+  `data-max="100"`, so it displays at most 100 and "100+" above — a
+  display cap only, the ink value stays the real sum),
+  `reactor_load()` = points in use (future consumers add here), and
+  `reactor_use()` = load as a floored % of the limit. `js/story.js`'s
+  `DERIVED_STATS` calls those by name with `story.EvaluateFunction()`
+  rather than re-implementing them — but NOT from inside an observer
+  (ink can't run a function mid-evaluation), so changes are batched and
+  recomputed in a `queueMicrotask`, which always lands after ink's
+  synchronous evaluation finishes. Mind ink arithmetic when editing
+  them: `a * 100 / b` parses as `a * (100 / b)` with integer division,
+  hence the explicit parentheses in `reactor_use()`.
+
+  **The load may exceed the limit — overloading is allowed by explicit
+  call.** An earlier pass capped the shield so the load could never
+  pass the limit (`keep_shield_within_reactor()`); it was removed so the
+  pilot can overload, with penalties to be written in the story later.
+  Nothing reacts to an overload automatically: `reactor_use()` simply
+  goes past 100 (999 for any draw on a zero limit) and `overloaded()`
+  reports it for the story to branch on. Don't re-add a cap or an
+  automatic penalty in JS. The pilot's levers go through the same ink
+  helpers as the story (so any future rule added there applies to both): `js/throttle.js` sends
+  `'control:set'`, `js/story.js` runs `story.EvaluateFunction('set_<name>')`
+  (safe — UI events can't interrupt a synchronous `Continue()`, and it
+  doesn't disturb the conversation's position), and the resulting
+  `'ship:stat'` is what actually moves the lever handle, so a drag
+  always shows where the value really landed. `PLAYER_CONTROLS` in story.js
+  whitelists which stats a lever or data-stat toggle may set. The old
+  decorative Shield toggle button was removed so there's one Shield
+  control.
+
+  **Power is spent per scene, previewed live** (the user's model):
+  `power` (starts at 100) is a pool. Each scene costs `power_cost()` =
+  the Reactor LEVER SETTING ÷ `REACTOR_PER_POWER` (4), whole-number
+  division — deliberately the limit, not the load, so a reactor turned
+  up costs power even if idle. The Power dial (a `.tile.gauge`,
+  top-left, replacing the old digit readout by explicit call) draws two
+  arcs on one track: a faint `.ghost` arc for current `power`
+  (`#gauge-power-arc`) and a bright arc plus number for
+  `projected_power()` (`#gauge-projected_power-arc`/`-text`), so the
+  sliver between them is this scene's cost — the dial shows
+  `projected_power()` = `MAX(0, power - power_cost())`, i.e. what
+  Power WILL be, updating live as the levers move; the real `power` VAR
+  only drops when the scene's conversation ends — `js/story.js`'s
+  `finishBeat()` calls ink's `consume_power()` at the leaf (safe: ink
+  has finished evaluating). Nothing happens at 0 power yet; penalties
+  are the story's to add later. The dial tile carries
+  `data-stat="projected_power"`, so `instruments.js` tints it by
+  `THRESHOLDS.projected_power` (yellow below 30, red below 10) through
+  the `--gauge`/`--gauge-led`/`--gauge-track` custom properties in
+  console.css. Gauges have no page-load keyframe any more — the arc's
+  own `stroke-dasharray` transition does the fill-up — and
+  `renderGauge()` only waits on CSS *animations*, not that transition,
+  so lever drags don't queue up behind it.
+
+  **The Reactor bar** (`#bar-reactor_use`, the cargo bar's face in the
+  slot the old Reactor % readout had) fills to `reactor_use` — full
+  width is whatever limit the lever sets — green normally, yellow above
+  80%, red at or over the limit (an overload stays full-width red; the
+  displayed value is clamped to 100, the ink value isn't). `instruments.js` colors any `#bar-<name>` via
+  `data-level` from the same `THRESHOLDS` the warning lights use, so the
+  bar and the Reactor light (`data-stat="reactor_use"`) always agree.
+  `.bar-fill.live` shortens the fill transition so the bar keeps up
+  with a dragged lever. The Cargo bar (`#bar-cargo`) uses the same
+  `#bar-<name>` path for the ink `cargo` VAR, but is story-set only (no
+  lever) and has `THRESHOLDS.cargo = null`, so it keeps its own amber
+  color and never warns — a full or empty hold isn't a fault.
+
+  **Warning lights** (`data-stat` alert tiles; Hull, Reactor,
+  Integrity): Hull/Integrity flash yellow below 70 and red below 20;
+  Reactor follows `reactor_use` and is inverted — yellow above 80%,
+  red at or over 100% of the limit — since spare capacity is fine and
+  maxing out or overloading is the danger (per-stat `THRESHOLDS` in `instruments.js`, `below`
+  or `above`; `reactor_use` is floored, so only a true 100 is red). `instruments.js` sets
+  `data-level="warn"|"critical"` and console.css colors the lamp via a
+  `--lamp`/`--lamp-glow` pair (the same lit look `.is-alert` uses, just
+  a different color). Clicking a lit one adds `.is-acked`, which stops
+  the blink but leaves it lit in its color; the ack clears whenever the
+  severity changes (worse OR better), so a new condition always flashes
+  again. `js/controls.js` skips `data-stat` tiles; tiles without it (Nav)
+  are still the plain decorative red click-toggle (`.is-alert`). `movement` sets
+  `body[data-movement]` and dispatches a `'ship:movement'` DOM event
+  (`detail.mode`) — nothing reacts to it visually yet, that's the hook for
+  whatever each mode should look like. For one-off *effects* (as opposed
+  to state), ink's `EXTERNAL` + `story.BindExternalFunction()` is the
+  matching mechanism — nothing uses it yet.
+
+  **Keep `ink/story.ink`'s header comment the canonical tag/VAR list** —
+  every new tag or ship-state VAR gets documented there, since that's
+  where the author is looking when writing ink.
+
   Any tag key `applyTags()` doesn't recognize is silently ignored, not
   an error — matches ink's own "tags are just freeform metadata, the
   engine doesn't interpret them" philosophy; a future convention (mood,

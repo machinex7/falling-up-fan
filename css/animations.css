@@ -19,21 +19,6 @@
   100%     { opacity: 1; }
 }
 
-@keyframes gauge-fill-cyan {
-  from { stroke-dasharray: 0 163.4; }
-  to   { stroke-dasharray: 83.3 80.1; }
-}
-
-@keyframes gauge-fill-green {
-  from { stroke-dasharray: 0 163.4; }
-  to   { stroke-dasharray: 115.2 48.2; }
-}
-
-@keyframes gauge-fill-amber {
-  from { stroke-dasharray: 0 163.4; }
-  to   { stroke-dasharray: 99.2 64.2; }
-}
-
 /* launch — the pre-scroll rumble (silo-shake) and the long climb
    through the ascent strip's bands (ascent-scroll); see the
    .scene-ascent/.ascent-strip comment in css/scenes.css for why the

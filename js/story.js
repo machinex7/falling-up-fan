@@ -45,7 +45,11 @@
       if (!res.ok) throw new Error(`${STORY_URL}: HTTP ${res.status}`);
       return res.json();
     })
-    .then(json => new window.inkjs.Story(json));
+    .then(json => {
+      const story = new window.inkjs.Story(json);
+      watchShipState(story);
+      return story;
+    });
 
   // The ordered list of top-level knots 'timer:complete' plays through —
   // the ink-authored equivalent of the old scenes.json array, just names
@@ -66,6 +70,78 @@
   let pendingCountdown = null;
   let hasActiveConversation = false;
 
+  // Ship state that lives in ink variables (see ink/story.ink's "SHIP
+  // STATE" header). Ink is the one source of truth — there are no tags
+  // for these; the observers below are the only place any of them
+  // reaches the page, whether the story wrote them with a plain `~` or
+  // one of story.ink's clamping helpers (damage/repair/adjust/set_level).
+  //
+  // Percentage stats (0–100 ink VARs). This file only announces them as
+  // a 'ship:stat' DOM event (detail: { name, value }); js/instruments.js
+  // owns every readout/gauge/warning light that shows one. A new stat is
+  // a VAR in story.ink plus its name here.
+  const PERCENT_STATS = ['hull', 'power', 'reactor', 'shield', 'cargo', 'drive', 'signal'];
+  // true/false ink VARs, announced the same way (instruments.js shows
+  // them on a data-stat toggle button).
+  const TOGGLE_STATS = ['signal_boost'];
+  // Stats computed from others rather than stored — each is an ink
+  // function of the same name in story.ink ("COMPUTED STATS"), called
+  // directly so the formula lives only there. Re-announced after any
+  // ship-state change.
+  const DERIVED_STATS = ['integrity', 'reactor_load', 'reactor_use', 'signal_strength', 'projected_power'];
+  // Stats the pilot can set from the console ('control:set' events from
+  // js/throttle.js levers and js/controls.js toggle buttons). Each goes
+  // through story.ink's set_<name>() function, so the player obeys the
+  // same rules the story does.
+  const PLAYER_CONTROLS = ['shield', 'reactor', 'drive', 'signal_boost'];
+  const MOVEMENT_MODES = ['stopped', 'thruster', 'sideSpace'];
+
+  function announceStat(name, value) {
+    document.dispatchEvent(new CustomEvent('ship:stat', { detail: { name, value } }));
+  }
+
+  // Observers fire in the middle of ink's own evaluation, where it can't
+  // run another function — so batch every change in one evaluation into
+  // a single recompute once it's finished (ink evaluation is always
+  // synchronous, so a microtask is guaranteed to land after it).
+  let derivedQueued = false;
+  function announceDerived(story) {
+    if (derivedQueued) return;
+    derivedQueued = true;
+    queueMicrotask(() => {
+      derivedQueued = false;
+      DERIVED_STATS.forEach(name => announceStat(name, story.EvaluateFunction(name)));
+    });
+  }
+
+  // `movement` is an ink LIST, so the value arrives as an InkList —
+  // String() gives the item name ("thruster"). Exposed as
+  // body[data-movement] for CSS and as a 'ship:movement' DOM event
+  // (detail.mode) for any other file that needs to react — same loose
+  // event pattern as 'ship:launch'/'timer:complete'.
+  function renderMovement(value) {
+    const mode = String(value);
+    if (!MOVEMENT_MODES.includes(mode)) {
+      console.warn(`story: unknown movement mode "${mode}" — expected one of ${MOVEMENT_MODES.join(', ')}`);
+      return;
+    }
+    document.body.dataset.movement = mode;
+    document.dispatchEvent(new CustomEvent('ship:movement', { detail: { mode } }));
+  }
+
+  function watchShipState(story) {
+    [...PERCENT_STATS, ...TOGGLE_STATS].forEach(name => {
+      announceStat(name, story.variablesState.$(name));
+      story.ObserveVariable(name, (_name, value) => {
+        announceStat(name, value);
+        announceDerived(story);
+      });
+    });
+    announceDerived(story);
+    renderMovement(story.variablesState.$('movement'));
+    story.ObserveVariable('movement', (_name, value) => renderMovement(value));
+  }
+
   function showSceneObject(imageSrc) {
     sceneObjectImg.src = imageSrc;
     sceneObject.classList.add('is-visible');
@@ -84,8 +160,7 @@
   }
 
   // Applies every tag attached to the line ink just produced (see
-  // ink/story.ink's header comment for the `contact`/`image`/`countdown`
-  // conventions). `# image:` with no value (or the word `clear`) hides
+  // ink/story.ink's header comment for the full tag list). `# image:` with no value (or the word `clear`) hides
   // #scene-object instead of pointing it at a new src — the two are the
   // same tag because "which image is showing" is one piece of state,
   // not a separate show/hide concept.
@@ -145,6 +220,10 @@
       return;
     }
     renderEnded();
+    // The scene is over: spend its power (story.ink's consume_power(),
+    // power -> projected_power()). Safe here — ink has finished
+    // evaluating this beat.
+    story.EvaluateFunction('consume_power');
     if (pendingCountdown !== null) {
       document.dispatchEvent(new CustomEvent('timer:start', { detail: { seconds: pendingCountdown } }));
       pendingCountdown = null;
@@ -193,6 +272,17 @@
         playScene(story, knotName);
       })
       .catch(err => console.error('data/story.json failed to load', err));
+  });
+
+  // A lever moved — never fires mid-Continue() (UI events can't
+  // interrupt synchronous ink evaluation), so it's safe to run an ink
+  // function here; the observers above then update the console.
+  document.addEventListener('control:set', e => {
+    const { name, value } = e.detail;
+    if (!PLAYER_CONTROLS.includes(name)) return;
+    storyPromise
+      .then(story => story.EvaluateFunction(`set_${name}`, [value]))
+      .catch(err => console.error(`story: set_${name} failed`, err));
   });
 
   tile.addEventListener('click', openPanel);

@@ -177,39 +177,45 @@
         <div id="deck-grid">
 
           <!-- row 1: readouts + gauges -->
-          <div class="tile readout c-amber">
-            <div class="r-value" id="ro-power">072%</div>
+          <!-- POWER DIAL: two arcs on one track — the dim "ghost" arc is
+               the power you have now, the bright arc (and the number) is
+               projected_power(), what's left after this scene's reactor
+               cost. The gap between them is the price of the current
+               lever settings. data-stat="projected_power" lets
+               js/instruments.js tint the whole dial by warning level. -->
+          <div class="tile gauge wide" data-stat="projected_power">
+            <svg viewBox="0 0 68 68">
+              <g transform="rotate(135 34 34)">
+                <circle class="gauge-track" cx="34" cy="34" r="26" stroke-dasharray="122.5 40.9"/>
+                <circle class="gauge-arc ghost" id="gauge-power-arc" cx="34" cy="34" r="26" stroke-dasharray="0 163.4"/>
+                <circle class="gauge-arc" id="gauge-projected_power-arc" cx="34" cy="34" r="26" stroke-dasharray="0 163.4"/>
+              </g>
+              <text class="gauge-text" id="gauge-projected_power-text" x="34" y="39" text-anchor="middle">88%</text>
+            </svg>
             <div class="tile-label">Power</div>
           </div>
           <div class="tile readout c-green">
-            <div class="r-value" id="ro-signal">090%</div>
+            <div class="r-value" id="ro-signal_strength" data-max="100">040%</div>
             <div class="tile-label">Signal</div>
           </div>
           <div class="tile readout c-amber">
             <div class="r-value" id="ro-hull">100%</div>
             <div class="tile-label">Hull</div>
           </div>
-          <div class="tile gauge">
-            <svg viewBox="0 0 68 68">
-              <g transform="rotate(135 34 34)">
-                <circle cx="34" cy="34" r="26" fill="none" stroke="#0f3a44" stroke-width="5" stroke-dasharray="122.5 40.9" stroke-linecap="round"/>
-                <circle cx="34" cy="34" r="26" fill="none" stroke="var(--cyan)" stroke-width="5" stroke-dasharray="0 163.4" stroke-linecap="round"
-                  style="animation: gauge-fill-cyan 1.4s cubic-bezier(0.4,0,0.2,1) 0.3s forwards;"/>
-              </g>
-              <text x="34" y="39" text-anchor="middle" fill="var(--led-cyan)" font-family="VT323" font-size="15">68%</text>
-            </svg>
-            <div class="tile-label">Thrust</div>
+          <!-- reactor load as a share of the output limit the Reactor
+               lever sets (full width = the limit), not a raw % —
+               js/instruments.js sizes and colors the fill -->
+          <div class="tile bar">
+            <div class="bar-track">
+              <div class="bar-fill c-green live" id="bar-reactor_use"></div>
+            </div>
+            <div class="tile-label">Reactor</div>
           </div>
-          <div class="tile gauge">
-            <svg viewBox="0 0 68 68">
-              <g transform="rotate(135 34 34)">
-                <circle cx="34" cy="34" r="26" fill="none" stroke="#123522" stroke-width="5" stroke-dasharray="122.5 40.9" stroke-linecap="round"/>
-                <circle cx="34" cy="34" r="26" fill="none" stroke="var(--green)" stroke-width="5" stroke-dasharray="0 163.4" stroke-linecap="round"
-                  style="animation: gauge-fill-green 1.4s cubic-bezier(0.4,0,0.2,1) 0.6s forwards;"/>
-              </g>
-              <text x="34" y="39" text-anchor="middle" fill="var(--led-green)" font-family="VT323" font-size="15">94%</text>
-            </svg>
-            <div class="tile-label">O2</div>
+          <!-- hull + shield: shown up to 100, "100+" above (data-max);
+               no % since it's a sum, not a percentage -->
+          <div class="tile readout c-green">
+            <div class="r-value" id="ro-integrity" data-unit="" data-max="100">100</div>
+            <div class="tile-label">Integrity</div>
           </div>
 
           <!-- MISSION TIMER — counts down from 15:00 (dd:hh:mi:ss) once
@@ -257,17 +263,6 @@
             </div>
             <div class="tile-label">Audio</div>
           </div>
-          <div class="tile gauge">
-            <svg viewBox="0 0 68 68">
-              <g transform="rotate(135 34 34)">
-                <circle cx="34" cy="34" r="26" fill="none" stroke="#3a2408" stroke-width="5" stroke-dasharray="122.5 40.9" stroke-linecap="round"/>
-                <circle cx="34" cy="34" r="26" fill="none" stroke="var(--amber)" stroke-width="5" stroke-dasharray="0 163.4" stroke-linecap="round"
-                  style="animation: gauge-fill-amber 1.4s cubic-bezier(0.4,0,0.2,1) 0.9s forwards;"/>
-              </g>
-              <text x="34" y="39" text-anchor="middle" fill="var(--led-amber)" font-family="VT323" font-size="15">81%</text>
-            </svg>
-            <div class="tile-label">Fuel</div>
-          </div>
 
           <!-- row 3: knobs -->
           <div class="tile">
@@ -302,15 +297,17 @@
           </div>
           <div class="tile is-on">
             <div class="push-btn round toggle-btn is-on worn"><div class="btn-lens"></div></div>
-            <div class="tile-label">Shield</div>
-          </div>
-          <div class="tile is-on">
-            <div class="push-btn round toggle-btn is-on worn"><div class="btn-lens"></div></div>
             <div class="tile-label">Cabin Lt</div>
           </div>
           <div class="tile">
             <div class="push-btn round toggle-btn"><div class="btn-lens"></div></div>
             <div class="tile-label">Nav Lt</div>
+          </div>
+          <!-- ship state (ink signal_boost): js/controls.js asks the story
+               to flip it, js/instruments.js lights it -->
+          <div class="tile" data-stat="signal_boost">
+            <div class="push-btn round toggle-btn"><div class="btn-lens"></div></div>
+            <div class="tile-label">Sgnl Bst</div>
           </div>
 
           <!-- row 5: bar, alert lights, throttle -->
@@ -321,17 +318,20 @@
             <div class="tile-label">Cargo</div>
           </div>
 
-          <div class="tile alert is-alert">
-            <div class="alert-lamp"></div>
-            <div class="tile-label">O2</div>
-          </div>
-          <div class="tile alert">
+          <!-- data-stat: driven by that ink variable via js/instruments.js
+               (yellow < 70, red < 20, click to acknowledge) rather than
+               js/controls.js's plain click-toggle -->
+          <div class="tile alert" data-stat="reactor_use">
             <div class="alert-lamp"></div>
             <div class="tile-label">Reactor</div>
           </div>
-          <div class="tile alert is-alert">
+          <div class="tile alert" data-stat="hull">
             <div class="alert-lamp"></div>
             <div class="tile-label">Hull</div>
+          </div>
+          <div class="tile alert" data-stat="integrity">
+            <div class="alert-lamp"></div>
+            <div class="tile-label">Integrity</div>
           </div>
           <!-- COMMS — the pending-conversation button js/story.js owns:
                the same round push-btn/lens face every toggle button
@@ -352,10 +352,25 @@
           </div>
 
           <div class="tile throttle">
-            <div class="throttle-track" id="throttle-main">
-              <div class="throttle-handle" style="bottom: 62%;"></div>
+            <div class="throttle-track" id="throttle-main" data-stat="drive">
+              <div class="throttle-handle" style="--lever-pos: 0;"></div>
             </div>
-            <div class="tile-label">Throttle</div>
+            <div class="tile-label">Drive Charge</div>
+          </div>
+          <!-- ship-state levers: data-stat routes a drag through the ink
+               story's set_<name>() (js/throttle.js -> js/story.js), and
+               js/instruments.js places the handle where the value lands -->
+          <div class="tile throttle lever">
+            <div class="throttle-track" data-stat="shield">
+              <div class="throttle-handle" style="--lever-pos: 0;"></div>
+            </div>
+            <div class="tile-label">Shield</div>
+          </div>
+          <div class="tile throttle lever">
+            <div class="throttle-track" data-stat="reactor">
+              <div class="throttle-handle" style="--lever-pos: 0.5;"></div>
+            </div>
+            <div class="tile-label">Reactor</div>
           </div>
 
         </div>
@@ -462,12 +477,12 @@
 
 <script src="js/starfield.js"></script>
 <script src="js/controls.js"></script>
-<script src="js/readouts.js"></script>
 <script src="js/throttle.js"></script>
 <script src="js/parallax.js"></script>
 <script src="js/window-scenes.js"></script>
 <script src="js/power.js"></script>
 <script src="js/timer.js"></script>
+<script src="js/instruments.js"></script>
 <!-- ink runtime, CDN-loaded (unpkg mirrors npm) rather than vendored —
      see AGENTS.md's "The cutscene system" for why. Pinned to an exact
      version so a future inkjs release can't silently change behavior

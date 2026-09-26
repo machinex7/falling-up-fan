@@ -291,8 +291,44 @@ button.tile {
   animation: lamp-pulse 3.4s ease-in-out infinite;
 }
 
-/* gauge tile */
+/* gauge tile — a 270° arc dial. Colors come from three custom
+   properties (amber by default) that the warning levels swap, the same
+   "pick the color, share the look" idea as the alert lamps' --lamp. */
 .tile.gauge svg { width: clamp(26px, 7vw, 40px); height: auto; }
+/* .wide: the readout's 4-column footprint (the Power dial took over the
+   Power readout's slot). Not the .span-4 utility — .tile's own
+   `grid-column: span 2` comes later in this file and beats it. */
+.tile.gauge.wide { grid-column: span 4; }
+.tile.gauge {
+  --gauge: var(--amber);
+  --gauge-led: var(--led-amber);
+  --gauge-track: #3a2408;
+  --gauge-glow: var(--amber-glow);
+}
+.tile.gauge[data-level="warn"]     { --gauge: var(--yellow); --gauge-led: var(--yellow); --gauge-track: #3a3208; --gauge-glow: var(--yellow-glow); }
+.tile.gauge[data-level="critical"] { --gauge: var(--red);    --gauge-led: var(--red);    --gauge-track: #3a0e0e; --gauge-glow: var(--red-glow); }
+.gauge-track,
+.gauge-arc {
+  fill: none;
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+.gauge-track { stroke: var(--gauge-track); }
+.gauge-arc {
+  stroke: var(--gauge);
+  filter: drop-shadow(0 0 2px var(--gauge-glow));
+  transition: stroke-dasharray 0.5s cubic-bezier(0.4,0,0.2,1), stroke 0.3s;
+}
+/* the "what you have now" arc behind the projected one: same color,
+   faint, no glow — the visible sliver past the bright arc is this
+   scene's cost */
+.gauge-arc.ghost { opacity: 0.3; filter: none; }
+.gauge-text {
+  fill: var(--gauge-led);
+  font-family: var(--font-led);
+  font-size: 15px;
+  transition: fill 0.3s;
+}
 
 /* equalizer tile */
 .eq-bars {
@@ -387,6 +423,13 @@ button.tile {
 }
 .bar-fill.c-amber { background: linear-gradient(90deg, var(--amber), var(--led-amber)); box-shadow: 0 0 6px var(--amber-glow); }
 .bar-fill.c-cyan  { background: linear-gradient(90deg, var(--cyan),  var(--led-cyan));  box-shadow: 0 0 6px var(--cyan-glow); }
+.bar-fill.c-green { background: linear-gradient(90deg, var(--green), var(--led-green)); box-shadow: 0 0 6px var(--green-glow); }
+/* a ship-state bar (js/instruments.js) warns with the same colors as the
+   warning lights; .live follows a dragged lever closely instead of the
+   slow page-load fill */
+.bar-fill[data-level="warn"]     { background: var(--yellow); box-shadow: 0 0 6px var(--yellow-glow); }
+.bar-fill[data-level="critical"] { background: var(--red);    box-shadow: 0 0 6px var(--red-glow); }
+.bar-fill.live { transition-duration: 0.25s; }
 
 /* alert light tile — small round lamp, off by default */
 .alert-lamp {
@@ -398,13 +441,22 @@ button.tile {
   box-shadow: inset 0 0 3px rgba(0,0,0,0.85);
 }
 .tile.alert { cursor: pointer; }
-.tile.alert.is-alert .alert-lamp {
-  background: var(--red);
-  border-color: var(--red);
-  box-shadow: 0 0 9px 2px var(--red-glow), inset 0 0 2px rgba(255,255,255,0.4);
+/* Lit states. .is-alert is the decorative click-toggle (js/controls.js);
+   data-level is set by js/instruments.js from a ship-state variable
+   (warn = yellow, critical = red). Each state only picks the lamp
+   color — the lit look itself is shared. .is-acked (clicking a
+   data-level lamp) stops the blink but leaves it lit. */
+.tile.alert.is-alert,
+.tile.alert[data-level="critical"] { --lamp: var(--red);    --lamp-glow: var(--red-glow); }
+.tile.alert[data-level="warn"]     { --lamp: var(--yellow); --lamp-glow: var(--yellow-glow); }
+.tile.alert:is(.is-alert, [data-level="warn"], [data-level="critical"]) .alert-lamp {
+  background: var(--lamp);
+  border-color: var(--lamp);
+  box-shadow: 0 0 9px 2px var(--lamp-glow), inset 0 0 2px rgba(255,255,255,0.4);
   animation: alert-blink 1s steps(1, jump-end) infinite;
 }
-.tile.alert.is-alert .tile-label { color: var(--red); }
+.tile.alert:is(.is-alert, [data-level="warn"], [data-level="critical"]) .tile-label { color: var(--lamp); }
+.tile.alert.is-acked .alert-lamp { animation: none; }
 
 /* #comms-tile — the same round .push-btn/.btn-lens component every
    toggle button uses (console.css's push-btn section above), not the
@@ -530,11 +582,34 @@ button.tile {
 }
 
 /* throttle tile — vertical drag lever, 2 columns wide */
-.tile.throttle { grid-column: span 4; }
+/* two rows tall, like LAUNCH, so the lever has real travel; the track
+   stretches to fill whatever height the tile gets (grid rows are 1fr,
+   so a fixed track height would just be squashed) */
+.tile.throttle { grid-column: span 4; grid-row: span 2; touch-action: none; cursor: ns-resize; }  /* whole tile is the drag target — see js/throttle.js */
+/* .lever: the same lever face for a ship-state control (Shield,
+   Reactor) — narrower plate, no polish-wear patch (reserved for the
+   main throttle's grip, see ::after below), and a slimmer handle that
+   travels strictly INSIDE its track: 0 sits on the floor, 1 touches
+   the top (--lever-pos, 0–1, set by js/instruments.js), so it never
+   overhangs onto the label. */
+.tile.throttle.lever { grid-column: span 2; }
+.tile.throttle.lever .throttle-handle { --handle-h: clamp(7px, 2vw, 10px); }
+/* any ship-state lever (data-stat — Shield, Reactor, and the main
+   Drive Charge lever too) sits inside its track at --lever-pos; the
+   main one keeps its full-size grip, .lever above just slims it */
+.throttle-track[data-stat] .throttle-handle {
+  --handle-h: clamp(13px, 3.6vw, 17px);
+  height: var(--handle-h);
+  transform: translateX(-50%);
+  bottom: calc((100% - var(--handle-h)) * var(--lever-pos, 0));
+}
+.tile.throttle.lever .throttle-handle::before { inset: 2px 6px; }
+.tile.throttle.lever .throttle-handle::after { content: none; }
 .throttle-track {
   position: relative;
   width: clamp(22px, 6vw, 30px);
-  height: clamp(64px, 16vw, 96px);
+  flex: 1 1 0;
+  min-height: 0;
   border-radius: 5px;
   background: var(--bezel-lo);
   border: 1px solid var(--bezel);

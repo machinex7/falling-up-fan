@@ -8,6 +8,17 @@
 (function () {
   document.querySelectorAll('.tile').forEach(tile => {
     const toggle = tile.querySelector('.toggle-btn');
+    // data-stat toggles are ship state (e.g. SGNL BST): ask the story to
+    // flip it rather than flipping locally — js/instruments.js lights the
+    // button once the ink value actually changes.
+    if (toggle && tile.dataset.stat) {
+      tile.addEventListener('click', () => {
+        document.dispatchEvent(new CustomEvent('control:set', {
+          detail: { name: tile.dataset.stat, value: !toggle.classList.contains('is-on') },
+        }));
+      });
+      return;
+    }
     if (toggle) {
       tile.addEventListener('click', () => {
         toggle.classList.toggle('is-on');
@@ -27,7 +38,9 @@
       });
       return;
     }
-    if (tile.classList.contains('alert')) {
+    // data-stat lamps are driven by ship state (js/instruments.js owns
+    // their clicks too), so only the purely decorative ones toggle here
+    if (tile.classList.contains('alert') && !tile.dataset.stat) {
       tile.addEventListener('click', () => tile.classList.toggle('is-alert'));
     }
   });
