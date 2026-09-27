@@ -107,9 +107,11 @@ css/
                      above and CSS source order decides that fight
 js/
   starfield.js       canvas starfield IIFE, sized to #window via
-                     ResizeObserver — now mounted inside #scene-space
-                     rather than being #window's only background, but
-                     otherwise unchanged
+                     ResizeObserver, mounted inside #scene-space. Stars
+                     have depth and fly outward past the viewer in
+                     the ENGAGED flight mode ('ship:movement'): still
+                     when stopped, a slow drift in thruster, warp
+                     streaks in sideSpace — see "Flight modes" below
   controls.js        toggle/knob/alert click handling on .tile; a
                      toggle tile with data-stat (SGNL BST) sends
                      'control:set' to the story instead of flipping
@@ -582,6 +584,17 @@ LAUNCH (thruster/sideSpace, not STOP) also spends the drive charge:
 `engage()` resets `drive` to 0 via `set_drive(0)`, so the Drive Charge
 lever drops back down and has to be pushed up again for the next one.
 
+**The starfield shows the engaged mode.** `js/starfield.js` listens for
+`'ship:movement'` and moves the stars through a simple 3D field (x/y
+projected by dividing by depth z), so flying forward pushes them outward
+from the center of the view: `SPEEDS` there sets stopped (0), thruster
+(a slow drift, roughly 10px/s for a typical star on desktop) and
+sideSpace (fast). Above `STREAK_MIN` each star is drawn as a line from
+where it was `STREAK_S` seconds ago — the warp streaks. Speed eases
+toward the new target (`EASE`), so engaging spools up and STOP winds
+down rather than cutting. Stars that pass the viewer or leave the frame
+are recycled at the far plane and fade in, so the density stays even.
+
 **Images wait for the launch.** If a scene's `# image:` tag lands in the
 same beat (the lines gathered between two choice points) as a
 `movement` order the pilot hasn't engaged, `js/story.js` holds the image
@@ -881,8 +894,9 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
   are still the plain decorative red click-toggle (`.is-alert`). The ENGAGED
   flight mode (`engaged_movement`, not the ordered `movement` — see
   "Flight modes") sets `body[data-movement]` and dispatches a
-  `'ship:movement'` DOM event (`detail.mode`) — nothing reacts to it visually yet, that's the hook for
-  whatever each mode should look like. For one-off *effects* (as opposed
+  `'ship:movement'` DOM event (`detail.mode`) — `js/starfield.js`
+  reacts to it (see "Flight modes"); it's also the hook for anything
+  else each mode should look like. For one-off *effects* (as opposed
   to state), ink's `EXTERNAL` + `story.BindExternalFunction()` is the
   matching mechanism — nothing uses it yet.
 
