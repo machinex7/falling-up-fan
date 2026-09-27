@@ -577,9 +577,10 @@ Plumbing: `js/story.js` observes both variables and, in the same
 microtask batch as `DERIVED_STATS`, dispatches `'ship:flight'`
 (`{ ordered, engaged, ready }`) for `js/power.js`. A press sends
 `'control:engage'`, and story.js runs ink's `engage()`, which
-re-checks `launch_ready()` itself, so the rules live only in ink. The
-drive charge is NOT reset by engaging — change that in `engage()` if a
-launch should spend the charge.
+re-checks `launch_ready()` itself, so the rules live only in ink. A
+LAUNCH (thruster/sideSpace, not STOP) also spends the drive charge:
+`engage()` resets `drive` to 0 via `set_drive(0)`, so the Drive Charge
+lever drops back down and has to be pushed up again for the next one.
 
 ## The mission timer
 

@@ -137,7 +137,8 @@
 //                           Charge lever is all the way up (drive 100);
 //                           set the other levers (reactor etc.) as
 //                           desired first — pressing it spends
-//                           power_cost() power.
+//                           power_cost() power and drains the drive
+//                           charge back to 0.
 //     stopped               reads STOP, always pressable, costs nothing.
 //   The very first press (the launch out of the silo) is the exception:
 //   no criteria, no power, and it doesn't touch either variable.
@@ -231,6 +232,10 @@ Copy. Handler out — check in again next relay.
     ~ return false
 }
 ~ power = projected_power()
+// a launch spends the drive's charge; STOP leaves it alone
+{ movement != stopped:
+    ~ set_drive(0)
+}
 ~ engaged_movement = movement
 ~ return true
 
