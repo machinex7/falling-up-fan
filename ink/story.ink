@@ -22,6 +22,11 @@
 //   # image: clear
 //       Fades an image (path under images/scenes/) in over the
 //       starfield. No value, or `clear`, fades it back out.
+//       If the scene has ordered a flight mode the pilot hasn't engaged
+//       yet (see FLIGHT MODES), the image waits until they press
+//       LAUNCH/STOP — set `movement` in the same beat as the tag
+//       (before or after it, either works). `clear` always applies
+//       right away.
 //
 //   # countdown: 300
 //       Seconds until the next scene. Starts once the conversation

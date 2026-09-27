@@ -582,6 +582,16 @@ LAUNCH (thruster/sideSpace, not STOP) also spends the drive charge:
 `engage()` resets `drive` to 0 via `set_drive(0)`, so the Drive Charge
 lever drops back down and has to be pushed up again for the next one.
 
+**Images wait for the launch.** If a scene's `# image:` tag lands in the
+same beat (the lines gathered between two choice points) as a
+`movement` order the pilot hasn't engaged, `js/story.js` holds the image
+(`heldImage`) and only fades it in once `'ship:flight'` bookkeeping
+sees ordered === engaged — i.e. right after the LAUNCH/STOP press. That
+works because image tags are queued per beat (`queuedImage`) and
+settled in `resolveImage()` after `runContinueLoop()`, rather than
+applied line by line, so tag-vs-`~ movement =` order within the beat
+doesn't matter. `# image: clear` is never held.
+
 ## The mission timer
 
 `.tile.timer` (markup right before LAUNCH in `#deck-grid`, styling in

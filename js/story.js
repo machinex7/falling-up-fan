@@ -133,6 +133,11 @@
       console.warn(`story: unknown movement mode "${bad}" — expected one of ${MOVEMENT_MODES.join(', ')}`);
       return;
     }
+    // the pilot just engaged the ordered mode: show the image held for it
+    if (heldImage !== null && ordered === engaged) {
+      showSceneObject(heldImage);
+      heldImage = null;
+    }
     const ready = Boolean(story.EvaluateFunction('launch_ready'));
     document.dispatchEvent(new CustomEvent('ship:flight', { detail: { ordered, engaged, ready } }));
     if (engaged === lastEngaged) return;
@@ -174,6 +179,27 @@
     logEl.scrollTop = logEl.scrollHeight;
   }
 
+  // `# image:` tags aren't applied the moment they're read: the last one
+  // in a beat is queued (queuedImage — a path, or null for clear) and
+  // settled once the beat is gathered (resolveImage), so it doesn't
+  // matter whether the scene sets `movement` before or after the tag.
+  // If that beat left a flight mode change pending, a new image is HELD
+  // (heldImage) until the pilot presses the big button and engages it —
+  // it's what's outside the window once the ship gets there. A clear is
+  // never held: it hides the image now and drops any held one.
+  let queuedImage;       // undefined = no image tag this beat
+  let heldImage = null;
+
+  function resolveImage(story) {
+    if (queuedImage === undefined) return;
+    const next = queuedImage;
+    queuedImage = undefined;
+    heldImage = null;
+    if (next === null) clearSceneObject();
+    else if (story.EvaluateFunction('launch_pending')) heldImage = next;
+    else showSceneObject(next);
+  }
+
   // Applies every tag attached to the line ink just produced (see
   // ink/story.ink's header comment for the full tag list). `# image:` with no value (or the word `clear`) hides
   // #scene-object instead of pointing it at a new src — the two are the
@@ -186,8 +212,7 @@
       const value = sep === -1 ? '' : tag.slice(sep + 1).trim();
       if (key === 'contact') currentContact = value;
       else if (key === 'image') {
-        if (value === '' || value.toLowerCase() === 'clear') clearSceneObject();
-        else showSceneObject(value);
+        queuedImage = value === '' || value.toLowerCase() === 'clear' ? null : value;
       }
       else if (key === 'countdown') pendingCountdown = Number(value);
     });
@@ -203,6 +228,7 @@
       applyTags(story.currentTags || []);
       if (text) appendLine(currentContact, text, false);
     }
+    resolveImage(story);
   }
 
   function renderEnded() {
