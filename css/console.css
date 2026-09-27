@@ -503,12 +503,11 @@ button.tile {
    buttons) instead of off, since it's the only thing still lit while
    #cockpit is unpowered — js/power.js flips it to a steady green
    glow once pressed instead of dimming like everything else does.
-   js/power.js also disables the element right after that first press
-   — launching is one-way for now, nothing to wire back up to yet —
-   so :disabled gets its own cursor rather than inheriting the
-   clickable one below; the green "systems nominal" look otherwise
-   stays exactly as-is (disabled reads as "already launched," not
-   "broken"). */
+   After that first press it's disabled whenever there's no flight
+   mode to engage (see data-flight below), so :disabled gets its own
+   cursor rather than inheriting the clickable one below; the green
+   "systems nominal" look otherwise stays exactly as-is (disabled
+   reads as "nothing to do," not "broken"). */
 .tile.launch {
   grid-column: 7 / 11;
   grid-row: 2 / 4;
@@ -550,6 +549,52 @@ button.tile {
 #cockpit.powered .tile.launch .tile-label {
   color: var(--led-green);
   text-shadow: 0 0 8px var(--green-glow);
+}
+
+/* after the initial launch the big button engages flight modes
+   (js/power.js sets data-flight while the story has ordered a mode
+   the ship isn't in yet — see ink/story.ink's FLIGHT MODES):
+     charging  LAUNCH ordered, drive not full yet — disabled, amber
+               idle pulse ("waiting on you"), like before launch
+     ready     LAUNCH pressable — the big green button, blinking
+     stop      STOP, always pressable — red, blinking
+   With nothing ordered it's the steady green "Launched" above. */
+#cockpit.powered .tile.launch[data-flight="charging"] .btn-lens {
+  --lens-hi: var(--led-amber);
+  --lens: var(--amber);
+  --lens-lo: #3d2607;
+  --btn-glow: var(--amber-glow);
+  animation: lamp-pulse 3.4s ease-in-out infinite;
+}
+#cockpit.powered .tile.launch[data-flight="charging"] .tile-label {
+  color: var(--led-amber);
+  text-shadow: 0 0 6px var(--amber-glow);
+}
+#cockpit.powered .tile.launch[data-flight="ready"] .btn-lens {
+  animation: alert-blink 1s steps(1, jump-end) infinite;
+}
+#cockpit.powered .tile.launch[data-flight="stop"] .btn-lens {
+  --lens-hi: #ff8a7a;
+  --lens: var(--red);
+  --lens-lo: #3a0c0c;
+  --btn-glow: var(--red-glow);
+  animation: alert-blink 1s steps(1, jump-end) infinite;
+}
+#cockpit.powered .tile.launch[data-flight="stop"] .tile-label {
+  color: #ff8a7a;
+  text-shadow: 0 0 8px var(--red-glow);
+}
+/* the mode being asked for ("▸ Thruster") or, with nothing pending,
+   the one engaged — empty before the initial launch */
+.tile.launch .launch-mode {
+  font-family: var(--font-led);
+  font-size: clamp(0.4rem, 1.8vw, 0.7rem);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--led-cyan);
+  text-shadow: 0 0 5px var(--cyan-glow);
+  white-space: nowrap;
+  min-height: 1em;
 }
 
 /* UNPOWERED — every deck tile but LAUNCH and the three band-info nav

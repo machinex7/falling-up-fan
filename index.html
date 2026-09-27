@@ -231,13 +231,16 @@
             <div class="tile-label">Countdown</div>
           </div>
 
-          <!-- LAUNCH — powers the whole console on/off (js/power.js).
+          <!-- LAUNCH — the first press powers the console on and launches
+               out of the silo; after that it engages whatever flight
+               mode the story orders (LAUNCH / STOP — js/power.js).
                Same push-btn/btn-lens component as the toggles below,
                just bigger, and the only tile still lit while the ship
-               is unpowered. -->
+               is unpowered. #launch-mode: the ordered or engaged mode. -->
           <button type="button" id="launch-tile" class="tile launch">
             <div class="push-btn round launch-btn"><div class="btn-lens amber"></div></div>
             <div class="tile-label" id="launch-label">Launch</div>
+            <div class="launch-mode" id="launch-mode"></div>
           </button>
 
           <!-- row 2: the real links + more instruments -->

@@ -107,9 +107,11 @@ css/
                      above and CSS source order decides that fight
 js/
   starfield.js       canvas starfield IIFE, sized to #window via
-                     ResizeObserver — now mounted inside #scene-space
-                     rather than being #window's only background, but
-                     otherwise unchanged
+                     ResizeObserver, mounted inside #scene-space. Stars
+                     have depth and fly outward past the viewer in
+                     the ENGAGED flight mode ('ship:movement'): still
+                     when stopped, a slow drift in thruster, warp
+                     streaks in sideSpace — see "Flight modes" below
   controls.js        toggle/knob/alert click handling on .tile; a
                      toggle tile with data-stat (SGNL BST) sends
                      'control:set' to the story instead of flipping
@@ -131,9 +133,11 @@ js/
                      .is-active) plus the one scene transition that
                      exists so far — silo -> ascent -> space, played
                      once on the 'ship:launch' DOM event
-  power.js           the ship's powered/unpowered state (LAUNCH
-                     button, a one-way press that disables itself);
-                     dispatches 'ship:launch' on that press
+  power.js           the big LAUNCH button: its first press powers
+                     the ship on and dispatches 'ship:launch'; after
+                     that it engages the story's ordered flight mode
+                     (LAUNCH / STOP) via 'control:engage' — see
+                     "Flight modes" below
   timer.js           the console's mission countdown (dd:hh:mi:ss),
                      idle at 00:00:15:00 until 'ship:launch' fires,
                      then ticks down once a second and dispatches
@@ -537,17 +541,69 @@ cockpit at rest; `#cockpit.powered .tile.launch .btn-lens` overrides
 that to a steady green glow (the `.toggle-btn.is-on` "systems nominal"
 color), and the caption switches from "Launch" to "Launched" to match.
 
-Pressing it is **one-way**: `js/power.js` sets the button's own
-`disabled` attribute right after the first press, rather than toggling
-back to an unpowered state on a second press (an earlier version did
-toggle both ways). There's nothing yet for a second press to do —
-revisit this once shutdown/relaunch or some other post-launch action
-is actually wired up, rather than re-adding a toggle with no real
-second state behind it. `disabled` also is what makes power.js's
-`ship:launch` dispatch (below) safe to fire unconditionally on click,
-with no "did this already happen" guard needed in JS: the browser
-itself won't deliver a second `click` event to a disabled button, not
-even a synthetic/forced one.
+Powering on is **one-way** — there's no shutdown. After the first
+press the same button becomes the flight-mode control (see "Flight
+modes" below), so `js/power.js` tracks a `launched` flag: the first
+click does the power-on + `'ship:launch'` (so that event still fires
+exactly once), every later click only sends `'control:engage'`.
+Between those, the button is `disabled` whenever there's nothing to
+engage (the browser won't deliver a `click` to a disabled button, not
+even a synthetic/forced one).
+
+## Flight modes
+
+The story ORDERS a flight mode; the pilot ENGAGES it. `movement` (ink
+`LIST`: `stopped`, `thruster`, `sideSpace`) is the order — setting it
+engages nothing. `engaged_movement` (same list, a `VAR`) is what the
+ship is actually in, and only ink's `engage()` changes it. While they
+differ, the big button asks for the ordered mode:
+
+- **thruster / sideSpace** → reads LAUNCH (`data-flight="charging"`,
+  amber pulse, disabled) until ink's `launch_ready()` is true — the
+  Drive Charge lever all the way up (`drive >= 100`) — then
+  `data-flight="ready"`, blinking green, pressable. The pilot sets the
+  other levers (reactor etc.) as desired before pressing, since the
+  press spends `power_cost()` (Reactor lever ÷ 4) from `power`.
+- **stopped** → reads STOP (`data-flight="stop"`, blinking red), always
+  pressable, costs nothing.
+
+With nothing pending it's disabled, steady green, captioned with the
+engaged mode; `#launch-mode` under the caption shows "▸ <ordered mode>"
+while one is pending. **This is the only place power is spent** —
+scenes no longer cost anything on their own (the old per-scene
+`consume_power()` is gone). **The initial launch is the exception:** no
+criteria, no power, and it doesn't touch either variable (the ship is
+`stopped` after the ascent).
+
+Plumbing: `js/story.js` observes both variables and, in the same
+microtask batch as `DERIVED_STATS`, dispatches `'ship:flight'`
+(`{ ordered, engaged, ready }`) for `js/power.js`. A press sends
+`'control:engage'`, and story.js runs ink's `engage()`, which
+re-checks `launch_ready()` itself, so the rules live only in ink. A
+LAUNCH (thruster/sideSpace, not STOP) also spends the drive charge:
+`engage()` resets `drive` to 0 via `set_drive(0)`, so the Drive Charge
+lever drops back down and has to be pushed up again for the next one.
+
+**The starfield shows the engaged mode.** `js/starfield.js` listens for
+`'ship:movement'` and moves the stars through a simple 3D field (x/y
+projected by dividing by depth z), so flying forward pushes them outward
+from the center of the view: `SPEEDS` there sets stopped (0), thruster
+(a slow drift, roughly 10px/s for a typical star on desktop) and
+sideSpace (fast). Above `STREAK_MIN` each star is drawn as a line from
+where it was `STREAK_S` seconds ago — the warp streaks. Speed eases
+toward the new target (`EASE`), so engaging spools up and STOP winds
+down rather than cutting. Stars that pass the viewer or leave the frame
+are recycled at the far plane and fade in, so the density stays even.
+
+**Images wait for the launch.** If a scene's `# image:` tag lands in the
+same beat (the lines gathered between two choice points) as a
+`movement` order the pilot hasn't engaged, `js/story.js` holds the image
+(`heldImage`) and only fades it in once `'ship:flight'` bookkeeping
+sees ordered === engaged — i.e. right after the LAUNCH/STOP press. That
+works because image tags are queued per beat (`queuedImage`) and
+settled in `resolveImage()` after `runContinueLoop()`, rather than
+applied line by line, so tag-vs-`~ movement =` order within the beat
+doesn't matter. `# image: clear` is never held.
 
 ## The mission timer
 
@@ -712,7 +768,8 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
 
   **Ship state lives in ink variables, not tags.** `hull`, `power`,
   `reactor`, `shield`, `cargo` (`VAR`s, 0–100) and `movement` (a `LIST`: `stopped`,
-  `thruster`, `sideSpace`) are declared at the top of `ink/story.ink`;
+  `thruster`, `sideSpace` — the ORDERED flight mode) plus
+  `engaged_movement` (see "Flight modes") are declared at the top of `ink/story.ink`;
   `js/story.js` binds to them with `story.ObserveVariable()`, so the page
   updates whenever the story writes one, with no tag involved. An earlier
   pass also had `# hull:`/`# power:`/`# reactor:`/`# movement:` tags that
@@ -784,21 +841,22 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
   decorative Shield toggle button was removed so there's one Shield
   control.
 
-  **Power is spent per scene, previewed live** (the user's model):
-  `power` (starts at 100) is a pool. Each scene costs `power_cost()` =
-  the Reactor LEVER SETTING ÷ `REACTOR_PER_POWER` (4), whole-number
+  **Power is spent per LAUNCH, previewed live** (the user's model):
+  `power` (starts at 100) is a pool. Engaging thruster/sideSpace with
+  the big button (see "Flight modes") costs `power_cost()` = the
+  Reactor LEVER SETTING ÷ `REACTOR_PER_POWER` (4), whole-number
   division — deliberately the limit, not the load, so a reactor turned
-  up costs power even if idle. The Power dial (a `.tile.gauge`,
+  up costs power even if idle. `power_cost()` is 0 while no such
+  launch is pending, so the dial only shows a cost when there is one. The Power dial (a `.tile.gauge`,
   top-left, replacing the old digit readout by explicit call) draws two
   arcs on one track: a faint `.ghost` arc for current `power`
   (`#gauge-power-arc`) and a bright arc plus number for
   `projected_power()` (`#gauge-projected_power-arc`/`-text`), so the
-  sliver between them is this scene's cost — the dial shows
+  sliver between them is the pending launch's cost — the dial shows
   `projected_power()` = `MAX(0, power - power_cost())`, i.e. what
-  Power WILL be, updating live as the levers move; the real `power` VAR
-  only drops when the scene's conversation ends — `js/story.js`'s
-  `finishBeat()` calls ink's `consume_power()` at the leaf (safe: ink
-  has finished evaluating). Nothing happens at 0 power yet; penalties
+  Power WILL be after the pending launch, updating live as the levers
+  move; the real `power` VAR only drops inside ink's `engage()`.
+  Nothing happens at 0 power yet; penalties
   are the story's to add later. The dial tile carries
   `data-stat="projected_power"`, so `instruments.js` tints it by
   `THRESHOLDS.projected_power` (yellow below 30, red below 10) through
@@ -833,10 +891,12 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
   the blink but leaves it lit in its color; the ack clears whenever the
   severity changes (worse OR better), so a new condition always flashes
   again. `js/controls.js` skips `data-stat` tiles; tiles without it (Nav)
-  are still the plain decorative red click-toggle (`.is-alert`). `movement` sets
-  `body[data-movement]` and dispatches a `'ship:movement'` DOM event
-  (`detail.mode`) — nothing reacts to it visually yet, that's the hook for
-  whatever each mode should look like. For one-off *effects* (as opposed
+  are still the plain decorative red click-toggle (`.is-alert`). The ENGAGED
+  flight mode (`engaged_movement`, not the ordered `movement` — see
+  "Flight modes") sets `body[data-movement]` and dispatches a
+  `'ship:movement'` DOM event (`detail.mode`) — `js/starfield.js`
+  reacts to it (see "Flight modes"); it's also the hook for anything
+  else each mode should look like. For one-off *effects* (as opposed
   to state), ink's `EXTERNAL` + `story.BindExternalFunction()` is the
   matching mechanism — nothing uses it yet.
 
