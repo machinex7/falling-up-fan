@@ -197,12 +197,13 @@ button.tile {
 .tile-label {
   --label-size: clamp(0.45rem, 1.9vw, 0.72rem);
   font-size: var(--label-size);
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  font-weight: 600;
+  letter-spacing: 0.07em;
   line-height: 1.05;
   text-transform: uppercase;
   color: var(--ink);
-  text-shadow: 0 1px 1px rgba(0,0,0,0.85);
+  /* hard 1px edge, no blur: a blurred shadow softened the glyphs */
+  text-shadow: 0 1px 0 rgba(0,0,0,0.7);
   white-space: nowrap;
 }
 /* Phone tiles are only a couple dozen px wide — too narrow for the
@@ -224,8 +225,8 @@ button.tile {
   font-size: clamp(0.85rem, 3.8vw, 1.3rem);
   line-height: 1;
 }
-.tile.readout.c-amber .r-value { color: var(--led-amber); text-shadow: 0 0 6px var(--amber-glow); }
-.tile.readout.c-green .r-value { color: var(--led-green); text-shadow: 0 0 6px var(--green-glow); }
+.tile.readout.c-amber .r-value { color: var(--led-amber); text-shadow: 0 0 2px var(--amber-glow); }
+.tile.readout.c-green .r-value { color: var(--led-green); text-shadow: 0 0 2px var(--green-glow); }
 
 /* ── hard-plastic pushbutton — a raised black bezel socketing a
    smaller colored lens (.btn-lens), the way a real panel-mount
@@ -513,7 +514,7 @@ button.tile {
   letter-spacing: 0.02em;
   line-height: 1;
   color: var(--led-cyan);
-  text-shadow: 0 0 6px var(--cyan-glow);
+  text-shadow: 0 0 2px var(--cyan-glow);
   white-space: nowrap;
 }
 
@@ -558,7 +559,7 @@ button.tile {
   font-weight: 700;
   letter-spacing: 0.1em;
   color: var(--led-amber);
-  text-shadow: 0 0 6px var(--amber-glow);
+  text-shadow: 0 0 3px var(--amber-glow);
 }
 
 /* powered: the one control that goes from idle-pulsing TO a steadier
@@ -572,7 +573,7 @@ button.tile {
 }
 #cockpit.powered .tile.launch .tile-label {
   color: var(--led-green);
-  text-shadow: 0 0 8px var(--green-glow);
+  text-shadow: 0 0 3px var(--green-glow);
 }
 
 /* after the initial launch the big button engages flight modes
@@ -592,7 +593,7 @@ button.tile {
 }
 #cockpit.powered .tile.launch[data-flight="charging"] .tile-label {
   color: var(--led-amber);
-  text-shadow: 0 0 6px var(--amber-glow);
+  text-shadow: 0 0 3px var(--amber-glow);
 }
 #cockpit.powered .tile.launch[data-flight="ready"] .btn-lens {
   animation: alert-blink 1s steps(1, jump-end) infinite;
@@ -606,7 +607,7 @@ button.tile {
 }
 #cockpit.powered .tile.launch[data-flight="stop"] .tile-label {
   color: #ff8a7a;
-  text-shadow: 0 0 8px var(--red-glow);
+  text-shadow: 0 0 3px var(--red-glow);
 }
 /* the mode being asked for ("▸ Thruster") or, with nothing pending,
    the one engaged — empty before the initial launch */
@@ -616,7 +617,7 @@ button.tile {
   letter-spacing: 0.02em;
   text-transform: uppercase;
   color: var(--led-cyan);
-  text-shadow: 0 0 5px var(--cyan-glow);
+  text-shadow: 0 0 2px var(--cyan-glow);
   white-space: nowrap;
   min-height: 1em;
 }

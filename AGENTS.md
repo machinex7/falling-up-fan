@@ -280,6 +280,16 @@ that. Wrapping captions onto two lines was tried first and rejected: it
 squashed the buttons above them. If you add or rename a caption, check
 for label collisions at 360px and give it a `data-short` if needed.
 
+A follow-up "the characters look fuzzy" report had three causes. First,
+the console's 3D tilt resamples its text. That's left alone for now by
+explicit call; lowering the angle is the fix if it comes back. Second,
+6–8px `text-shadow` glows on the LED digits smeared the pixel font.
+Those are now 2px (3px on LAUNCH's larger caption), which still reads
+as lit. Third, the captions were bold, condensed and tightly tracked,
+so they're now weight 600 with wider letter-spacing and a hard 1px
+drop edge instead of a blurred one. Keep new LED text on a small glow,
+and never add a blurred shadow to small text.
+
 ## Every tile is a mount plate now
 
 `.tile`'s own background/padding/box-shadow *is* the mount plate — no
