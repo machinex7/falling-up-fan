@@ -314,7 +314,7 @@ button.tile {
 /* gauge tile — a 270° arc dial. Colors come from three custom
    properties (amber by default) that the warning levels swap, the same
    "pick the color, share the look" idea as the alert lamps' --lamp. */
-.tile.gauge svg { width: clamp(26px, 7vw, 40px); height: auto; }
+.tile.gauge svg { width: clamp(22px, 6vw, 28px); height: auto; flex: none; }
 /* .wide: the readout's 4-column footprint (the Power dial took over the
    Power readout's slot). Not the .span-4 utility — .tile's own
    `grid-column: span 2` comes later in this file and beats it. */
@@ -343,11 +343,23 @@ button.tile {
    faint, no glow — the visible sliver past the bright arc is this
    scene's cost */
 .gauge-arc.ghost { opacity: 0.3; filter: none; }
+/* dial + number side by side. The number used to be SVG text inside
+   the dial, which scaled down with it to a few px tall on short tiles;
+   as HTML beside the dial it's sized like the other readouts' digits. */
+.gauge-face {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 0;
+}
 .gauge-text {
-  fill: var(--gauge-led);
   font-family: var(--font-led);
-  font-size: 15px;
-  transition: fill 0.3s;
+  font-size: clamp(0.85rem, 3.8vw, 1.3rem);
+  line-height: 1;
+  color: var(--gauge-led);
+  text-shadow: 0 0 2px var(--gauge-glow);
+  transition: color 0.3s;
 }
 
 /* equalizer tile */

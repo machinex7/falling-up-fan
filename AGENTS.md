@@ -926,7 +926,10 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
   console.css. Gauges have no page-load keyframe any more — the arc's
   own `stroke-dasharray` transition does the fill-up — and
   `renderGauge()` only waits on CSS *animations*, not that transition,
-  so lever drags don't queue up behind it.
+  so lever drags don't queue up behind it. The dial's number (`#gauge-projected_power-text`)
+  is an HTML LED readout beside the SVG in `.gauge-face`, not SVG
+  `<text>` inside it. Inside the dial, it scaled down with the SVG to a
+  few px tall and was reported as unreadable.
 
   **The Reactor bar** (`#bar-reactor_use`, the cargo bar's face in the
   slot the old Reactor % readout had) fills to `reactor_use` — full

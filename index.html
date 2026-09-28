@@ -189,14 +189,18 @@
                lever settings. data-stat="projected_power" lets
                js/instruments.js tint the whole dial by warning level. -->
           <div class="tile gauge wide" data-stat="projected_power">
-            <svg viewBox="0 0 68 68">
-              <g transform="rotate(135 34 34)">
-                <circle class="gauge-track" cx="34" cy="34" r="26" stroke-dasharray="122.5 40.9"/>
-                <circle class="gauge-arc ghost" id="gauge-power-arc" cx="34" cy="34" r="26" stroke-dasharray="0 163.4"/>
-                <circle class="gauge-arc" id="gauge-projected_power-arc" cx="34" cy="34" r="26" stroke-dasharray="0 163.4"/>
-              </g>
-              <text class="gauge-text" id="gauge-projected_power-text" x="34" y="39" text-anchor="middle">88%</text>
-            </svg>
+            <div class="gauge-face">
+              <svg viewBox="0 0 68 68" aria-hidden="true">
+                <g transform="rotate(135 34 34)">
+                  <circle class="gauge-track" cx="34" cy="34" r="26" stroke-dasharray="122.5 40.9"/>
+                  <circle class="gauge-arc ghost" id="gauge-power-arc" cx="34" cy="34" r="26" stroke-dasharray="0 163.4"/>
+                  <circle class="gauge-arc" id="gauge-projected_power-arc" cx="34" cy="34" r="26" stroke-dasharray="0 163.4"/>
+                </g>
+              </svg>
+              <!-- the number sits beside the dial, not inside the SVG:
+                   inside, it shrank with the dial to a few px tall -->
+              <span class="gauge-text" id="gauge-projected_power-text">88%</span>
+            </div>
             <div class="tile-label">Power</div>
           </div>
           <div class="tile readout c-green">
