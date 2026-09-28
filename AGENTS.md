@@ -288,7 +288,11 @@ Those are now 2px (3px on LAUNCH's larger caption), which still reads
 as lit. Third, the captions were bold, condensed and tightly tracked,
 so they're now weight 600 with wider letter-spacing and a hard 1px
 drop edge instead of a blurred one. Keep new LED text on a small glow,
-and never add a blurred shadow to small text.
+and never add a blurred shadow to small text. `body` sets
+`-webkit-font-smoothing: antialiased` / `-moz-osx-font-smoothing:
+grayscale` for the light-on-dark text. It only has an effect on macOS,
+and it can't undo the tilt's resampling (text inside a 3D-transformed
+layer is always grayscale-antialiased and then scaled).
 
 ## Every tile is a mount plate now
 

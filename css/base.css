@@ -99,6 +99,12 @@ html, body {
   background: var(--bezel-lo);
   font-family: var(--font-label);
   color: var(--ink);
+  /* Light text on a dark ship: macOS's default smoothing thickens
+     light-on-dark glyphs so they look bolder and blurrier; plain
+     grayscale antialiasing keeps them thin and crisp. Mac-only —
+     every other platform ignores both properties. */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 a { color: inherit; text-decoration: none; }
