@@ -58,6 +58,10 @@
 //   signal_boost  true/false, the pilot's SGNL BST button. While on,
 //             adds SIGNAL_BOOST (50) to the Signal readout and draws
 //             SIGNAL_BOOST_COST (5) reactor points.
+//   cabin_light  true/false, the pilot's CABIN LT button. The cabin
+//             bulb (top of the screen) only glows while cabin_lit() —
+//             the switch is on AND there's power left (power > 0). It
+//             doesn't draw any power or reactor points.
 //   cargo     0–100, how full the cargo hold is (Cargo bar). Set it
 //             from the story only — no rules or warnings attached yet.
 //               ~ set_level(cargo, 40)   or   ~ adjust(cargo, -10)
@@ -97,14 +101,17 @@
 //   reactor. Nothing happens on its own when they do; any penalty is up
 //   to the story (check overloaded() / reactor_use()).
 //
+//     cabin_lit()     cabin_light and power > 0: whether the cabin
+//                     bulb is actually glowing.
 //   Warning lights flash yellow / red; clicking one stops the flashing
 //   but keeps it lit:
 //     Hull, Integrity       yellow below 70, red below 20
 //     Reactor               yellow above 80% used, red at 100% (maxed)
 //
 //   The pilot can move the Shield, Reactor and Drive Charge levers and
-//   press SGNL BST at any time after launch; those call set_shield(),
-//   set_reactor(), set_drive() and set_signal_boost() below, so they
+//   press SGNL BST / CABIN LT at any time after launch; those call
+//   set_shield(), set_reactor(), set_drive(), set_signal_boost() and
+//   set_cabin_light() below, so they
 //   obey the same rules as the story.
 //
 //   Spending power: only engage() below spends it, when the pilot
@@ -120,6 +127,7 @@
 //     ~ set_reactor(80)         same as set_level(reactor, 80)
 //     ~ set_drive(30)           same as set_level(drive, 30)
 //     ~ set_signal_boost(true)  SGNL BST on / off
+//     ~ set_cabin_light(false)  CABIN LT on / off
 //   (A plain `~ hull = 80` works too, but skips those rules — the
 //   readout caps what it shows, branches see the raw value.)
 //
@@ -162,6 +170,7 @@ VAR cargo = 72
 VAR drive = 0
 VAR signal = 40
 VAR signal_boost = false
+VAR cabin_light = true
 LIST movement = (stopped), thruster, sideSpace
 VAR engaged_movement = stopped
 
@@ -216,6 +225,9 @@ Copy. Handler out — check in again next relay.
 === function set_signal_boost(on)
 ~ signal_boost = on
 
+=== function set_cabin_light(on)
+~ cabin_light = on
+
 // ── FLIGHT MODES ───────────────────────────────────────────────────────
 // See the header. js/story.js calls engage() when the pilot presses the
 // big button after the initial launch; returns whether it engaged.
@@ -250,6 +262,10 @@ Copy. Handler out — check in again next relay.
 
 === function integrity()
 ~ return hull + shield
+
+// the bulb needs power in the pool, but never spends any
+=== function cabin_lit()
+~ return cabin_light && power > 0
 
 === function reactor_load()
 ~ temp load = shield * SHIELD_COST + drive * DRIVE_COST

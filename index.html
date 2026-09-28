@@ -26,9 +26,14 @@
   <button id="motion-enable" type="button" hidden>Enable Motion</button>
 
   <!-- ═══ PLAQUE BAR ═══ -->
+  <!-- the cabin light hangs from it: lit while ink's cabin_lit() (the
+       CABIN LT button, plus power left) — see js/cabin-light.js -->
   <div id="plaque-bar">
     <div class="rivet"></div>
-    <div class="plaque">Falling Up · Flight Deck</div>
+    <div id="cabin-light" class="cabin-light" role="img" aria-label="Cabin light: off">
+      <div class="cabin-light-mount"></div>
+      <div class="cabin-light-bulb"></div>
+    </div>
     <div class="rivet"></div>
   </div>
 
@@ -298,7 +303,9 @@
             <div class="push-btn round toggle-btn"><div class="btn-lens"></div></div>
             <div class="tile-label">Beacon</div>
           </div>
-          <div class="tile is-on">
+          <!-- ship state (ink cabin_light): same wiring as SGNL BST below;
+               the bulb itself is js/cabin-light.js -->
+          <div class="tile is-on" data-stat="cabin_light">
             <div class="push-btn round toggle-btn is-on worn"><div class="btn-lens"></div></div>
             <div class="tile-label">Cabin Lt</div>
           </div>
@@ -486,6 +493,7 @@
 <script src="js/power.js"></script>
 <script src="js/timer.js"></script>
 <script src="js/instruments.js"></script>
+<script src="js/cabin-light.js"></script>
 <!-- ink runtime, CDN-loaded (unpkg mirrors npm) rather than vendored —
      see AGENTS.md's "The cutscene system" for why. Pinned to an exact
      version so a future inkjs release can't silently change behavior

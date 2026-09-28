@@ -58,6 +58,15 @@
      changing these, not by touching individual rules. */
   --light-pos:    50% 20%;  /* radial highlight center: top, dead-center */
   --light-angle:  180deg;   /* linear gradient angle: brightest at top */
+  /* While the cabin light is on, js/cabin-light.js overrides both
+     per element (inline) so every highlight faces the bulb hanging
+     from the plaque bar; switching it off drops back to these. */
+
+  /* the cabin light's warm incandescent bulb (cockpit.css) */
+  --bulb:         #ffd88a;
+  --bulb-lo:      #e0a24a;
+  --bulb-glow:    rgba(255,210,130,0.7);
+  --bulb-wash:    rgba(255,200,120,0.12);
 
   /* cool starlight bleeding out of the window onto the console top
      and the inner wall edges nearest it (see cockpit.css) — one

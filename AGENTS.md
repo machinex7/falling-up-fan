@@ -143,6 +143,12 @@ js/
                      then ticks down once a second and dispatches
                      'timer:complete' on hitting zero — see "The
                      mission timer" below
+  cabin-light.js     the cabin bulb hanging from the plaque bar (where
+                     the old "Falling Up · Flight Deck" text was): lit
+                     while ink's cabin_lit() is true and the ship is
+                     powered, and while lit it re-aims --light-pos /
+                     --light-angle at itself — see "The cabin light"
+                     below
   instruments.js     every console instrument showing a ship-state
                      value (readouts, the Reactor usage
                      and Cargo bars, the warning lights, the Shield/Reactor lever
@@ -604,6 +610,26 @@ works because image tags are queued per beat (`queuedImage`) and
 settled in `resolveImage()` after `runContinueLoop()`, rather than
 applied line by line, so tag-vs-`~ movement =` order within the beat
 doesn't matter. `# image: clear` is never held.
+
+## The cabin light
+
+The plaque bar no longer carries text; a small dome lamp
+(`#cabin-light`, styled in cockpit.css) hangs from its center over the
+window's top bezel. The CABIN LT button is ship state like SGNL BST:
+`data-stat="cabin_light"`, ink `VAR cabin_light` + `set_cabin_light()`,
+and the bulb follows ink's `cabin_lit()` = `cabin_light && power > 0`
+(power is required but never spent — nothing adds it to
+`reactor_load()` or `power_cost()`). `js/cabin-light.js` also keeps the
+bulb dark until `#cockpit.powered`.
+
+While lit, the bulb is the scene's light source: `js/cabin-light.js`
+sets `--light-pos`/`--light-angle` inline on every `.hull`, `.tile`,
+`.knob`, `.push-btn`, `.bolt` and `.rivet`, computed from that
+element's on-screen position relative to the bulb (re-aimed on resize),
+so highlights face the bulb. Switching it off removes the overrides and
+base.css's defaults apply again. A new element that paints a highlight
+from those variables needs adding to `LIT_SELECTOR` there if it isn't
+inside one of those already.
 
 ## The mission timer
 
