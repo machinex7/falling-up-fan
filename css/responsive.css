@@ -3,12 +3,20 @@
    phones and up; more room brings more deck
 ═══════════════════════════════════════════ */
 
+/* wide enough for full-word captions (see .tile-label in console.css) */
+@media (min-width: 680px) {
+  #deck-grid { column-gap: 6px; }
+  .tile-label[data-short] { font-size: var(--label-size); }
+  .tile-label[data-short]::after { content: none; }
+}
+
 /* tablets/desktop: fixed-width walls with fuller instrument clusters */
 @media (min-width: 900px) {
   :root { --wall-w: 150px; --wall-tilt: 26deg; --seam-w: 6px; }
   #plaque-bar { flex-basis: 32px; }
-  .plaque { font-size: 0.68rem; }
+  .cabin-light-bulb { width: 28px; height: 14px; }
   #forward { max-width: 1040px; margin: 0 auto; }
   .wall-extra.tier2 { display: flex; }
   .side-label { display: block; }
+  .tile-label { letter-spacing: 0.1em; }
 }

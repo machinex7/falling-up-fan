@@ -1,7 +1,15 @@
 /* ═══════════════════════════════════════════
    COCKPIT SHELL
 ═══════════════════════════════════════════ */
+/* in space (js/window-scenes.js) with the cabin light off
+   (js/cabin-light.js): only starlight and the panel's own LEDs light
+   the cabin, so the metal goes darker */
+#cockpit.in-space:not(.cabin-lit) { --shade: 0.6; }
+
 #cockpit {
+  /* cabin shade (see base.css's --shade): dark metal once we're out in
+     space with the cabin light off */
+  transition: --shade 1.2s ease;
   width: 100%;
   height: 100%;
   display: flex;
@@ -49,19 +57,61 @@
   border-bottom: 2px solid var(--bezel-lo);
 }
 
-.plaque {
-  font-size: 0.56rem;
-  font-weight: 600;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--ink);
+/* ── the cabin light (js/cabin-light.js) ──
+   A small dome lamp hanging from the plaque bar's center, where the old
+   "Falling Up · Flight Deck" plaque text used to be. .cabin-light is a
+   zero-height anchor in the bar's flex row so the bar keeps its size;
+   the mount plate and glass dome hang below it, over the top of the
+   window bezel. Off: dark, cold glass. .is-lit (ink cabin_lit(), and
+   only once #cockpit is powered): warm glow spilling downward — and
+   js/cabin-light.js re-aims --light-pos/--light-angle at the bulb. */
+#plaque-bar { position: relative; z-index: 20; }
+
+.cabin-light {
+  position: relative;
+  align-self: stretch;
+  width: 34px;
+  flex: none;
+}
+
+.cabin-light-mount {
+  position: absolute;
+  left: 0; right: 0;
+  bottom: -3px;
+  height: 7px;
+  border-radius: 2px 2px 4px 4px;
+  background: linear-gradient(var(--light-angle), var(--metal-hi), var(--metal) 55%, var(--metal-lo));
+  box-shadow: 0 0 0 1px var(--bezel-lo), 0 2px 3px rgba(0,0,0,0.55);
+}
+
+.cabin-light-bulb {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 4px);
+  width: 22px; height: 11px;
+  transform: translateX(-50%);
+  border-radius: 0 0 11px 11px;
+  border: 1px solid rgba(0,0,0,0.7);
+  border-top: none;
+  background: radial-gradient(ellipse 70% 90% at 50% 20%, #5a5750, #2c2b28 60%, #141412 100%);
+  box-shadow: inset 0 -2px 3px rgba(0,0,0,0.5);
+  transition: background 0.25s, box-shadow 0.25s;
+}
+
+.cabin-light.is-lit .cabin-light-bulb {
+  background: radial-gradient(ellipse 70% 90% at 50% 20%, #fffaf0, var(--bulb) 45%, var(--bulb-lo) 100%);
+  box-shadow:
+    inset 0 -2px 3px rgba(120,70,10,0.35),
+    0 0 6px 1px var(--bulb-glow),
+    0 6px 26px 8px var(--bulb-glow),
+    0 20px 70px 24px var(--bulb-wash);
 }
 
 .rivet {
   width: 5px; height: 5px;
   border-radius: 50%;
   background: radial-gradient(circle at var(--light-pos), var(--spec), var(--metal-lo) 70%, var(--bezel-lo) 100%);
-  box-shadow: 0 0 0 1px var(--bezel-lo);
+  box-shadow: inset 0 0 0 999px rgba(0,0,0,var(--shade)), 0 0 0 1px var(--bezel-lo);
   flex: none;
 }
 
@@ -132,6 +182,7 @@
   overflow: hidden;
   /* same hull material as the front, just dimmer — out of the window light, in vacuum shadow */
   filter: brightness(0.62);
+  box-shadow: inset 0 0 0 999px rgba(0,0,0,var(--shade));
 }
 
 .wall.left  { transform-origin: right center; transform: rotateY(var(--wall-tilt)); }
@@ -207,11 +258,11 @@
 
 .side-label {
   display: none;
-  font-size: 0.5rem;
+  font-size: 0.62rem;
   font-weight: 700;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--ink-soft);
+  color: var(--ink);
   text-align: center;
 }
 

@@ -143,6 +143,12 @@ js/
                      then ticks down once a second and dispatches
                      'timer:complete' on hitting zero — see "The
                      mission timer" below
+  cabin-light.js     the cabin bulb hanging from the plaque bar (where
+                     the old "Falling Up · Flight Deck" text was): lit
+                     while ink's cabin_lit() is true and the ship is
+                     powered, and while lit it re-aims --light-pos /
+                     --light-angle at itself — see "The cabin light"
+                     below
   instruments.js     every console instrument showing a ship-state
                      value (readouts, the Reactor usage
                      and Cargo bars, the warning lights, the Shield/Reactor lever
@@ -261,6 +267,28 @@ leave surprisingly little width for 16 grid columns), and this rework hit
 two real, desktop-invisible overlap bugs there before landing on span 3 —
 re-check a narrow-phone screenshot, not just desktop, if you touch nav-tile
 sizing or spans again.
+
+**Caption legibility.** `.tile-label` is sized for reading first (the
+tilted console makes text read smaller than its font-size) and uses the
+bright `--ink` with a dark drop edge rather than `--ink-soft` — the old
+~7px gray captions were reported as needing to "lean in and squint."
+Phone tiles are only a couple dozen px wide, so the longer captions carry
+a `data-short` abbreviation ("Integ", "Rctr", "Cab Lt") shown below
+680px via `::after` (the full word stays the element's real text);
+responsive.css switches back to full words and wider column gaps above
+that. Wrapping captions onto two lines was tried first and rejected: it
+squashed the buttons above them. If you add or rename a caption, check
+for label collisions at 360px and give it a `data-short` if needed.
+
+A follow-up "the characters look fuzzy" report had three causes. First,
+the console's 3D tilt resamples its text. That's left alone for now by
+explicit call; lowering the angle is the fix if it comes back. Second,
+6–8px `text-shadow` glows on the LED digits smeared the pixel font.
+Those are now 2px (3px on LAUNCH's larger caption), which still reads
+as lit. Third, the captions were bold, condensed and tightly tracked,
+so they're now weight 600 with wider letter-spacing and a hard 1px
+drop edge instead of a blurred one. Keep new LED text on a small glow,
+and never add a blurred shadow to small text.
 
 ## Every tile is a mount plate now
 
@@ -605,6 +633,40 @@ settled in `resolveImage()` after `runContinueLoop()`, rather than
 applied line by line, so tag-vs-`~ movement =` order within the beat
 doesn't matter. `# image: clear` is never held.
 
+## The cabin light
+
+The plaque bar no longer carries text; a small dome lamp
+(`#cabin-light`, styled in cockpit.css) hangs from its center over the
+window's top bezel. The CABIN LT button is ship state like SGNL BST:
+`data-stat="cabin_light"`, ink `VAR cabin_light` + `set_cabin_light()`,
+and the bulb follows ink's `cabin_lit()` = `cabin_light && power > 0`
+(power is required but never spent — nothing adds it to
+`reactor_load()` or `power_cost()`). `js/cabin-light.js` also keeps the
+bulb dark until `#cockpit.powered`. It starts OFF (explicit call).
+
+**Cabin shade.** Once the ascent hands off to the starfield,
+`js/window-scenes.js` adds `#cockpit.in-space`; `js/cabin-light.js`
+toggles `#cockpit.cabin-lit`. `#cockpit.in-space:not(.cabin-lit)` sets
+`--shade` (a registered `@property` in base.css, so it transitions),
+and every metal part — `#console`, `.console-riser`, `.wall`, `.tile`
+(and its screws), `.knob`, `.push-btn`, `.throttle-handle`, `.bolt`,
+`.rivet` — carries `inset 0 0 0 999px rgba(0,0,0,var(--shade))` as its
+FIRST box-shadow. An inset shadow paints over the element's own
+background but under its children and text, which is the whole trick:
+the metal darkens while labels, readouts, lenses and LEDs keep full
+intensity (a `filter` would have dimmed those too). A new metal part
+that should darken with the cabin needs the same shadow, including in
+any state rule that replaces its `box-shadow` (e.g. `.push-btn:active`).
+
+While lit, the bulb is the scene's light source: `js/cabin-light.js`
+sets `--light-pos`/`--light-angle` inline on every `.hull`, `.tile`,
+`.knob`, `.push-btn`, `.bolt` and `.rivet`, computed from that
+element's on-screen position relative to the bulb (re-aimed on resize),
+so highlights face the bulb. Switching it off removes the overrides and
+base.css's defaults apply again. A new element that paints a highlight
+from those variables needs adding to `LIT_SELECTOR` there if it isn't
+inside one of those already.
+
 ## The mission timer
 
 `.tile.timer` (markup right before LAUNCH in `#deck-grid`, styling in
@@ -864,7 +926,10 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
   console.css. Gauges have no page-load keyframe any more — the arc's
   own `stroke-dasharray` transition does the fill-up — and
   `renderGauge()` only waits on CSS *animations*, not that transition,
-  so lever drags don't queue up behind it.
+  so lever drags don't queue up behind it. The dial's number (`#gauge-projected_power-text`)
+  is an HTML LED readout beside the SVG in `.gauge-face`, not SVG
+  `<text>` inside it. Inside the dial, it scaled down with the SVG to a
+  few px tall and was reported as unreadable.
 
   **The Reactor bar** (`#bar-reactor_use`, the cargo bar's face in the
   slot the old Reactor % readout had) fills to `reactor_use` — full
