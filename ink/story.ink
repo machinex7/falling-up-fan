@@ -58,7 +58,7 @@
 //   signal_boost  true/false, the pilot's SGNL BST button. While on,
 //             adds SIGNAL_BOOST (50) to the Signal readout and draws
 //             SIGNAL_BOOST_COST (5) reactor points.
-//   cabin_light  true/false, the pilot's CABIN LT button. The cabin
+//   cabin_light  true/false, the pilot's CABIN LT button (starts off). The cabin
 //             bulb (top of the screen) only glows while cabin_lit() —
 //             the switch is on AND there's power left (power > 0). It
 //             doesn't draw any power or reactor points.
@@ -170,7 +170,7 @@ VAR cargo = 72
 VAR drive = 0
 VAR signal = 40
 VAR signal_boost = false
-VAR cabin_light = true
+VAR cabin_light = false
 LIST movement = (stopped), thruster, sideSpace
 VAR engaged_movement = stopped
 

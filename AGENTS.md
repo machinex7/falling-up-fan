@@ -620,7 +620,21 @@ window's top bezel. The CABIN LT button is ship state like SGNL BST:
 and the bulb follows ink's `cabin_lit()` = `cabin_light && power > 0`
 (power is required but never spent — nothing adds it to
 `reactor_load()` or `power_cost()`). `js/cabin-light.js` also keeps the
-bulb dark until `#cockpit.powered`.
+bulb dark until `#cockpit.powered`. It starts OFF (explicit call).
+
+**Cabin shade.** Once the ascent hands off to the starfield,
+`js/window-scenes.js` adds `#cockpit.in-space`; `js/cabin-light.js`
+toggles `#cockpit.cabin-lit`. `#cockpit.in-space:not(.cabin-lit)` sets
+`--shade` (a registered `@property` in base.css, so it transitions),
+and every metal part — `#console`, `.console-riser`, `.wall`, `.tile`
+(and its screws), `.knob`, `.push-btn`, `.throttle-handle`, `.bolt`,
+`.rivet` — carries `inset 0 0 0 999px rgba(0,0,0,var(--shade))` as its
+FIRST box-shadow. An inset shadow paints over the element's own
+background but under its children and text, which is the whole trick:
+the metal darkens while labels, readouts, lenses and LEDs keep full
+intensity (a `filter` would have dimmed those too). A new metal part
+that should darken with the cabin needs the same shadow, including in
+any state rule that replaces its `box-shadow` (e.g. `.push-btn:active`).
 
 While lit, the bulb is the scene's light source: `js/cabin-light.js`
 sets `--light-pos`/`--light-angle` inline on every `.hull`, `.tile`,

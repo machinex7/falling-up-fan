@@ -33,7 +33,12 @@
     setTimeout(() => {
       ascent.classList.remove('is-shaking');
       strip.classList.add('is-launching');
-      setTimeout(() => showScene(space), SCROLL_MS);
+      setTimeout(() => {
+        showScene(space);
+        // ship-wide state for css (the cabin darkens in space unless
+        // the cabin light is on — see cockpit.css)
+        document.getElementById('cockpit')?.classList.add('in-space');
+      }, SCROLL_MS);
     }, SHAKE_MS);
   }
 

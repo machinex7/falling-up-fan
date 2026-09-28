@@ -67,6 +67,7 @@
     if (next === lit) return;
     lit = next;
     light.classList.toggle('is-lit', lit);
+    cockpit.classList.toggle('cabin-lit', lit); // cockpit.css: no cabin shade
     light.setAttribute('aria-label', `Cabin light: ${lit ? 'on' : 'off'}`);
     if (lit) aim();
     else unaim();

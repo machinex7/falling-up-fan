@@ -1,7 +1,15 @@
 /* ═══════════════════════════════════════════
    COCKPIT SHELL
 ═══════════════════════════════════════════ */
+/* in space (js/window-scenes.js) with the cabin light off
+   (js/cabin-light.js): only starlight and the panel's own LEDs light
+   the cabin, so the metal goes darker */
+#cockpit.in-space:not(.cabin-lit) { --shade: 0.6; }
+
 #cockpit {
+  /* cabin shade (see base.css's --shade): dark metal once we're out in
+     space with the cabin light off */
+  transition: --shade 1.2s ease;
   width: 100%;
   height: 100%;
   display: flex;
@@ -103,7 +111,7 @@
   width: 5px; height: 5px;
   border-radius: 50%;
   background: radial-gradient(circle at var(--light-pos), var(--spec), var(--metal-lo) 70%, var(--bezel-lo) 100%);
-  box-shadow: 0 0 0 1px var(--bezel-lo);
+  box-shadow: inset 0 0 0 999px rgba(0,0,0,var(--shade)), 0 0 0 1px var(--bezel-lo);
   flex: none;
 }
 
@@ -174,6 +182,7 @@
   overflow: hidden;
   /* same hull material as the front, just dimmer — out of the window light, in vacuum shadow */
   filter: brightness(0.62);
+  box-shadow: inset 0 0 0 999px rgba(0,0,0,var(--shade));
 }
 
 .wall.left  { transform-origin: right center; transform: rotateY(var(--wall-tilt)); }
