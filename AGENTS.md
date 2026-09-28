@@ -268,6 +268,18 @@ two real, desktop-invisible overlap bugs there before landing on span 3 —
 re-check a narrow-phone screenshot, not just desktop, if you touch nav-tile
 sizing or spans again.
 
+**Caption legibility.** `.tile-label` is sized for reading first (the
+tilted console makes text read smaller than its font-size) and uses the
+bright `--ink` with a dark drop edge rather than `--ink-soft` — the old
+~7px gray captions were reported as needing to "lean in and squint."
+Phone tiles are only a couple dozen px wide, so the longer captions carry
+a `data-short` abbreviation ("Integ", "Rctr", "Cab Lt") shown below
+680px via `::after` (the full word stays the element's real text);
+responsive.css switches back to full words and wider column gaps above
+that. Wrapping captions onto two lines was tried first and rejected: it
+squashed the buttons above them. If you add or rename a caption, check
+for label collisions at 360px and give it a `data-short` if needed.
+
 ## Every tile is a mount plate now
 
 `.tile`'s own background/padding/box-shadow *is* the mount plate — no

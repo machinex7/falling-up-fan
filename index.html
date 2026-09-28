@@ -259,7 +259,7 @@
           </button>
           <a href="connections.html" class="tile nav-tile">
             <div class="push-btn square"><div class="btn-lens amber" style="animation-delay:2.2s"></div></div>
-            <div class="tile-label">Connections</div>
+            <div class="tile-label" data-short="Connect">Connections</div>
           </a>
           <div class="tile">
             <div class="eq-bars">
@@ -301,13 +301,13 @@
           </div>
           <div class="tile">
             <div class="push-btn round toggle-btn"><div class="btn-lens"></div></div>
-            <div class="tile-label">Beacon</div>
+            <div class="tile-label" data-short="Bcn">Beacon</div>
           </div>
           <!-- ship state (ink cabin_light): same wiring as SGNL BST below;
                the bulb itself is js/cabin-light.js -->
           <div class="tile" data-stat="cabin_light">
             <div class="push-btn round toggle-btn worn"><div class="btn-lens"></div></div>
-            <div class="tile-label">Cabin Lt</div>
+            <div class="tile-label" data-short="Cab Lt">Cabin Lt</div>
           </div>
           <div class="tile">
             <div class="push-btn round toggle-btn"><div class="btn-lens"></div></div>
@@ -317,7 +317,7 @@
                to flip it, js/instruments.js lights it -->
           <div class="tile" data-stat="signal_boost">
             <div class="push-btn round toggle-btn"><div class="btn-lens"></div></div>
-            <div class="tile-label">Sgnl Bst</div>
+            <div class="tile-label" data-short="Sig Bst">Sgnl Bst</div>
           </div>
 
           <!-- row 5: bar, alert lights, throttle -->
@@ -333,7 +333,7 @@
                js/controls.js's plain click-toggle -->
           <div class="tile alert" data-stat="reactor_use">
             <div class="alert-lamp"></div>
-            <div class="tile-label">Reactor</div>
+            <div class="tile-label" data-short="Rctr">Reactor</div>
           </div>
           <div class="tile alert" data-stat="hull">
             <div class="alert-lamp"></div>
@@ -341,7 +341,7 @@
           </div>
           <div class="tile alert" data-stat="integrity">
             <div class="alert-lamp"></div>
-            <div class="tile-label">Integrity</div>
+            <div class="tile-label" data-short="Integ">Integrity</div>
           </div>
           <!-- COMMS — the pending-conversation button js/story.js owns:
                the same round push-btn/lens face every toggle button
@@ -365,7 +365,7 @@
             <div class="throttle-track" id="throttle-main" data-stat="drive">
               <div class="throttle-handle" style="--lever-pos: 0;"></div>
             </div>
-            <div class="tile-label">Drive Charge</div>
+            <div class="tile-label" data-short="Drive">Drive Charge</div>
           </div>
           <!-- ship-state levers: data-stat routes a drag through the ink
                story's set_<name>() (js/throttle.js -> js/story.js), and
@@ -380,7 +380,7 @@
             <div class="throttle-track" data-stat="reactor">
               <div class="throttle-handle" style="--lever-pos: 0.5;"></div>
             </div>
-            <div class="tile-label">Reactor</div>
+            <div class="tile-label" data-short="Rctr">Reactor</div>
           </div>
 
         </div>
