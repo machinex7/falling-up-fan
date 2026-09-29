@@ -721,17 +721,17 @@ button.tile {
 .tile.throttle { grid-row: 6 / span 2; }
 
 /* blank plates — a bare .tile (plate + screws, no control) in each
-   bottom corner of the deck (row 7), where the armrests overlap the
-   console, so no control ends up hidden behind an arm. Only one row
-   tall and 4 columns wide, with Drive Charge narrowed to 2 like the
-   other levers: the deck is kept to 7 rows (an 8th squashed every row),
-   and that's the combination that packs 7 x 16 exactly — the warning
-   lights (2 wide) fill row 6 on either side of the levers, and odd-width
-   corner gaps (e.g. 3- or 5-column blanks) strand a light in an 8th row.
-   Re-check 360px, tablet and desktop screenshots (no 8th row, nothing
-   under an arm) if any of it changes. */
-.tile.blank { grid-row: 7; grid-column: 1 / span 4; }
-.tile.blank.right { grid-column: -5 / -1; }
+   bottom corner of the deck (rows 6–7, beside the levers), where the
+   armrests overlap the console, so no control ends up hidden behind an
+   arm. The deck is kept to 7 rows by explicit call (an 8th squashed
+   every row), and rows 6–7 are packed exactly: blank + levers + blank =
+   16 columns. The arms reach further across a narrow screen, so here
+   the blanks are 5 columns with Drive Charge narrowed to 2 (5 + 2 + 2 +
+   2 + 5); responsive.css goes to 4 + 4 + 2 + 2 + 4 at 680px. Re-check
+   360px, tablet and desktop screenshots (no 8th row, nothing under an
+   arm) if any of it changes. */
+.tile.blank { grid-row: 6 / span 2; grid-column: 1 / span 5; }
+.tile.blank.right { grid-column: -6 / -1; }
 .tile.throttle:not(.lever) { grid-column: span 2; }
 /* .lever: the same lever face for a ship-state control (Shield,
    Reactor) — narrower plate, no polish-wear patch (reserved for the

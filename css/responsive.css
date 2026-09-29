@@ -8,13 +8,10 @@
   #deck-grid { column-gap: 6px; }
   .tile-label[data-short] { font-size: var(--label-size); }
   .tile-label[data-short]::after { content: none; }
-}
-
-/* Drive Charge is only 2 columns (see .tile.blank in console.css), too
-   narrow for its full caption at any width, so it keeps "Drive" */
-@media (min-width: 680px) {
-  .tile.throttle:not(.lever) .tile-label[data-short] { font-size: 0; }
-  .tile.throttle:not(.lever) .tile-label[data-short]::after { content: attr(data-short) / ""; }
+  /* the armrests reach less far across here (see .tile.blank) */
+  .tile.blank { grid-column: 1 / span 4; }
+  .tile.blank.right { grid-column: -5 / -1; }
+  .tile.throttle:not(.lever) { grid-column: span 4; }
 }
 
 /* tablets/desktop: fixed-width walls with fuller instrument clusters */

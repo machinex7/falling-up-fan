@@ -121,8 +121,7 @@ js/
                      a bubbling 'knob:input' ({ name, value }) that
                      nothing listens to yet. Deck knob
                      tiles are 2 rows tall, pinned to rows 4–5 (levers
-                     are pinned to 6–7, above/between the blank corner
-                     plates in row 7)
+                     are pinned to 6–7, between the blank corner plates)
                      — see .tile:has(.knob) and .tile.blank in
                      console.css before touching deck rows
   controls.js        toggle/alert click handling on .tile; a
@@ -246,7 +245,7 @@ control needs inside it.
 The nav links (Members/Tracks/Connections) are now visually prominent
 pushbuttons — a deliberate reversal of an earlier "no more prominent than
 decorative" rule, changed by explicit user request. Toggles
-(Auto/Beacon/Cabin Lt/etc.) are also `.push-btn`s now: a round pushbutton you
+(Beacon/Cabin Lt/etc.) are also `.push-btn`s now: a round pushbutton you
 click to latch on/off, not the sliding lever-in-a-slot design from earlier
 — also an explicit user request, not an oversight if you see it differ
 from older screenshots or commit history.
@@ -403,9 +402,9 @@ pointed wear is what reads as lived-in; either alone doesn't.
 Two reusable modifier classes carry this: `.knob.worn` and
 `.push-btn.worn` (console.css, near each control's base rule), applied in
 the markup only to controls the story treats as constantly handled — the
-Nav/Comm console knobs and the wall's main power knob, and the toggles
-that stay engaged day-to-day (Auto, Cabin Lt) — not every knob or
-button on the deck. The throttle handle gets its own one-off treatment on
+wall's main power knob and the Cabin Lt toggle (the Nav/Comm knobs and
+Auto toggle that also carried it were removed to keep the deck at 7
+rows) — not every knob or button on the deck. The throttle handle gets its own one-off treatment on
 `.throttle-handle::after` rather than a shared class, since it's the
 single most-handled control on the whole panel (every course correction
 goes through it) and earns being the most obvious wear on the deck.
@@ -456,17 +455,18 @@ a bug to route around. `.on-console` relies on `#console` having no
 `overflow` clipping (unlike `.wall`, which does — that's why `.on-wall`
 stays inside its box instead of also hanging off an edge).
 
-The deck's bottom corners (row 7) hold `.tile.blank` plates — a bare
-tile with no control — because that's where the armrests overlap the
-console; keep controls out of those corners. The deck stays at **7
-rows by explicit call**: an 8th row squashed every row (the console's
-height is a fixed share of `#forward`), and a 50/50 console/window
-rebalance to compensate was rejected in favor of 7 rows. 7 x 16 cells
-is packed exactly, which is why the blanks are one row tall and 4
-columns wide and Drive Charge is 2 columns (captioned "Drive") like the
-other levers — see the comment on `.tile.blank` in console.css before
-resizing any of them. The trade-off: the armrest tips still graze the
-outer corners of row 6 at some widths.
+The deck's bottom corners (rows 6–7, either side of the levers) hold
+`.tile.blank` plates — a bare tile with no control — because that's
+where the armrests overlap the console; keep controls out of those
+corners. The deck stays at **7 rows by explicit call**: an 8th row
+squashed every row (the console's height is a fixed share of
+`#forward`), and a 50/50 console/window rebalance to compensate was
+rejected. To make room, the Auto and Nav Lt toggles and the Nav and
+Comm knobs were removed (explicit call). Rows 6–7 pack exactly: blanks
+5 columns + Drive Charge 2 on phones (the arms reach further there),
+blanks 4 + Drive Charge 4 from 680px — see the comment on
+`.tile.blank` in console.css before resizing any of them, and check the
+deck still has 7 rows after adding a control.
 
 `.armrest` (`.left`/`.right`) is different in kind from everything else
 in this file: it belongs to the *viewer*, not the ship. Two shapes fixed
