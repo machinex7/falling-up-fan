@@ -121,7 +121,8 @@ js/
                      a bubbling 'knob:input' ({ name, value }) that
                      nothing listens to yet. Deck knob
                      tiles are 2 rows tall, pinned to rows 4–5 (levers
-                     are pinned to 7–8, between the blank corner plates)
+                     are pinned to 6–7, above/between the blank corner
+                     plates in row 7)
                      — see .tile:has(.knob) and .tile.blank in
                      console.css before touching deck rows
   controls.js        toggle/alert click handling on .tile; a
@@ -455,15 +456,17 @@ a bug to route around. `.on-console` relies on `#console` having no
 `overflow` clipping (unlike `.wall`, which does — that's why `.on-wall`
 stays inside its box instead of also hanging off an edge).
 
-The deck's bottom corners (rows 7–8) hold `.tile.blank` plates — a bare
+The deck's bottom corners (row 7) hold `.tile.blank` plates — a bare
 tile with no control — because that's where the armrests overlap the
-console; keep controls out of those corners. They're 5 columns wide on
-phones (the arms reach further there, so Drive Charge narrows to 2
-columns to fit between them) and 4 from 680px up. They made the deck 8
-rows, which squashed every row, so `#console`/`#window` split `#forward`
-50/50 (was 46/54) and the row gap dropped to 5px — together that keeps
-each row the height it had with 7. Adding a 9th row needs the same
-rebalance, or the controls squash again.
+console; keep controls out of those corners. The deck stays at **7
+rows by explicit call**: an 8th row squashed every row (the console's
+height is a fixed share of `#forward`), and a 50/50 console/window
+rebalance to compensate was rejected in favor of 7 rows. 7 x 16 cells
+is packed exactly, which is why the blanks are one row tall and 4
+columns wide and Drive Charge is 2 columns (captioned "Drive") like the
+other levers — see the comment on `.tile.blank` in console.css before
+resizing any of them. The trade-off: the armrest tips still graze the
+outer corners of row 6 at some widths.
 
 `.armrest` (`.left`/`.right`) is different in kind from everything else
 in this file: it belongs to the *viewer*, not the ship. Two shapes fixed
