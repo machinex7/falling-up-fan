@@ -2,7 +2,7 @@
    WINDOW
 ═══════════════════════════════════════════ */
 #window {
-  flex: 1 1 54%;
+  flex: 1 1 50%; /* shares #forward with #console — see its flex */
   min-height: 0;
   position: relative;
   margin: 8px 8px 6px;

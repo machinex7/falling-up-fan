@@ -3,7 +3,10 @@
    toward the pilot: base near/wide, top far/narrow
 ═══════════════════════════════════════════ */
 #console {
-  flex: 1 1 46%;
+  /* 50%, up from 46%, with an 8px→5px row gap: the blank corner plates
+     gave #deck-grid an 8th row, which squashed every row until the
+     console got enough extra height to keep rows their 7-row size */
+  flex: 1 1 50%;
   min-height: 0;
   margin: 0 8px 0;
   padding: 9px;
@@ -116,7 +119,7 @@
   grid-auto-rows: minmax(0, 1fr);
   grid-auto-flow: dense;
   /* tight column gap on phones buys caption room (widened >=680px) */
-  gap: 8px 3px;
+  gap: 5px 3px;
 }
 
 /* future multi-cell controls: add alongside a tile's other classes */
@@ -412,7 +415,7 @@ button.tile {
   background: var(--bezel);
   transform: translateX(-50%);
   border-radius: 2px;
-  z-index: 1; /* keep the indicator above a .worn knob's grip patch */
+  z-index: 1;
 }
 .knob:focus-visible {
   outline: 1px solid var(--led-amber);
@@ -462,12 +465,12 @@ button.tile {
    grip it — a warm, dulled, slightly-worn-bare-metal patch, distinct
    in hue from the knob's own cool specular shine rather than just more
    of the same shine (which would blend in and read as nothing), at two
-   off-center spots since a real grip isn't symmetric. Painted on the
-   rotating .knob-pointer layer, not .knob, because the wear is part of
-   the knob's surface and turns with it — only the specular highlight
-   (a property of the light, not the metal) stays fixed. The indicator's
-   z-index keeps it painted above the patch. */
-.knob.worn .knob-pointer::after {
+   off-center spots since a real grip isn't symmetric. Painted on .knob
+   itself, NOT the rotating .knob-pointer: it was on the pointer layer
+   (wear turning with the metal), but a pale patch spinning with the
+   dial read as the light rotating — reported as a bug. Only the
+   indicator line turns now; ::before paints under the pointer layer. */
+.knob.worn::before {
   content: '';
   position: absolute;
   inset: -1px;

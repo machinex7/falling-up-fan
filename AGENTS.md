@@ -459,7 +459,11 @@ The deck's bottom corners (rows 7–8) hold `.tile.blank` plates — a bare
 tile with no control — because that's where the armrests overlap the
 console; keep controls out of those corners. They're 5 columns wide on
 phones (the arms reach further there, so Drive Charge narrows to 2
-columns to fit between them) and 4 from 680px up.
+columns to fit between them) and 4 from 680px up. They made the deck 8
+rows, which squashed every row, so `#console`/`#window` split `#forward`
+50/50 (was 46/54) and the row gap dropped to 5px — together that keeps
+each row the height it had with 7. Adding a 9th row needs the same
+rebalance, or the controls squash again.
 
 `.armrest` (`.left`/`.right`) is different in kind from everything else
 in this file: it belongs to the *viewer*, not the ship. Two shapes fixed
