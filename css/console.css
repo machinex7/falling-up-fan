@@ -466,15 +466,23 @@ button.tile {
    itself, NOT the rotating .knob-pointer: it was on the pointer layer
    (wear turning with the metal), but a pale patch spinning with the
    dial read as the light rotating — reported as a bug. Only the
-   indicator line turns now; ::before paints under the pointer layer. */
+   indicator line turns now; ::before paints under the pointer layer.
+   Grime also packs into the gap where the knob meets the plate — the
+   dark ring around its base. Every knob on this old ship is worn, but
+   not identically: --wear scales it (1 = default, higher = more
+   handled) and --wear-a / --wear-b move the two grip patches, set per
+   knob in the markup so no two match. */
 .knob.worn::before {
   content: '';
   position: absolute;
   inset: -1px;
   border-radius: 50%;
   background:
-    radial-gradient(circle at 26% 70%, rgba(196,182,150,0.55), transparent 42%),
-    radial-gradient(circle at 78% 30%, rgba(196,182,150,0.32), transparent 38%);
+    radial-gradient(circle at var(--wear-a, 26% 70%), rgba(196,182,150,calc(0.55 * var(--wear, 1))), transparent 42%),
+    radial-gradient(circle at var(--wear-b, 78% 30%), rgba(196,182,150,calc(0.32 * var(--wear, 1))), transparent 38%);
+  box-shadow:
+    0 0 0 1.5px rgba(34,24,14,calc(0.5 * var(--wear, 1))),
+    0 0 3px 2px rgba(34,24,14,calc(0.3 * var(--wear, 1)));
   mix-blend-mode: normal;
   pointer-events: none;
 }

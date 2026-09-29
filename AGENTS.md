@@ -401,10 +401,13 @@ pointed wear is what reads as lived-in; either alone doesn't.
 
 Two reusable modifier classes carry this: `.knob.worn` and
 `.push-btn.worn` (console.css, near each control's base rule), applied in
-the markup only to controls the story treats as constantly handled — the
-wall's main power knob and the Cabin Lt toggle (the Nav/Comm knobs and
-Auto toggle that also carried it were removed to keep the deck at 7
-rows) — not every knob or button on the deck. The throttle handle gets its own one-off treatment on
+the markup only to controls the story treats as constantly handled — every
+knob (Gain, Freq, Scan, and both wall knobs) and the Cabin Lt toggle —
+not every button on the deck. Knob wear varies per knob via `--wear`
+(strength) and `--wear-a`/`--wear-b` (grip-patch positions) set inline
+in the markup, so no two knobs age identically — Scan, the one wired to
+the story, is the most handled; give any new worn knob its own values
+rather than the defaults. The throttle handle gets its own one-off treatment on
 `.throttle-handle::after` rather than a shared class, since it's the
 single most-handled control on the whole panel (every course correction
 goes through it) and earns being the most obvious wear on the deck.
