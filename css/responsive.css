@@ -8,6 +8,10 @@
   #deck-grid { column-gap: 6px; }
   .tile-label[data-short] { font-size: var(--label-size); }
   .tile-label[data-short]::after { content: none; }
+  /* the armrests cover less of the deck here (see .tile.blank) */
+  .tile.blank { grid-column: 1 / span 4; }
+  .tile.blank.right { grid-column: -5 / -1; }
+  .tile.throttle:not(.lever) { grid-column: span 4; }
 }
 
 /* tablets/desktop: fixed-width walls with fuller instrument clusters */

@@ -118,7 +118,8 @@ js/
                      keys, and fires a bubbling 'knob:input' event
                      ({ name, value }) — nothing listens yet. Deck knob
                      tiles are 2 rows tall, pinned to rows 4–5 (levers
-                     are pinned to 6–7) — see .tile:has(.knob) in
+                     are pinned to 7–8, between the blank corner plates)
+                     — see .tile:has(.knob) and .tile.blank in
                      console.css before touching deck rows
   controls.js        toggle/alert click handling on .tile; a
                      toggle tile with data-stat (SGNL BST) sends
@@ -450,6 +451,12 @@ corner slightly — that's where a real note would actually get stuck, not
 a bug to route around. `.on-console` relies on `#console` having no
 `overflow` clipping (unlike `.wall`, which does — that's why `.on-wall`
 stays inside its box instead of also hanging off an edge).
+
+The deck's bottom corners (rows 7–8) hold `.tile.blank` plates — a bare
+tile with no control — because that's where the armrests overlap the
+console; keep controls out of those corners. They're 5 columns wide on
+phones (the arms reach further there, so Drive Charge narrows to 2
+columns to fit between them) and 4 from 680px up.
 
 `.armrest` (`.left`/`.right`) is different in kind from everything else
 in this file: it belongs to the *viewer*, not the ship. Two shapes fixed

@@ -426,7 +426,7 @@ button.tile {
    row (~30px, the label included) can't fit — before this the knobs
    flex-shrank into flat ovals. So knob tiles are 2 rows tall and the
    knob no longer shrinks, and the bank is pinned to rows 4–5 (above the
-   levers' rows 6–7, clear of the armrests): left to dense packing, 2-row
+   levers and blank corner plates in rows 7–8, clear of the armrests): left to dense packing, 2-row
    tiles pushed the deck to an 8th row and squashed every row. Row-locked
    items are placed before auto ones, so the knobs take the first free
    columns of rows 4–5 and everything else packs around them. Re-check
@@ -711,10 +711,21 @@ button.tile {
    stretches to fill whatever height the tile gets (grid rows are 1fr,
    so a fixed track height would just be squashed) */
 .tile.throttle { grid-column: span 4; grid-row: span 2; touch-action: none; cursor: ns-resize; }  /* whole tile is the drag target — see js/throttle.js */
-/* pinned to the deck's bottom two rows (6–7), under the knob bank
-   (rows 4–5) — see .tile:has(.knob). Same "reserve a block" trick as
-   LAUNCH/.tile.timer. */
-.tile.throttle { grid-row: 6 / span 2; }
+/* pinned to the deck's bottom two rows (7–8), between the two blank
+   corner plates: 4 + (4 + 2 + 2) + 4 fills those rows exactly, and the
+   knob bank sits in rows 4–5 (see .tile:has(.knob)). Same "reserve a
+   block" trick as LAUNCH/.tile.timer. */
+.tile.throttle { grid-row: 7 / span 2; }
+
+/* blank plates — a bare .tile (plate + screws, no control) in each
+   bottom corner of the deck, rows 7–8, where the armrests overlap the
+   console, so no control ends up hidden behind an arm. On phones the
+   arms reach further across the deck, so the plates are 5 columns and
+   Drive Charge narrows to 2 (5 + 2 + 2 + 2 + 5); responsive.css goes
+   back to 4 + 4 + 2 + 2 + 4 at 680px. */
+.tile.blank { grid-row: 7 / span 2; grid-column: 1 / span 5; }
+.tile.blank.right { grid-column: -6 / -1; }
+.tile.throttle:not(.lever) { grid-column: span 2; }
 /* .lever: the same lever face for a ship-state control (Shield,
    Reactor) — narrower plate, no polish-wear patch (reserved for the
    main throttle's grip, see ::after below), and a slimmer handle that
