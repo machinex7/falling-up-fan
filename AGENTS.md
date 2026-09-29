@@ -402,7 +402,7 @@ pointed wear is what reads as lived-in; either alone doesn't.
 Two reusable modifier classes carry this: `.knob.worn` and
 `.push-btn.worn` (console.css, near each control's base rule), applied in
 the markup only to controls the story treats as constantly handled — every
-knob (Gain, Freq, Scan, and both wall knobs) and the Cabin Lt toggle —
+knob (Phase, Freq, Scan, and both wall knobs) and the Cabin Lt toggle —
 not every button on the deck. Knob wear varies per knob via `--wear`
 (strength) and `--wear-a`/`--wear-b` (grip-patch positions) set inline
 in the markup, so no two knobs age identically — Scan, the one wired to
@@ -983,8 +983,9 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
   a different color). Clicking a lit one adds `.is-acked`, which stops
   the blink but leaves it lit in its color; the ack clears whenever the
   severity changes (worse OR better), so a new condition always flashes
-  again. `js/controls.js` skips `data-stat` tiles; tiles without it (Nav)
-  are still the plain decorative red click-toggle (`.is-alert`). The ENGAGED
+  again. `js/controls.js` skips `data-stat` tiles; an alert tile without
+  it would be a plain decorative red click-toggle (`.is-alert`) — none
+  exist now (the unused Nav light was removed). The ENGAGED
   flight mode (`engaged_movement`, not the ordered `movement` — see
   "Flight modes") sets `body[data-movement]` and dispatches a
   `'ship:movement'` DOM event (`detail.mode`) — `js/starfield.js`
