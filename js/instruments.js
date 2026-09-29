@@ -13,6 +13,7 @@
 //                                  tinted by THRESHOLDS via data-level)
 //   .tile.alert[data-stat=<name>]  warning light
 //   .throttle-track[data-stat=<name>]  lever handle position
+//   .knob[data-stat=<name>]        knob pointer (js/knobs.js turns it)
 //   #bar-<name>                    bar fill width, colored by the same
 //                                  THRESHOLDS as the warning lights
 //   .tile[data-stat=<name>] .toggle-btn  on/off button (true/false
@@ -81,6 +82,17 @@
     if (handle) handle.style.setProperty('--lever-pos', v / 100);
   }
 
+  // a ship-state knob only moves when the story's value does; js/knobs.js
+  // reads data-value back as the start of the next turn
+  function renderKnob(name, v) {
+    const knob = document.querySelector(`.knob[data-stat="${name}"]`);
+    if (!knob) return;
+    knob.dataset.value = v;
+    knob.style.setProperty('--knob-pos', v / 100);
+    knob.setAttribute('aria-valuenow', v);
+    knob.title = `${v}`;
+  }
+
   function renderGauge(name, v) {
     const arc = document.getElementById(`gauge-${name}-arc`);
     const text = document.getElementById(`gauge-${name}-text`);
@@ -133,6 +145,7 @@
     renderGauge(name, v);
     renderLamp(name, v);
     renderLever(name, v);
+    renderKnob(name, v);
     renderBar(name, v);
   });
 })();

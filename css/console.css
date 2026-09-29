@@ -185,8 +185,14 @@ button.tile {
   cursor: pointer;
 }
 
-.tile:has(.knob), .tile:has(.toggle-btn), .tile.nav-tile {
+.tile:has(.toggle-btn), .tile.nav-tile {
   cursor: pointer;
+}
+/* knobs turn by vertical drag (js/knobs.js) — say so, and keep a
+   touch-drag from scrolling or zooming the page instead */
+.tile:has(.knob), .knob-unit {
+  cursor: ns-resize;
+  touch-action: none;
 }
 
 /* captions: sized and colored for legibility first — the console is
@@ -389,10 +395,14 @@ button.tile {
 }
 /* the rotating indicator lives in its own full-size layer so the
    knob's own background (and its fixed top-light highlight) never
-   spins with it — only .knob-pointer takes the inline rotate() */
+   spins with it — only .knob-pointer rotates */
 .knob-pointer {
   position: absolute;
   inset: 0;
+  /* 0 at lower-left, 1 at lower-right: a 270° sweep through 12 o'clock.
+     --knob-pos (0–1) is set on .knob by js/knobs.js, or by
+     js/instruments.js for a data-stat knob, like a lever's --lever-pos */
+  transform: rotate(calc(-135deg + var(--knob-pos, 0) * 270deg));
 }
 .knob-pointer::before {
   content: '';
@@ -402,7 +412,49 @@ button.tile {
   background: var(--bezel);
   transform: translateX(-50%);
   border-radius: 2px;
-  z-index: 1; /* keep the indicator above a .worn knob's grip patch */
+  z-index: 1;
+}
+.knob:focus-visible {
+  outline: 1px solid var(--led-amber);
+  outline-offset: 5px;
+}
+
+/* the printed scale around a knob — js/knobs.js adds one .knob-tick per
+   10 (0 at lower-left, 100 at lower-right, 270° apart). Each tick is a
+   full-size layer slightly bigger than the knob, rotated to its angle,
+   with the mark itself drawn at its top edge — the same trick
+   .knob-pointer uses, so no radius math. Screen-printed legend color
+   (--ink, like the captions) since they're printed on the plate, not
+   part of the knob. The .knob's margin reserves room for the ring. */
+/* A knob needs a round face plus its tick ring, which a single deck
+   row (~30px, the label included) can't fit — before this the knobs
+   flex-shrank into flat ovals. So knob tiles are 2 rows tall and the
+   knob no longer shrinks, and the bank is pinned to rows 4–5 (above the
+   levers in rows 6–7, clear of the armrests): left to dense packing,
+   2-row tiles pushed the deck to an 8th row and squashed every row. Row-locked
+   items are placed before auto ones, so the knobs take the first free
+   columns of rows 4–5 and everything else packs around them. Re-check
+   360px and desktop screenshots if the deck's rows change. */
+.knob { margin: 5px; flex-shrink: 0; }
+.tile:has(.knob) { grid-row: 4 / span 2; justify-content: center; }
+.knob-tick {
+  position: absolute;
+  inset: -5px;
+  pointer-events: none;
+}
+.knob-tick::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 50%;
+  width: 1px; height: 2px;
+  background: var(--ink-soft);
+  transform: translateX(-50%);
+  box-shadow: 0 1px 0 rgba(0,0,0,0.5);
+}
+.knob-tick.major::before {
+  height: 4px;
+  top: -1px;
+  background: var(--ink);
 }
 
 /* a knob that gets turned constantly over a long haul (nav heading
@@ -410,19 +462,27 @@ button.tile {
    grip it — a warm, dulled, slightly-worn-bare-metal patch, distinct
    in hue from the knob's own cool specular shine rather than just more
    of the same shine (which would blend in and read as nothing), at two
-   off-center spots since a real grip isn't symmetric. Painted on the
-   rotating .knob-pointer layer, not .knob, because the wear is part of
-   the knob's surface and turns with it — only the specular highlight
-   (a property of the light, not the metal) stays fixed. The indicator's
-   z-index keeps it painted above the patch. */
-.knob.worn .knob-pointer::after {
+   off-center spots since a real grip isn't symmetric. Painted on .knob
+   itself, NOT the rotating .knob-pointer: it was on the pointer layer
+   (wear turning with the metal), but a pale patch spinning with the
+   dial read as the light rotating — reported as a bug. Only the
+   indicator line turns now; ::before paints under the pointer layer.
+   Grime also packs into the gap where the knob meets the plate — the
+   dark ring around its base. Every knob on this old ship is worn, but
+   not identically: --wear scales it (1 = default, higher = more
+   handled) and --wear-a / --wear-b move the two grip patches, set per
+   knob in the markup so no two match. */
+.knob.worn::before {
   content: '';
   position: absolute;
   inset: -1px;
   border-radius: 50%;
   background:
-    radial-gradient(circle at 26% 70%, rgba(196,182,150,0.55), transparent 42%),
-    radial-gradient(circle at 78% 30%, rgba(196,182,150,0.32), transparent 38%);
+    radial-gradient(circle at var(--wear-a, 26% 70%), rgba(196,182,150,calc(0.55 * var(--wear, 1))), transparent 42%),
+    radial-gradient(circle at var(--wear-b, 78% 30%), rgba(196,182,150,calc(0.32 * var(--wear, 1))), transparent 38%);
+  box-shadow:
+    0 0 0 1.5px rgba(34,24,14,calc(0.5 * var(--wear, 1))),
+    0 0 3px 2px rgba(34,24,14,calc(0.3 * var(--wear, 1)));
   mix-blend-mode: normal;
   pointer-events: none;
 }
@@ -663,6 +723,24 @@ button.tile {
    stretches to fill whatever height the tile gets (grid rows are 1fr,
    so a fixed track height would just be squashed) */
 .tile.throttle { grid-column: span 4; grid-row: span 2; touch-action: none; cursor: ns-resize; }  /* whole tile is the drag target — see js/throttle.js */
+/* pinned to the deck's bottom two rows (6–7), between the blank corner
+   plates, with the knob bank in rows 4–5 (see .tile:has(.knob)). Same
+   "reserve a block" trick as LAUNCH/.tile.timer. */
+.tile.throttle { grid-row: 6 / span 2; }
+
+/* blank plates — a bare .tile (plate + screws, no control) in each
+   bottom corner of the deck (rows 6–7, beside the levers), where the
+   armrests overlap the console, so no control ends up hidden behind an
+   arm. The deck is kept to 7 rows by explicit call (an 8th squashed
+   every row), and rows 6–7 are packed exactly: blank + levers + blank =
+   16 columns. The arms reach further across a narrow screen, so here
+   the blanks are 5 columns with Drive Charge narrowed to 2 (5 + 2 + 2 +
+   2 + 5); responsive.css goes to 4 + 4 + 2 + 2 + 4 at 680px. Re-check
+   360px, tablet and desktop screenshots (no 8th row, nothing under an
+   arm) if any of it changes. */
+.tile.blank { grid-row: 6 / span 2; grid-column: 1 / span 5; }
+.tile.blank.right { grid-column: -6 / -1; }
+.tile.throttle:not(.lever) { grid-column: span 2; }
 /* .lever: the same lever face for a ship-state control (Shield,
    Reactor) — narrower plate, no polish-wear patch (reserved for the
    main throttle's grip, see ::after below), and a slimmer handle that

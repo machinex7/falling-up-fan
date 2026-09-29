@@ -80,7 +80,7 @@
   // a 'ship:stat' DOM event (detail: { name, value }); js/instruments.js
   // owns every readout/gauge/warning light that shows one. A new stat is
   // a VAR in story.ink plus its name here.
-  const PERCENT_STATS = ['hull', 'power', 'reactor', 'shield', 'cargo', 'drive', 'signal'];
+  const PERCENT_STATS = ['hull', 'power', 'reactor', 'shield', 'cargo', 'drive', 'scan', 'signal'];
   // true/false ink VARs, announced the same way (instruments.js shows
   // them on a data-stat toggle button).
   const TOGGLE_STATS = ['signal_boost', 'cabin_light'];
@@ -90,10 +90,11 @@
   // ship-state change.
   const DERIVED_STATS = ['integrity', 'reactor_load', 'reactor_use', 'signal_strength', 'projected_power', 'cabin_lit'];
   // Stats the pilot can set from the console ('control:set' events from
-  // js/throttle.js levers and js/controls.js toggle buttons). Each goes
+  // js/throttle.js levers, js/knobs.js knobs and js/controls.js toggle
+  // buttons). Each goes
   // through story.ink's set_<name>() function, so the player obeys the
   // same rules the story does.
-  const PLAYER_CONTROLS = ['shield', 'reactor', 'drive', 'signal_boost', 'cabin_light'];
+  const PLAYER_CONTROLS = ['shield', 'reactor', 'drive', 'scan', 'signal_boost', 'cabin_light'];
   const MOVEMENT_MODES = ['stopped', 'thruster', 'sideSpace'];
 
   function announceStat(name, value) {

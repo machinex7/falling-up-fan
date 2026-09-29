@@ -112,7 +112,19 @@ js/
                      the ENGAGED flight mode ('ship:movement'): still
                      when stopped, a slow drift in thruster, warp
                      streaks in sideSpace — see "Flight modes" below
-  controls.js        toggle/knob/alert click handling on .tile; a
+  knobs.js           every .knob is a 0–100 min/max pot: generates its
+                     tick ring, sweeps the pointer 270° via --knob-pos,
+                     turns +10 per click (100 wraps to 0), by vertical
+                     drag on its tile, wheel or arrow keys. A data-stat
+                     knob (Scan, ink `scan`) sends 'control:set' like a
+                     lever and is turned by instruments.js; the rest fire
+                     a bubbling 'knob:input' ({ name, value }) that
+                     nothing listens to yet. Deck knob
+                     tiles are 2 rows tall, pinned to rows 4–5 (levers
+                     are pinned to 6–7, between the blank corner plates)
+                     — see .tile:has(.knob) and .tile.blank in
+                     console.css before touching deck rows
+  controls.js        toggle/alert click handling on .tile; a
                      toggle tile with data-stat (SGNL BST) sends
                      'control:set' to the story instead of flipping
                      itself
@@ -233,7 +245,7 @@ control needs inside it.
 The nav links (Members/Tracks/Connections) are now visually prominent
 pushbuttons — a deliberate reversal of an earlier "no more prominent than
 decorative" rule, changed by explicit user request. Toggles
-(Auto/Beacon/Cabin Lt/etc.) are also `.push-btn`s now: a round pushbutton you
+(Beacon/Cabin Lt/etc.) are also `.push-btn`s now: a round pushbutton you
 click to latch on/off, not the sliding lever-in-a-slot design from earlier
 — also an explicit user request, not an oversight if you see it differ
 from older screenshots or commit history.
@@ -389,10 +401,13 @@ pointed wear is what reads as lived-in; either alone doesn't.
 
 Two reusable modifier classes carry this: `.knob.worn` and
 `.push-btn.worn` (console.css, near each control's base rule), applied in
-the markup only to controls the story treats as constantly handled — the
-Nav/Comm console knobs and the wall's main power knob, and the toggles
-that stay engaged day-to-day (Auto, Cabin Lt) — not every knob or
-button on the deck. The throttle handle gets its own one-off treatment on
+the markup only to controls the story treats as constantly handled — every
+knob (Phase, Freq, Scan, and both wall knobs) and the Cabin Lt toggle —
+not every button on the deck. Knob wear varies per knob via `--wear`
+(strength) and `--wear-a`/`--wear-b` (grip-patch positions) set inline
+in the markup, so no two knobs age identically — Scan, the one wired to
+the story, is the most handled; give any new worn knob its own values
+rather than the defaults. The throttle handle gets its own one-off treatment on
 `.throttle-handle::after` rather than a shared class, since it's the
 single most-handled control on the whole panel (every course correction
 goes through it) and earns being the most obvious wear on the deck.
@@ -442,6 +457,19 @@ corner slightly — that's where a real note would actually get stuck, not
 a bug to route around. `.on-console` relies on `#console` having no
 `overflow` clipping (unlike `.wall`, which does — that's why `.on-wall`
 stays inside its box instead of also hanging off an edge).
+
+The deck's bottom corners (rows 6–7, either side of the levers) hold
+`.tile.blank` plates — a bare tile with no control — because that's
+where the armrests overlap the console; keep controls out of those
+corners. The deck stays at **7 rows by explicit call**: an 8th row
+squashed every row (the console's height is a fixed share of
+`#forward`), and a 50/50 console/window rebalance to compensate was
+rejected. To make room, the Auto and Nav Lt toggles and the Nav and
+Comm knobs were removed (explicit call). Rows 6–7 pack exactly: blanks
+5 columns + Drive Charge 2 on phones (the arms reach further there),
+blanks 4 + Drive Charge 4 from 680px — see the comment on
+`.tile.blank` in console.css before resizing any of them, and check the
+deck still has 7 rows after adding a control.
 
 `.armrest` (`.left`/`.right`) is different in kind from everything else
 in this file: it belongs to the *viewer*, not the ship. Two shapes fixed
@@ -867,7 +895,7 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
   `shield` (0–100%) is power put into the shield; each shield % costs
   `SHIELD_COST` (a `CONST`, 0.5) reactor points, so a full shield draws
   50. `drive` (the Drive Charge lever) costs `DRIVE_COST` (0.5) per %
-  the same way, and `signal_boost` (the SGNL BST toggle, a bool VAR)
+  the same way, `scan` (the Scan knob) costs `SCAN_COST` (0.1) per %, and `signal_boost` (the SGNL BST toggle, a bool VAR)
   draws a flat `SIGNAL_BOOST_COST` (5) while on and adds `SIGNAL_BOOST`
   (50) to `signal_strength()` (base `signal` + boost; the Signal
   readout, `data-max="100"` so "100+" above). Several stats are computed, never stored, and live only as ink
@@ -955,8 +983,9 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
   a different color). Clicking a lit one adds `.is-acked`, which stops
   the blink but leaves it lit in its color; the ack clears whenever the
   severity changes (worse OR better), so a new condition always flashes
-  again. `js/controls.js` skips `data-stat` tiles; tiles without it (Nav)
-  are still the plain decorative red click-toggle (`.is-alert`). The ENGAGED
+  again. `js/controls.js` skips `data-stat` tiles; an alert tile without
+  it would be a plain decorative red click-toggle (`.is-alert`) — none
+  exist now (the unused Nav light was removed). The ENGAGED
   flight mode (`engaged_movement`, not the ordered `movement` — see
   "Flight modes") sets `body[data-movement]` and dispatches a
   `'ship:movement'` DOM event (`detail.mode`) — `js/starfield.js`
