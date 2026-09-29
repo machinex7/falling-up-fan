@@ -54,6 +54,8 @@
 //             lever). Costs SHIELD_COST (0.5) reactor points per %.
 //   drive     0–100%, the drive's charge (the pilot's Drive Charge
 //             lever). Costs DRIVE_COST (0.5) reactor points per %.
+//   scan      0–100%, the scanner's sweep (the pilot's Scan knob).
+//             Costs SCAN_COST (0.1) reactor points per %.
 //   signal    0–100, base signal strength (set from the story).
 //   signal_boost  true/false, the pilot's SGNL BST button. While on,
 //             adds SIGNAL_BOOST (50) to the Signal readout and draws
@@ -75,7 +77,8 @@
 //                     A weak hull can be covered by more shield, at the
 //                     cost of more reactor load.
 //     reactor_load()  reactor points in use right now: shield + drive
-//                     charge + signal boost (add future systems here).
+//                     charge + scan + signal boost (add future systems
+//                     here).
 //     signal_strength()  signal, +SIGNAL_BOOST while SGNL BST is on:
 //                     the Signal readout (shows "100+" above 100).
 //     power_cost()    what pressing LAUNCH will cost right now: 1 power
@@ -108,10 +111,10 @@
 //     Hull, Integrity       yellow below 70, red below 20
 //     Reactor               yellow above 80% used, red at 100% (maxed)
 //
-//   The pilot can move the Shield, Reactor and Drive Charge levers and
-//   press SGNL BST / CABIN LT at any time after launch; those call
-//   set_shield(), set_reactor(), set_drive(), set_signal_boost() and
-//   set_cabin_light() below, so they
+//   The pilot can move the Shield, Reactor and Drive Charge levers, turn
+//   the Scan knob and press SGNL BST / CABIN LT at any time after
+//   launch; those call set_shield(), set_reactor(), set_drive(),
+//   set_scan(), set_signal_boost() and set_cabin_light() below, so they
 //   obey the same rules as the story.
 //
 //   Spending power: only engage() below spends it, when the pilot
@@ -126,6 +129,7 @@
 //     ~ set_shield(60)          same as set_level(shield, 60)
 //     ~ set_reactor(80)         same as set_level(reactor, 80)
 //     ~ set_drive(30)           same as set_level(drive, 30)
+//     ~ set_scan(50)            same as set_level(scan, 50)
 //     ~ set_signal_boost(true)  SGNL BST on / off
 //     ~ set_cabin_light(false)  CABIN LT on / off
 //   (A plain `~ hull = 80` works too, but skips those rules — the
@@ -158,6 +162,7 @@
 
 CONST SHIELD_COST = 0.5         // reactor points per shield %
 CONST DRIVE_COST = 0.5          // reactor points per drive charge %
+CONST SCAN_COST = 0.1           // reactor points per scan %
 CONST SIGNAL_BOOST = 50         // signal added while SGNL BST is on
 CONST SIGNAL_BOOST_COST = 5     // reactor points SGNL BST draws while on
 CONST REACTOR_PER_POWER = 4     // reactor lever points per 1 power spent
@@ -168,6 +173,7 @@ VAR reactor = 50
 VAR shield = 0
 VAR cargo = 72
 VAR drive = 0
+VAR scan = 0
 VAR signal = 40
 VAR signal_boost = false
 VAR cabin_light = false
@@ -222,6 +228,9 @@ Copy. Handler out — check in again next relay.
 === function set_drive(to)
 ~ set_level(drive, to)
 
+=== function set_scan(to)
+~ set_level(scan, to)
+
 === function set_signal_boost(on)
 ~ signal_boost = on
 
@@ -268,7 +277,7 @@ Copy. Handler out — check in again next relay.
 ~ return cabin_light && power > 0
 
 === function reactor_load()
-~ temp load = shield * SHIELD_COST + drive * DRIVE_COST
+~ temp load = shield * SHIELD_COST + drive * DRIVE_COST + scan * SCAN_COST
 { signal_boost:
     ~ load += SIGNAL_BOOST_COST
 }

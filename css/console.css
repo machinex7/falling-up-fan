@@ -395,10 +395,14 @@ button.tile {
 }
 /* the rotating indicator lives in its own full-size layer so the
    knob's own background (and its fixed top-light highlight) never
-   spins with it — only .knob-pointer takes the inline rotate() */
+   spins with it — only .knob-pointer rotates */
 .knob-pointer {
   position: absolute;
   inset: 0;
+  /* 0 at lower-left, 1 at lower-right: a 270° sweep through 12 o'clock.
+     --knob-pos (0–1) is set on .knob by js/knobs.js, or by
+     js/instruments.js for a data-stat knob, like a lever's --lever-pos */
+  transform: rotate(calc(-135deg + var(--knob-pos, 0) * 270deg));
 }
 .knob-pointer::before {
   content: '';

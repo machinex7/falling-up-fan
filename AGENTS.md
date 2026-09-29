@@ -113,10 +113,13 @@ js/
                      when stopped, a slow drift in thruster, warp
                      streaks in sideSpace — see "Flight modes" below
   knobs.js           every .knob is a 0–100 min/max pot: generates its
-                     tick ring, sweeps the pointer 270° from data-value,
-                     turns by vertical drag on its tile / wheel / arrow
-                     keys, and fires a bubbling 'knob:input' event
-                     ({ name, value }) — nothing listens yet. Deck knob
+                     tick ring, sweeps the pointer 270° via --knob-pos,
+                     turns +10 per click (100 wraps to 0), by vertical
+                     drag on its tile, wheel or arrow keys. A data-stat
+                     knob (Scan, ink `scan`) sends 'control:set' like a
+                     lever and is turned by instruments.js; the rest fire
+                     a bubbling 'knob:input' ({ name, value }) that
+                     nothing listens to yet. Deck knob
                      tiles are 2 rows tall, pinned to rows 4–5 (levers
                      are pinned to 7–8, between the blank corner plates)
                      — see .tile:has(.knob) and .tile.blank in
@@ -882,7 +885,7 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
   `shield` (0–100%) is power put into the shield; each shield % costs
   `SHIELD_COST` (a `CONST`, 0.5) reactor points, so a full shield draws
   50. `drive` (the Drive Charge lever) costs `DRIVE_COST` (0.5) per %
-  the same way, and `signal_boost` (the SGNL BST toggle, a bool VAR)
+  the same way, `scan` (the Scan knob) costs `SCAN_COST` (0.1) per %, and `signal_boost` (the SGNL BST toggle, a bool VAR)
   draws a flat `SIGNAL_BOOST_COST` (5) while on and adds `SIGNAL_BOOST`
   (50) to `signal_strength()` (base `signal` + boost; the Signal
   readout, `data-max="100"` so "100+" above). Several stats are computed, never stored, and live only as ink
