@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════════
-// TACTILE CONTROLS — toggles click on/off, knobs click-turn
+// TACTILE CONTROLS — toggles click on/off (knobs: js/knobs.js)
 // Bound to the whole .tile (not just the small inner shape): the
-// console is tilted in 3D, so a tiny knob/toggle's painted position
+// console is tilted in 3D, so a tiny toggle's painted position
 // can drift from its layout center enough that point-hit-testing
 // misses it — the full tile is a reliable, larger target either way.
 // ═══════════════════════════════════════════════════════
@@ -23,18 +23,6 @@
       tile.addEventListener('click', () => {
         toggle.classList.toggle('is-on');
         tile.classList.toggle('is-on', toggle.classList.contains('is-on'));
-      });
-      return;
-    }
-    // Turn only the .knob-pointer layer, never .knob itself: the knob's
-    // background carries the cockpit's fixed specular highlight (see
-    // --light-pos), which has to stay put while the indicator spins.
-    const pointer = tile.querySelector('.knob-pointer');
-    if (pointer) {
-      tile.addEventListener('click', () => {
-        const current = pointer.style.transform.match(/-?\d+/);
-        const deg = current ? parseInt(current[0], 10) : 0;
-        pointer.style.transform = `rotate(${deg + 45}deg)`;
       });
       return;
     }

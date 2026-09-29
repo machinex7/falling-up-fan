@@ -46,7 +46,7 @@
       <div class="side-label">Pwr</div>
       <div class="wall-extra tier2">
         <div class="knob-unit">
-          <div class="knob worn"><div class="knob-pointer" style="transform:rotate(-35deg)"></div></div>
+          <div class="knob worn" data-name="main-power" data-value="40"><div class="knob-pointer"></div></div>
           <div class="side-label">Main</div>
         </div>
       </div>
@@ -276,25 +276,27 @@
             <div class="tile-label">Audio</div>
           </div>
 
-          <!-- row 3: knobs -->
+
+          <!-- row 3: knobs (a 2-row bank pinned to rows 4-5 — see
+               .tile:has(.knob) in console.css) -->
           <div class="tile">
-            <div class="knob worn"><div class="knob-pointer" style="transform:rotate(10deg)"></div></div>
+            <div class="knob worn" data-name="nav" data-value="55"><div class="knob-pointer"></div></div>
             <div class="tile-label">Nav</div>
           </div>
           <div class="tile">
-            <div class="knob worn"><div class="knob-pointer" style="transform:rotate(-70deg)"></div></div>
+            <div class="knob worn" data-name="comm" data-value="25"><div class="knob-pointer"></div></div>
             <div class="tile-label">Comm</div>
           </div>
           <div class="tile">
-            <div class="knob"><div class="knob-pointer" style="transform:rotate(90deg)"></div></div>
+            <div class="knob" data-name="gain" data-value="83"><div class="knob-pointer"></div></div>
             <div class="tile-label">Gain</div>
           </div>
           <div class="tile">
-            <div class="knob"><div class="knob-pointer" style="transform:rotate(140deg)"></div></div>
+            <div class="knob" data-name="freq" data-value="93"><div class="knob-pointer"></div></div>
             <div class="tile-label">Freq</div>
           </div>
           <div class="tile">
-            <div class="knob"><div class="knob-pointer" style="transform:rotate(-20deg)"></div></div>
+            <div class="knob" data-name="scan" data-value="43"><div class="knob-pointer"></div></div>
             <div class="tile-label">Scan</div>
           </div>
 
@@ -339,6 +341,7 @@
             <div class="alert-lamp"></div>
             <div class="tile-label" data-short="Rctr">Reactor</div>
           </div>
+
           <div class="tile alert" data-stat="hull">
             <div class="alert-lamp"></div>
             <div class="tile-label">Hull</div>
@@ -472,7 +475,7 @@
       <div class="side-label">Nav</div>
       <div class="wall-extra tier2">
         <div class="knob-unit">
-          <div class="knob"><div class="knob-pointer" style="transform:rotate(140deg)"></div></div>
+          <div class="knob" data-name="wall-freq" data-value="93"><div class="knob-pointer"></div></div>
           <div class="side-label">Freq</div>
         </div>
       </div>
@@ -491,6 +494,7 @@
 
 <script src="js/starfield.js"></script>
 <script src="js/controls.js"></script>
+<script src="js/knobs.js"></script>
 <script src="js/throttle.js"></script>
 <script src="js/parallax.js"></script>
 <script src="js/window-scenes.js"></script>

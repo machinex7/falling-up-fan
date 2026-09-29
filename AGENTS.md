@@ -112,7 +112,15 @@ js/
                      the ENGAGED flight mode ('ship:movement'): still
                      when stopped, a slow drift in thruster, warp
                      streaks in sideSpace — see "Flight modes" below
-  controls.js        toggle/knob/alert click handling on .tile; a
+  knobs.js           every .knob is a 0–100 min/max pot: generates its
+                     tick ring, sweeps the pointer 270° from data-value,
+                     turns by vertical drag on its tile / wheel / arrow
+                     keys, and fires a bubbling 'knob:input' event
+                     ({ name, value }) — nothing listens yet. Deck knob
+                     tiles are 2 rows tall, pinned to rows 4–5 (levers
+                     are pinned to 6–7) — see .tile:has(.knob) in
+                     console.css before touching deck rows
+  controls.js        toggle/alert click handling on .tile; a
                      toggle tile with data-stat (SGNL BST) sends
                      'control:set' to the story instead of flipping
                      itself
