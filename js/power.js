@@ -9,7 +9,7 @@
 // off these classes), and fires 'ship:launch' for js/window-scenes.js
 // (the ascent) and js/timer.js (the countdown).
 //
-// After that the button engages flight modes (see ink/story.ink's
+// After that the button engages flight modes (see ink/ship.ink's
 // "FLIGHT MODES" header). js/story.js announces 'ship:flight'
 // { ordered, engaged, ready }; while the story has ordered a mode the
 // ship isn't in, the button asks for it — LAUNCH (thruster/sideSpace,

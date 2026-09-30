@@ -56,11 +56,11 @@
   // instead of whole objects; everything about a scene's OWN branching
   // content lives in ink/story.ink itself, not here. Extend this as more
   // scenes get written.
-  const SCENE_KNOTS = ['handler_checkin'];
+  const SCENE_KNOTS = ['game_start'];
   let sceneIndex = 0;
 
   // The speaker label for every line in the current scene (there's only
-  // ever one contact right now — see ink/story.ink's header comment on
+  // ever one contact right now — see ink/ship.ink's header comment on
   // why this isn't a per-line override), and the countdown (seconds)
   // queued to start once the player reaches the end of the current
   // conversation — both set by tags encountered while gathering a beat
@@ -70,29 +70,29 @@
   let pendingCountdown = null;
   let hasActiveConversation = false;
 
-  // Ship state that lives in ink variables (see ink/story.ink's "SHIP
+  // Ship state that lives in ink variables (see ink/ship.ink's "SHIP
   // STATE" header). Ink is the one source of truth — there are no tags
   // for these; the observers below are the only place any of them
   // reaches the page, whether the story wrote them with a plain `~` or
-  // one of story.ink's clamping helpers (damage/repair/adjust/set_level).
+  // one of ship.ink's clamping helpers (damage/repair/adjust/set_level).
   //
   // Percentage stats (0–100 ink VARs). This file only announces them as
   // a 'ship:stat' DOM event (detail: { name, value }); js/instruments.js
   // owns every readout/gauge/warning light that shows one. A new stat is
-  // a VAR in story.ink plus its name here.
+  // a VAR in ink/ship.ink plus its name here.
   const PERCENT_STATS = ['hull', 'power', 'reactor', 'shield', 'cargo', 'drive', 'scan', 'signal'];
   // true/false ink VARs, announced the same way (instruments.js shows
   // them on a data-stat toggle button).
   const TOGGLE_STATS = ['signal_boost', 'cabin_light'];
   // Stats computed from others rather than stored — each is an ink
-  // function of the same name in story.ink ("COMPUTED STATS"), called
+  // function of the same name in ink/ship.ink ("COMPUTED STATS"), called
   // directly so the formula lives only there. Re-announced after any
   // ship-state change.
   const DERIVED_STATS = ['integrity', 'reactor_load', 'reactor_use', 'signal_strength', 'projected_power', 'cabin_lit'];
   // Stats the pilot can set from the console ('control:set' events from
   // js/throttle.js levers, js/knobs.js knobs and js/controls.js toggle
   // buttons). Each goes
-  // through story.ink's set_<name>() function, so the player obeys the
+  // through ship.ink's set_<name>() function, so the player obeys the
   // same rules the story does.
   const PLAYER_CONTROLS = ['shield', 'reactor', 'drive', 'scan', 'signal_boost', 'cabin_light'];
   const MOVEMENT_MODES = ['stopped', 'thruster', 'sideSpace'];
@@ -116,7 +116,7 @@
     });
   }
 
-  // Flight modes (see story.ink's "FLIGHT MODES" header): `movement` is
+  // Flight modes (see ship.ink's "FLIGHT MODES" header): `movement` is
   // the mode the story ORDERS, `engaged_movement` the one the ship is
   // actually in. Both are ink LISTs, so values arrive as InkLists —
   // String() gives the item name ("thruster"). Announced together, with
@@ -202,7 +202,7 @@
   }
 
   // Applies every tag attached to the line ink just produced (see
-  // ink/story.ink's header comment for the full tag list). `# image:` with no value (or the word `clear`) hides
+  // ink/ship.ink's header comment for the full tag list). `# image:` with no value (or the word `clear`) hides
   // #scene-object instead of pointing it at a new src — the two are the
   // same tag because "which image is showing" is one piece of state,
   // not a separate show/hide concept.
@@ -324,7 +324,7 @@
   });
 
   // The big button, pressed after the initial launch (js/power.js):
-  // engage the ordered flight mode through story.ink's engage(), which
+  // engage the ordered flight mode through ship.ink's engage(), which
   // re-checks the criteria and spends the power itself. Same "safe to
   // run an ink function from a UI event" reasoning as 'control:set'.
   document.addEventListener('control:engage', () => {

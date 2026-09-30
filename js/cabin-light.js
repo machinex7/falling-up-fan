@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════════
 // CABIN LIGHT — the bulb hanging from the plaque bar (#cabin-light).
 // Lit while ink's cabin_lit() is true (the CABIN LT button is on AND
-// there's power left — it never spends any; see ink/story.ink), which
+// there's power left — it never spends any; see ink/ship.ink), which
 // js/story.js announces as 'ship:stat' { name: 'cabin_lit' }. The CABIN
 // LT button itself is wired like SGNL BST (controls.js → 'control:set'
 // → ink; instruments.js lights it), so this file only owns the bulb.

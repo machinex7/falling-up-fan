@@ -43,11 +43,17 @@ index.html          markup only — links the CSS files, loads the JS
                      files at the end of <body>
 ink/
   story.ink          the cutscene system's actual content — hand-authored
-                     ink source (knots, choices, tags), entry point for
-                     scripts/compile-ink.js. INCLUDE more .ink files from
+                     ink source (knots, choices, tags) and nothing else;
+                     entry point for scripts/compile-ink.js. INCLUDEs
+                     ship.ink at the top. INCLUDE more .ink files from
                      here as the story grows (a character per file, a
                      chapter per file, whatever); nothing else needs to
                      change for that. See "The cutscene system" below.
+  ship.ink           the ship's rules, no story: the big header comment
+                     documenting every tag, ship-state VAR and helper
+                     function, then the CONST/VAR/LIST declarations and
+                     all the functions (clamping helpers, set_<name>()
+                     control setters, flight modes, computed stats).
 data/
   albums.json        the info monitor's Albums content — plain array
                       of { title, year, type, tracks }, where each
@@ -734,7 +740,9 @@ at launch" are one code path, not two.
 
 ## The cutscene system
 
-The story is authored in **ink** (`ink/story.ink`, inkle's narrative
+The story is authored in **ink** (`ink/story.ink` for the scenes,
+`ink/ship.ink` for the ship-state VARs, functions and reference header
+it INCLUDEs; inkle's narrative
 scripting language), not hand-written JSON — `Stories.md` has the
 world-building notes to draw on. `scripts/compile-ink.js` compiles it to
 `data/story.json` using inkjs's own pure-JS `Compiler` (no `inklecate`,
@@ -742,7 +750,7 @@ no .NET — see that script's comments), which `js/story.js` loads into an
 inkjs `Story` and drives through the browser's `window.inkjs.Story`
 runtime (a `<script>` tag pinned to `https://unpkg.com/inkjs@2.4.0/dist/ink.js`
 in `index.html`). **`data/story.json` is
-generated — never hand-edit it.** Edit `ink/story.ink`, then either run
+generated — never hand-edit it.** Edit `ink/*.ink`, then either run
 `npm run compile:ink` yourself or just push: `.github/workflows/
 compile-ink.yml` recompiles on every push touching `ink/**` and commits
 the result back to the same branch, so a plain `git pull` after CI runs
@@ -801,7 +809,8 @@ bandwidth cost again, reverting is just swapping this one `<script src>`
 back to a local path — `js/story.js` only ever reads `window.inkjs`, it
 doesn't care where that came from.
 
-**ink/story.ink's authoring conventions**, since none of this is
+**ink/story.ink's authoring conventions** (the rules/functions side
+lives in `ink/ship.ink`), since none of this is
 enforced by inkjs itself — it's just what `js/story.js` expects to find:
 
 - Each **top-level knot** (`=== knot_name ===`) is one scene, played by
@@ -859,14 +868,14 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
   **Ship state lives in ink variables, not tags.** `hull`, `power`,
   `reactor`, `shield`, `cargo` (`VAR`s, 0–100) and `movement` (a `LIST`: `stopped`,
   `thruster`, `sideSpace` — the ORDERED flight mode) plus
-  `engaged_movement` (see "Flight modes") are declared at the top of `ink/story.ink`;
+  `engaged_movement` (see "Flight modes") are declared in `ink/ship.ink`;
   `js/story.js` binds to them with `story.ObserveVariable()`, so the page
   updates whenever the story writes one, with no tag involved. An earlier
   pass also had `# hull:`/`# power:`/`# reactor:`/`# movement:` tags that
   wrote the same variables — dropped by explicit call, since two ways to
   do one thing (with different clamping behavior) was worse than one.
-  Clamping lives on the ink side instead, in small helper functions at
-  the bottom of `story.ink` (`set_level(ref stat, to)`,
+  Clamping lives on the ink side instead, in small helper functions in
+  `ship.ink` (`set_level(ref stat, to)`,
   `adjust(ref stat, by)`, `damage(n)`, `repair(n)`) — `ref` parameters
   write the global through ink's normal assignment path, so observers
   still fire. `movement` is a `LIST` rather than a string specifically so
@@ -899,7 +908,7 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
   draws a flat `SIGNAL_BOOST_COST` (5) while on and adds `SIGNAL_BOOST`
   (50) to `signal_strength()` (base `signal` + boost; the Signal
   readout, `data-max="100"` so "100+" above). Several stats are computed, never stored, and live only as ink
-  functions in `story.ink`'s "COMPUTED STATS" section: `integrity()` =
+  functions in `ship.ink`'s "COMPUTED STATS" section: `integrity()` =
   `hull + shield` (0–200; the readout has `data-unit=""` for no `%` and
   `data-max="100"`, so it displays at most 100 and "100+" above — a
   display cap only, the ink value stays the real sum),
@@ -994,7 +1003,7 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
   to state), ink's `EXTERNAL` + `story.BindExternalFunction()` is the
   matching mechanism — nothing uses it yet.
 
-  **Keep `ink/story.ink`'s header comment the canonical tag/VAR list** —
+  **Keep `ink/ship.ink`'s header comment the canonical tag/VAR list** —
   every new tag or ship-state VAR gets documented there, since that's
   where the author is looking when writing ink.
 
@@ -1425,7 +1434,7 @@ or that hit-testing resolves correctly). Do this before calling a visual or
 interactive change done — screenshots are cheap and this UI has broken in
 non-obvious ways (see the gotcha above) more than once.
 
-**After editing `ink/story.ink`, run `npm run compile:ink` before testing
+**After editing `ink/*.ink`, run `npm run compile:ink` before testing
 in the browser** — `js/story.js` only ever reads `data/story.json`, never
 the `.ink` source directly, so a stale compiled file means the site keeps
 playing the OLD story with no error of any kind (the fetch succeeds, it's
