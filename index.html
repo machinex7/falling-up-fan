@@ -253,10 +253,10 @@
           </button>
 
           <!-- row 2: the real links + more instruments -->
-          <a href="members.html" class="tile nav-tile">
+          <button type="button" id="members-tile" class="tile nav-tile" aria-haspopup="true" aria-expanded="false" aria-controls="info-monitor">
             <div class="push-btn square"><div class="btn-lens amber"></div></div>
             <div class="tile-label">Members</div>
-          </a>
+          </button>
           <button type="button" id="albums-tile" class="tile nav-tile" aria-haspopup="true" aria-expanded="false" aria-controls="info-monitor">
             <div class="push-btn square"><div class="btn-lens amber" style="animation-delay:1.1s"></div></div>
             <div class="tile-label">Albums</div>
@@ -398,7 +398,9 @@
            deliberately a plain, scrollable "traditional website" list/
            detail view, not another cockpit widget — js/monitor.js swaps
            #album-list, #track-view and #lyrics-view via [hidden], no
-           page loads. -->
+           page loads. The Members button opens the same panel in its
+           members mode: #member-view, a timeline js/members.js draws
+           from data/members.json. -->
       <div id="info-monitor" class="info-monitor" aria-hidden="true">
         <div class="monitor-bezel hull">
           <div class="bolt tl"></div>
@@ -409,9 +411,9 @@
             <header class="monitor-header">
               <button type="button" id="monitor-back" class="monitor-back" hidden>&larr; Albums</button>
               <h2 id="monitor-title">Albums</h2>
-              <button type="button" id="monitor-close" class="monitor-close" aria-label="Close albums monitor">&times;</button>
+              <button type="button" id="monitor-close" class="monitor-close" aria-label="Close info monitor">&times;</button>
             </header>
-            <p class="monitor-flag">Catalog cross-checked against public release listings — flag any discrepancy you spot.</p>
+            <p id="monitor-flag" class="monitor-flag">Catalog cross-checked against public release listings — flag any discrepancy you spot.</p>
             <div class="monitor-body">
               <ul id="album-list" class="album-list"></ul>
               <div id="track-view" class="track-view" hidden>
@@ -421,6 +423,10 @@
               <div id="lyrics-view" class="lyrics-view" hidden>
                 <p id="lyrics-meta" class="track-meta"></p>
                 <pre id="lyrics-body" class="lyrics-body"></pre>
+              </div>
+              <div id="member-view" class="member-view" hidden>
+                <ul id="member-legend" class="member-legend"></ul>
+                <div id="member-chart" class="member-chart"></div>
               </div>
             </div>
           </div>
@@ -501,5 +507,6 @@
 <script src="https://unpkg.com/inkjs@2.4.0/dist/ink.js"></script>
 <script src="js/story.js"></script>
 <script src="js/monitor.js"></script>
+<script src="js/members.js"></script>
 </body>
 </html>
