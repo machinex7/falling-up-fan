@@ -1,0 +1,197 @@
+[
+  {
+    "group": "The Chilling Alpine Adventure",
+    "members": [
+      {
+        "name": "Jessy Ribordy",
+        "instruments": [
+          "vocals",
+          "bass guitar"
+        ],
+        "years": {
+          "from": 2024,
+          "to": null
+        }
+      },
+      {
+        "name": "Daniel Elder",
+        "instruments": [
+          "guitar"
+        ],
+        "years": {
+          "from": 2024,
+          "to": null
+        }
+      },
+      {
+        "name": "Nick Lambert",
+        "instruments": [
+          "guitar"
+        ],
+        "years": {
+          "from": 2024,
+          "to": null
+        }
+      },
+      {
+        "name": "Jordan Wood",
+        "instruments": [
+          "drums"
+        ],
+        "years": {
+          "from": 2024,
+          "to": null
+        }
+      }
+    ]
+  },
+  {
+    "group": "Falling Up — Final Lineup",
+    "members": [
+      {
+        "name": "Jessy Ribordy",
+        "instruments": [
+          "lead vocals",
+          "guitars",
+          "keyboards",
+          "programming"
+        ],
+        "years": {
+          "from": 2001,
+          "to": 2024
+        }
+      },
+      {
+        "name": "Jeremy Miller",
+        "instruments": [
+          "bass guitar",
+          "keyboards"
+        ],
+        "years": {
+          "from": 2001,
+          "to": 2024
+        }
+      },
+      {
+        "name": "Daniel Elder",
+        "instruments": [
+          "guitar",
+          "backing vocals"
+        ],
+        "years": {
+          "from": 2008,
+          "to": 2024
+        }
+      },
+      {
+        "name": "Nick Lambert",
+        "instruments": [
+          "guitar"
+        ],
+        "years": {
+          "from": 2008,
+          "to": 2024
+        }
+      },
+      {
+        "name": "Josh Shroy",
+        "instruments": [
+          "drums",
+          "percussion"
+        ],
+        "years": {
+          "from": 2001,
+          "to": 2024
+        }
+      }
+    ]
+  },
+  {
+    "group": "Former Falling Up Members",
+    "members": [
+      {
+        "name": "Tom Cox",
+        "instruments": [
+          "guitar",
+          "backing vocals"
+        ],
+        "years": {
+          "from": 2001,
+          "to": 2005
+        }
+      },
+      {
+        "name": "Joe Kisselburgh",
+        "instruments": [
+          "guitar",
+          "backing vocals"
+        ],
+        "years": {
+          "from": 2001,
+          "to": 2006
+        }
+      },
+      {
+        "name": "Andrew Wadlow",
+        "instruments": [
+          "turntables",
+          "keyboards",
+          "programming"
+        ],
+        "years": {
+          "from": 2001,
+          "to": 2003
+        }
+      },
+      {
+        "name": "Michael Humphrey",
+        "instruments": [
+          "turntables",
+          "keyboards",
+          "programming"
+        ],
+        "years": {
+          "from": 2003,
+          "to": 2005
+        }
+      },
+      {
+        "name": "Micah Sannan",
+        "instruments": [
+          "guitar"
+        ],
+        "years": {
+          "from": 2005,
+          "to": 2007
+        }
+      },
+      {
+        "name": "Adam Taylor",
+        "instruments": [
+          "keyboards",
+          "programming",
+          "backing vocals"
+        ],
+        "years": {
+          "from": 2005,
+          "to": 2007
+        }
+      }
+    ]
+  },
+  {
+    "group": "Touring Musicians",
+    "members": [
+      {
+        "name": "Daniel Huddleston",
+        "instruments": [
+          "lead guitar"
+        ],
+        "years": {
+          "from": 2007,
+          "to": 2010
+        }
+      }
+    ]
+  }
+]

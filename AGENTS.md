@@ -62,6 +62,16 @@ data/
                       correct or extend the catalog, nothing else
                       references it. Lyrics are placeholder "TODO"
                       strings to be filled in by hand later.
+  members.json        band member data for the (not yet built) Members
+                      button — array of { group, members }, one group
+                      per lineup (The Chilling Alpine Adventure, Falling
+                      Up's final lineup, former members, touring
+                      musicians), where each member is { name,
+                      instruments: [..], years: { from, to } } and
+                      `to: null` means "present". A person in more than
+                      one lineup (e.g. Jessy Ribordy) appears once per
+                      group, with that lineup's own roles/years.
+                      Nothing reads it yet; hand-edit directly.
   story.json          GENERATED from ink/*.ink by scripts/compile-ink.js
                       — never hand-edit this, edit the .ink source and
                       recompile (or just push; the GitHub Action does it
