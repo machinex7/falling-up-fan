@@ -63,15 +63,14 @@ data/
                       references it. Lyrics are placeholder "TODO"
                       strings to be filled in by hand later.
   members.json        band member data for the (not yet built) Members
-                      button — flat array, one entry per member per
-                      band: { name, group, instruments: [..], years:
-                      { from, to } }, where group is the band ("Falling
-                      Up" or "The Chilling Alpine Adventure") and
-                      `to: null` means "present" — past vs current is
-                      read from the years, not stored. Touring players
-                      carry `touring: true`. Someone in both bands
-                      (e.g. Jessy Ribordy) has one entry per band.
-                      Nothing reads it yet; hand-edit directly.
+                      button — array of { name, groups }, one entry per
+                      person; each group is { name, instruments: [..],
+                      years: { from, to } } for one band they were in
+                      ("Falling Up" / "The Chilling Alpine Adventure"),
+                      and `to: null` means "present" — past vs current
+                      is read from the years, not stored. Touring stints
+                      carry `touring: true`. Nothing reads it yet;
+                      hand-edit directly.
   story.json          GENERATED from ink/*.ink by scripts/compile-ink.js
                       — never hand-edit this, edit the .ink source and
                       recompile (or just push; the GitHub Action does it
