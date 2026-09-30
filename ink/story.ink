@@ -160,47 +160,54 @@
 //   The very first press (the launch out of the silo) is the exception:
 //   no criteria, no power, and it doesn't touch either variable.
 
-CONST SHIELD_COST = 0.5         // reactor points per shield %
-CONST DRIVE_COST = 0.5          // reactor points per drive charge %
-CONST SCAN_COST = 0.1           // reactor points per scan %
-CONST SIGNAL_BOOST = 50         // signal added while SGNL BST is on
-CONST SIGNAL_BOOST_COST = 5     // reactor points SGNL BST draws while on
-CONST REACTOR_PER_POWER = 4     // reactor lever points per 1 power spent
-
 VAR hull = 100
 VAR power = 100
-VAR reactor = 50
+VAR reactor = 10
 VAR shield = 0
-VAR cargo = 72
+VAR cargo = 0
 VAR drive = 0
 VAR scan = 0
-VAR signal = 40
+VAR signal = 95
 VAR signal_boost = false
 VAR cabin_light = false
 LIST movement = (stopped), thruster, sideSpace
 VAR engaged_movement = stopped
 
--> handler_checkin
+-> game_start
 
-=== handler_checkin ===
+=== game_start ===
 # contact: Handler
 # image: images/scenes/relay-probe.svg
-Handler to [ship]. Comms check — you still with me out there?
+Come in, Hauler Aeolus. Aeolus, do you read me?
 * [Reading you loud and clear.]
-    Good. Numbers on my end look nominal. How's the crew holding up?
-    * * [Holding steady.]
-        -> close
-    * * [Ask me again in a week.]
-        -> close
-* [...Barely. Signal's rough.]
-    Copy that — we'll keep this short, then. Flag it if it degrades further.
-    * * [Will do.]
-        -> close
+    Good. Signal is clear on my end as well.
+- How was launch?
+* [A little bumpy, but nothing I'm not used to.]
+    That ship's getting old.
+* [Smooth as butter, Control.]
+    Good to hear, considering how many flights that hauler has done.
+- <> Ever consider doing an upgrade?
+* [Negative, Control. This is my baby.]
+    Haha, roger that, Aeolus.
+-
+* (q1) [So what's the job today, m'am?]
+- {Easy haul. Custom machinery.|Any more questions?}
+* [How far away is the drop?]
+    Not far. Couple days and you'll be done. -> q1
+* [Big load?]
+    Negative. Should be no problem even for a small hauler like yours. -> q1
+* [Let's go!]
+    Confirmed, Aeolus. Continue on your orbit to Station Beta. After docking, they'll load you up, and I'll be in touch to let you know next steps.
+-
+* [Understood Control. Aeolus out.]
+-
+# countdown: 300
+# image: clear
+-> close
 
 === close ===
 # countdown: 300
 # image: clear
-Copy. Handler out — check in again next relay.
 -> END
 
 // ── SHIP STATE HELPERS ─────────────────────────────────────────────────
