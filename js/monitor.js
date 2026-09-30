@@ -34,6 +34,7 @@
   const membersBtn = document.getElementById('members-tile');
   const flagEl = document.getElementById('monitor-flag');
   const memberViewEl = document.getElementById('member-view');
+  const memberFilterEl = document.getElementById('member-filter');
   const closeBtn = document.getElementById('monitor-close');
   const backBtn = document.getElementById('monitor-back');
   const titleEl = document.getElementById('monitor-title');
@@ -47,7 +48,7 @@
   if (!monitor || !openBtn || !closeBtn || !backBtn || !titleEl ||
       !albumListEl || !trackViewEl || !trackMetaEl || !trackListEl ||
       !lyricsViewEl || !lyricsMetaEl || !lyricsBodyEl ||
-      !membersBtn || !flagEl || !memberViewEl) return;
+      !membersBtn || !flagEl || !memberViewEl || !memberFilterEl) return;
 
   const VIEWS = [albumListEl, trackViewEl, lyricsViewEl, memberViewEl];
   const FLAGS = {
@@ -55,9 +56,11 @@
     members: 'Lineup compiled from public band histories — flag any discrepancy you spot.',
   };
 
-  // Hides every view except `el`.
+  // Hides every view except `el`. The instrument filter bar pinned
+  // to the screen's bottom edge belongs to the members view.
   function showView(el) {
     VIEWS.forEach(v => { v.hidden = v !== el; });
+    memberFilterEl.hidden = el !== memberViewEl;
   }
 
   // Which view goBack() should treat as "current" — set at the end of

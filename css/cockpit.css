@@ -401,7 +401,7 @@
   position: fixed;
   bottom: 0;
   width: clamp(140px, 30vw, 270px);
-  height: clamp(120px, 22vw, 190px);
+  height: var(--armrest-h);
   z-index: 20;
   pointer-events: none;
   perspective: 600px;

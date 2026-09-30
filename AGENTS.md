@@ -195,7 +195,9 @@ js/
                      monitor" below
   members.js         draws the members timeline into #member-view
                      when monitor.js enters members mode
-                     ('monitor:mode') — see "The info monitor" below
+                     ('monitor:mode'), plus the instrument filter bar
+                     (#member-filter) along the screen's bottom — see
+                     "The info monitor" below
 ```
 
 Split for size/readability, not for reuse or bundling — the site itself
@@ -1372,8 +1374,24 @@ gridlines are a `--grid-lines` background JS sets on the chart and each
 row paints, so rows stay plain auto-placed grid items — which is what
 lets the `@container (max-width: 420px)` rule stack each name above its
 bar on phones (side by side, the names ate most of the width and the
-year labels collided). Mode-switch buttons along the monitor's bottom
-edge are planned but not built yet.
+year labels collided).
+
+**Instrument filter.** `#member-filter` is a bar pinned under
+`.monitor-body` (a direct child of `.monitor-screen`, shown only in
+members mode by monitor.js's `showView()`): one toggle `.filter-btn`
+per instrument found in the data (`aria-pressed`), most-played first,
+in a sideways-scrolling strip with ‹ › `.filter-arrow`s that page it
+and disable at either end. Selected instruments AND together across a
+person's whole career (any band): whoever hasn't played every selected
+one gets `.is-dim` on their name and track. Instrument names are
+matched exactly, so keep spellings consistent in members.json
+("guitars" was merged into "guitar" for this). The bar sits raised by
+`calc(var(--armrest-h) * 0.7 - 13px)`: the armrests are fixed over the
+viewport's bottom corners above this panel, and at the screen's real
+bottom edge they covered the arrows at every width. `--armrest-h`
+(base.css) is the armrest box height cockpit.css also uses, so the
+two stay in step. Mode-switch buttons for the monitor are still
+planned but not built.
 
 **A `[hidden]`-vs-`display` gotcha worth knowing before adding a fourth
 view here:** `.album-list`, `.track-view`, and `.lyrics-view` each set

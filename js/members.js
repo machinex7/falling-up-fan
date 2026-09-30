@@ -19,6 +19,13 @@
 // @container rule in css/monitor.css. Each band gets a color by order of
 // first appearance (.group-0, .group-1 in css/monitor.css); touring
 // stints are drawn hatched instead of solid.
+//
+// The bar pinned to the screen's bottom edge (#member-filter) holds
+// one toggle button per instrument in the data, most-played first.
+// Selected instruments AND together: anyone who hasn't played every
+// selected instrument (in any band) gets their name and bars dimmed.
+// The buttons scroll sideways; the arrow buttons either side page
+// through them and disable themselves at either end.
 // ═══════════════════════════════════════════════════════
 (function () {
   const DATA_URL = 'data/members.json';
@@ -26,9 +33,15 @@
 
   const legendEl = document.getElementById('member-legend');
   const chartEl = document.getElementById('member-chart');
-  if (!legendEl || !chartEl) return;
+  const filterListEl = document.getElementById('member-filter-list');
+  const prevBtn = document.getElementById('member-filter-prev');
+  const nextBtn = document.getElementById('member-filter-next');
+  if (!legendEl || !chartEl || !filterListEl || !prevBtn || !nextBtn) return;
 
   let loaded = null;
+  // One entry per rendered person: { plays: Set, els: [name, track] }.
+  let rowEls = [];
+  const selected = new Set();
 
   function now() {
     const d = new Date();
@@ -85,6 +98,7 @@
       .join(', '));
 
     chartEl.innerHTML = '';
+    rowEls = [];
 
     rows.forEach(m => {
       const name = el('div', 'member-name', m.name);
@@ -105,6 +119,10 @@
       });
 
       chartEl.append(name, track);
+      rowEls.push({
+        plays: new Set(m.groups.flatMap(g => g.instruments)),
+        els: [name, track],
+      });
     });
 
     const axis = el('div', 'member-axis');
@@ -116,7 +134,56 @@
     // The spacer keeps the axis under the bars (column 2) in the
     // side-by-side layout; it's hidden when names stack above bars.
     chartEl.append(el('div', 'member-axis-spacer'), axis);
+
+    renderFilter(rows);
   }
+
+  function renderFilter(rows) {
+    const counts = new Map();
+    rows.forEach(m => new Set(m.groups.flatMap(g => g.instruments))
+      .forEach(i => counts.set(i, (counts.get(i) || 0) + 1)));
+    const instruments = [...counts.keys()]
+      .sort((a, b) => counts.get(b) - counts.get(a) || a.localeCompare(b));
+
+    filterListEl.innerHTML = '';
+    instruments.forEach(instrument => {
+      const btn = el('button', 'filter-btn', instrument);
+      btn.type = 'button';
+      btn.setAttribute('aria-pressed', String(selected.has(instrument)));
+      btn.addEventListener('click', () => {
+        if (selected.has(instrument)) selected.delete(instrument);
+        else selected.add(instrument);
+        btn.setAttribute('aria-pressed', String(selected.has(instrument)));
+        applyFilter();
+      });
+      filterListEl.appendChild(btn);
+    });
+    applyFilter();
+    updateArrows();
+  }
+
+  function applyFilter() {
+    rowEls.forEach(({ plays, els }) => {
+      const match = [...selected].every(i => plays.has(i));
+      els.forEach(node => node.classList.toggle('is-dim', !match));
+    });
+  }
+
+  function updateArrows() {
+    const { scrollLeft, scrollWidth, clientWidth } = filterListEl;
+    prevBtn.disabled = scrollLeft <= 1;
+    nextBtn.disabled = scrollLeft + clientWidth >= scrollWidth - 1;
+  }
+
+  function page(dir) {
+    filterListEl.scrollBy({ left: dir * filterListEl.clientWidth * 0.75, behavior: 'smooth' });
+  }
+
+  prevBtn.addEventListener('click', () => page(-1));
+  nextBtn.addEventListener('click', () => page(1));
+  filterListEl.addEventListener('scroll', updateArrows, { passive: true });
+  // Covers resizes and the bar being unhidden (it measures 0 while hidden).
+  new ResizeObserver(updateArrows).observe(filterListEl);
 
   function showStatus(message) {
     legendEl.innerHTML = '';

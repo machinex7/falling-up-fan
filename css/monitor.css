@@ -429,6 +429,16 @@
   background: var(--bar);
   box-shadow: 0 0 3px var(--bar-glow);
 }
+/* instrument filter: people who don't match fade back */
+.member-name,
+.member-track {
+  transition: opacity 0.2s ease;
+}
+.member-name.is-dim,
+.member-track.is-dim {
+  opacity: 0.18;
+}
+
 .member-bar.is-touring,
 .legend-swatch.is-touring {
   background: repeating-linear-gradient(135deg, var(--bar) 0 2px, transparent 2px 5px);
@@ -445,6 +455,88 @@
   position: absolute;
   top: 3px;
   transform: translateX(-50%);
+}
+
+/* the instrument filter bar, pinned under .monitor-body. It sits
+   raised by most of the armrests' height: they're fixed over the
+   viewport's bottom corners (z-index above this panel, see
+   cockpit.css), so a bar at the screen's true bottom edge would have
+   its arrow buttons painted over at every width. 0.7 is roughly how
+   much of the armrest box the tilted pad actually covers; 13px is the
+   bezel's margin + padding below the screen. The strip of screen
+   left under the bar is just empty phosphor behind the arms. */
+.member-filter {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  margin-bottom: max(0px, calc(var(--armrest-h) * 0.7 - 13px));
+  padding: 8px 12px;
+  border-top: 1px solid var(--green);
+  border-bottom: 1px solid var(--green);
+}
+.member-filter[hidden] {
+  display: none;
+}
+.member-filter-list {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+.member-filter-list::-webkit-scrollbar {
+  display: none;
+}
+.filter-btn,
+.filter-arrow {
+  flex: none;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 1px solid var(--green);
+  border-radius: 0;
+  background: transparent;
+  color: var(--led-green);
+  font: inherit;
+  text-shadow: inherit;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+.filter-btn {
+  padding: 5px 10px;
+  font-size: clamp(0.72rem, 2.3vw, 0.85rem);
+  white-space: nowrap;
+  scroll-snap-align: start;
+}
+.filter-arrow {
+  width: 30px;
+  font-size: 1.3rem;
+  line-height: 1;
+}
+/* hover only where a real pointer hovers: on touch screens :hover
+   sticks after a tap, which would make a just-deselected button still
+   look selected */
+.filter-btn[aria-pressed="true"],
+.filter-btn:focus-visible,
+.filter-arrow:focus-visible {
+  background: var(--led-green);
+  color: #04140a;
+  text-shadow: none;
+}
+@media (hover: hover) {
+  .filter-btn:hover,
+  .filter-arrow:not(:disabled):hover {
+    background: var(--led-green);
+    color: #04140a;
+    text-shadow: none;
+  }
+}
+.filter-arrow:disabled {
+  opacity: 0.3;
+  cursor: default;
 }
 
 @container (max-width: 420px) {
