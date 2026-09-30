@@ -51,48 +51,42 @@
       return story;
     });
 
-  // The ordered list of top-level knots 'timer:complete' plays through —
-  // the ink-authored equivalent of the old scenes.json array, just names
-  // instead of whole objects; everything about a scene's OWN branching
-  // content lives in ink/story.ink itself, not here. Extend this as more
-  // scenes get written.
-  const SCENE_KNOTS = ['handler_checkin'];
-  let sceneIndex = 0;
+  // Which scene plays next is decided in ink, not here: each
+  // 'timer:complete' plays this one fixed knot, which diverts to whatever
+  // the last scene queued with queue() (see "STORY THREADS" in
+  // ink/ship.ink). New threads never need a change in this file.
+  const NEXT_SCENE_KNOT = 'play_next';
 
   // The speaker label for every line in the current scene (there's only
-  // ever one contact right now — see ink/story.ink's header comment on
-  // why this isn't a per-line override), and the countdown (seconds)
-  // queued to start once the player reaches the end of the current
-  // conversation — both set by tags encountered while gathering a beat
-  // (see applyTags), reset per scene so a later scene can't inherit an
-  // earlier one's leftovers.
+  // ever one contact right now — see ink/ship.ink's header comment on
+  // why this isn't a per-line override), set by `# contact:` tags
+  // encountered while gathering a beat (see applyTags).
   let currentContact = 'Unknown';
-  let pendingCountdown = null;
   let hasActiveConversation = false;
 
-  // Ship state that lives in ink variables (see ink/story.ink's "SHIP
+  // Ship state that lives in ink variables (see ink/ship.ink's "SHIP
   // STATE" header). Ink is the one source of truth — there are no tags
   // for these; the observers below are the only place any of them
   // reaches the page, whether the story wrote them with a plain `~` or
-  // one of story.ink's clamping helpers (damage/repair/adjust/set_level).
+  // one of ship.ink's clamping helpers (damage/repair/adjust/set_level).
   //
   // Percentage stats (0–100 ink VARs). This file only announces them as
   // a 'ship:stat' DOM event (detail: { name, value }); js/instruments.js
   // owns every readout/gauge/warning light that shows one. A new stat is
-  // a VAR in story.ink plus its name here.
+  // a VAR in ink/ship.ink plus its name here.
   const PERCENT_STATS = ['hull', 'power', 'reactor', 'shield', 'cargo', 'drive', 'scan', 'signal'];
   // true/false ink VARs, announced the same way (instruments.js shows
   // them on a data-stat toggle button).
   const TOGGLE_STATS = ['signal_boost', 'cabin_light'];
   // Stats computed from others rather than stored — each is an ink
-  // function of the same name in story.ink ("COMPUTED STATS"), called
+  // function of the same name in ink/ship.ink ("COMPUTED STATS"), called
   // directly so the formula lives only there. Re-announced after any
   // ship-state change.
   const DERIVED_STATS = ['integrity', 'reactor_load', 'reactor_use', 'signal_strength', 'projected_power', 'cabin_lit'];
   // Stats the pilot can set from the console ('control:set' events from
   // js/throttle.js levers, js/knobs.js knobs and js/controls.js toggle
   // buttons). Each goes
-  // through story.ink's set_<name>() function, so the player obeys the
+  // through ship.ink's set_<name>() function, so the player obeys the
   // same rules the story does.
   const PLAYER_CONTROLS = ['shield', 'reactor', 'drive', 'scan', 'signal_boost', 'cabin_light'];
   const MOVEMENT_MODES = ['stopped', 'thruster', 'sideSpace'];
@@ -116,7 +110,7 @@
     });
   }
 
-  // Flight modes (see story.ink's "FLIGHT MODES" header): `movement` is
+  // Flight modes (see ship.ink's "FLIGHT MODES" header): `movement` is
   // the mode the story ORDERS, `engaged_movement` the one the ship is
   // actually in. Both are ink LISTs, so values arrive as InkLists —
   // String() gives the item name ("thruster"). Announced together, with
@@ -202,7 +196,7 @@
   }
 
   // Applies every tag attached to the line ink just produced (see
-  // ink/story.ink's header comment for the full tag list). `# image:` with no value (or the word `clear`) hides
+  // ink/ship.ink's header comment for the full tag list). `# image:` with no value (or the word `clear`) hides
   // #scene-object instead of pointing it at a new src — the two are the
   // same tag because "which image is showing" is one piece of state,
   // not a separate show/hide concept.
@@ -215,7 +209,6 @@
       else if (key === 'image') {
         queuedImage = value === '' || value.toLowerCase() === 'clear' ? null : value;
       }
-      else if (key === 'countdown') pendingCountdown = Number(value);
     });
   }
 
@@ -253,18 +246,18 @@
   }
 
   // Whatever runContinueLoop() just gathered, decide how the beat ends:
-  // more choices to offer, or the conversation is over — the latter is
-  // this scene's `countdown` (if any) becoming due, the ink-driven
-  // equivalent of the old 'comms:ended' handoff to js/cutscenes.js.
+  // more choices to offer, or the conversation is over — the latter
+  // starts the mission timer toward the next scene, if the story queued
+  // one (queue() in ink/ship.ink). Nothing queued = the timer stays put.
   function finishBeat(story) {
     if (story.currentChoices.length > 0) {
       renderChoices(story);
       return;
     }
     renderEnded();
-    if (pendingCountdown !== null) {
-      document.dispatchEvent(new CustomEvent('timer:start', { detail: { seconds: pendingCountdown } }));
-      pendingCountdown = null;
+    if (story.EvaluateFunction('scene_queued')) {
+      const seconds = Number(story.variablesState.$('next_countdown')) || 0;
+      document.dispatchEvent(new CustomEvent('timer:start', { detail: { seconds } }));
     }
   }
 
@@ -276,7 +269,6 @@
   }
 
   function playScene(story, knotName) {
-    pendingCountdown = null;
     story.ChoosePathString(knotName);
     logEl.innerHTML = '';
     runContinueLoop(story);
@@ -304,10 +296,8 @@
   document.addEventListener('timer:complete', () => {
     storyPromise
       .then(story => {
-        const knotName = SCENE_KNOTS[sceneIndex];
-        sceneIndex += 1;
-        if (!knotName) return; // nothing authored yet at this index
-        playScene(story, knotName);
+        if (!story.EvaluateFunction('scene_queued')) return; // nothing queued
+        playScene(story, NEXT_SCENE_KNOT);
       })
       .catch(err => console.error('data/story.json failed to load', err));
   });
@@ -324,7 +314,7 @@
   });
 
   // The big button, pressed after the initial launch (js/power.js):
-  // engage the ordered flight mode through story.ink's engage(), which
+  // engage the ordered flight mode through ship.ink's engage(), which
   // re-checks the criteria and spends the power itself. Same "safe to
   // run an ink function from a UI event" reasoning as 'control:set'.
   document.addEventListener('control:engage', () => {

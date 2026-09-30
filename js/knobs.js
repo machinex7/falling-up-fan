@@ -16,7 +16,7 @@
 // A knob with data-stat="<name>" is ship state (e.g. Scan), like a
 // data-stat lever: it doesn't move itself, it asks for the value via
 // 'control:set' (detail: { name, value }) — js/story.js runs it through
-// story.ink's set_<name>() and js/instruments.js then turns the knob to
+// ship.ink's set_<name>() and js/instruments.js then turns the knob to
 // wherever the value actually landed. Every other knob keeps its own
 // value and dispatches a bubbling 'knob:input' event on the .knob
 // (detail: { name, value }, name = its data-name) — nothing listens yet.
