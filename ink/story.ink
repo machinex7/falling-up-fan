@@ -1,7 +1,8 @@
 // FALLING UP FLIGHT DECK — the story. Scenes (knots), dialogue and
 // choices only; every tag, ship-state variable and helper function you
 // can use here is documented at the top of ink/ship.ink. Each top-level
-// knot is one scene, played in the order js/story.js's SCENE_KNOTS lists.
+// knot is one scene; a scene picks the one after it with
+// ~ queue(-> knot_name, seconds) — see STORY THREADS in ink/ship.ink.
 //
 // Split this into more files as it grows — INCLUDE another .ink file
 // below (e.g. INCLUDE characters/handler.ink) and scripts/compile-ink.js
@@ -9,7 +10,7 @@
 
 INCLUDE ship.ink
 
--> game_start
+-> play_next
 
 === game_start ===
 # contact: Handler
@@ -37,11 +38,11 @@ Come in, Hauler Aeolus. Aeolus, do you read me?
 -
 * [Understood Control. Aeolus out.]
 -
-# countdown: 300
+// Queue the next thread here once it's written, e.g.
+// ~ queue(-> station_beta, 300)
 # image: clear
 -> close
 
 === close ===
-# countdown: 300
 # image: clear
 -> END

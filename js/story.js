@@ -51,23 +51,17 @@
       return story;
     });
 
-  // The ordered list of top-level knots 'timer:complete' plays through —
-  // the ink-authored equivalent of the old scenes.json array, just names
-  // instead of whole objects; everything about a scene's OWN branching
-  // content lives in ink/story.ink itself, not here. Extend this as more
-  // scenes get written.
-  const SCENE_KNOTS = ['game_start'];
-  let sceneIndex = 0;
+  // Which scene plays next is decided in ink, not here: each
+  // 'timer:complete' plays this one fixed knot, which diverts to whatever
+  // the last scene queued with queue() (see "STORY THREADS" in
+  // ink/ship.ink). New threads never need a change in this file.
+  const NEXT_SCENE_KNOT = 'play_next';
 
   // The speaker label for every line in the current scene (there's only
   // ever one contact right now — see ink/ship.ink's header comment on
-  // why this isn't a per-line override), and the countdown (seconds)
-  // queued to start once the player reaches the end of the current
-  // conversation — both set by tags encountered while gathering a beat
-  // (see applyTags), reset per scene so a later scene can't inherit an
-  // earlier one's leftovers.
+  // why this isn't a per-line override), set by `# contact:` tags
+  // encountered while gathering a beat (see applyTags).
   let currentContact = 'Unknown';
-  let pendingCountdown = null;
   let hasActiveConversation = false;
 
   // Ship state that lives in ink variables (see ink/ship.ink's "SHIP
@@ -215,7 +209,6 @@
       else if (key === 'image') {
         queuedImage = value === '' || value.toLowerCase() === 'clear' ? null : value;
       }
-      else if (key === 'countdown') pendingCountdown = Number(value);
     });
   }
 
@@ -253,18 +246,18 @@
   }
 
   // Whatever runContinueLoop() just gathered, decide how the beat ends:
-  // more choices to offer, or the conversation is over — the latter is
-  // this scene's `countdown` (if any) becoming due, the ink-driven
-  // equivalent of the old 'comms:ended' handoff to js/cutscenes.js.
+  // more choices to offer, or the conversation is over — the latter
+  // starts the mission timer toward the next scene, if the story queued
+  // one (queue() in ink/ship.ink). Nothing queued = the timer stays put.
   function finishBeat(story) {
     if (story.currentChoices.length > 0) {
       renderChoices(story);
       return;
     }
     renderEnded();
-    if (pendingCountdown !== null) {
-      document.dispatchEvent(new CustomEvent('timer:start', { detail: { seconds: pendingCountdown } }));
-      pendingCountdown = null;
+    if (story.EvaluateFunction('scene_queued')) {
+      const seconds = Number(story.variablesState.$('next_countdown')) || 0;
+      document.dispatchEvent(new CustomEvent('timer:start', { detail: { seconds } }));
     }
   }
 
@@ -276,7 +269,6 @@
   }
 
   function playScene(story, knotName) {
-    pendingCountdown = null;
     story.ChoosePathString(knotName);
     logEl.innerHTML = '';
     runContinueLoop(story);
@@ -304,10 +296,8 @@
   document.addEventListener('timer:complete', () => {
     storyPromise
       .then(story => {
-        const knotName = SCENE_KNOTS[sceneIndex];
-        sceneIndex += 1;
-        if (!knotName) return; // nothing authored yet at this index
-        playScene(story, knotName);
+        if (!story.EvaluateFunction('scene_queued')) return; // nothing queued
+        playScene(story, NEXT_SCENE_KNOT);
       })
       .catch(err => console.error('data/story.json failed to load', err));
   });

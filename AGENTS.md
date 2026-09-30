@@ -730,9 +730,9 @@ cutscene system" below).
 
 The countdown isn't strictly one-shot, either: `js/timer.js` also
 listens for `'timer:start'` (`detail: { seconds }`), which restarts the
-same countdown from a new duration — a scene's own `# countdown:` ink
-tag, dispatched by `js/story.js` once that scene is done, uses this to
-line up the next story beat's own timer without a second countdown
+same countdown from a new duration — a scene's ink `queue()` call
+(see "Story threads" below), dispatched by `js/story.js` once that
+scene is done, uses this to line up the next story beat's own timer without a second countdown
 instrument or a second `setInterval` loop. Both `'ship:launch'` and
 `'timer:start'` funnel through the same `startCountdown()`, so "the
 mission timer, restarted mid-mission" and "the mission timer, started
@@ -813,26 +813,34 @@ doesn't care where that came from.
 lives in `ink/ship.ink`), since none of this is
 enforced by inkjs itself — it's just what `js/story.js` expects to find:
 
-- Each **top-level knot** (`=== knot_name ===`) is one scene, played by
-  name via `story.ChoosePathString(knotName)` — `js/story.js`'s
-  `SCENE_KNOTS` array is the ordered list of which knot to jump to on
-  each successive `'timer:complete'`, the ink-authored equivalent of the
-  old `scenes.json` array's *order*, while everything about one scene's
-  own branching CONTENT lives entirely in that knot, in ink, using ink's
-  own choices/diverts/weaves. Extend the story by adding a new knot and
-  appending its name to `SCENE_KNOTS` — nothing else in `js/story.js`
-  needs to change for a new scene, same as adding a scene to the old
-  `scenes.json` array never touched `cutscenes.js`.
+- Each **top-level knot** (`=== knot_name ===`) is one scene. Everything
+  about a scene's own branching content lives in that knot, using ink's
+  own choices/diverts/weaves.
+- **Story threads: which scene plays next is decided in ink.** A scene
+  calls `~ queue(-> next_knot, seconds)` (ship.ink) anywhere in its
+  body, including inside a choice, so different replies can lead to
+  different threads. That sets two VARs: `next_scene` (a divert-target
+  variable, so a misspelled knot is a compile error, unlike a string or
+  tag) and `next_countdown`. When the conversation ends, `js/story.js`'s
+  `finishBeat()` checks ink's `scene_queued()` and, if true, dispatches
+  `'timer:start'` with `next_countdown`; on `'timer:complete'` it plays
+  the fixed knot `play_next` (`NEXT_SCENE_KNOT`), which resets the
+  queue to `-> no_scene` and diverts to the queued target, so each scene
+  has to queue its own successor. A scene that queues nothing leaves the
+  story waiting: no countdown, and `'timer:complete'` plays nothing.
+  `next_scene` starts as `-> game_start`, which the launch timer plays.
+  This replaced a JS-side `SCENE_KNOTS` array and a `# countdown:` tag
+  (explicit call: order and timing both live in ink now, and adding a
+  thread never touches JS). Don't reintroduce either.
 - **Tags** (`# key: value`) carry the metadata that isn't narrative text.
   A tag attaches to whichever line follows it — ink returns a line's own
   tags alongside its text on the `Continue()` call that produces it,
   which is when `js/story.js`'s `applyTags()` reads them — so WHERE in a
   knot a tag sits is a real authoring choice, not just decoration: put it
   on the opening line for "true from the start of this scene," or on the
-  closing line for "true once this scene is over." The one test scene
-  uses both: `handler_checkin`'s opening line sets `contact`/`image`;
-  `close`'s line (right before `-> END`) sets `countdown` and clears the
-  image — see below for why those specifically belong at the end.
+  closing line for "true once this scene is over." `game_start`'s
+  opening line sets `contact`/`image`; its closing lines clear the
+  image.
   - `# contact: Handler` — who the comms panel's header says this
     conversation is with, and the speaker label for every line in the
     scene (there's only ever one contact right now; a future scene with
@@ -846,24 +854,7 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
     `clearSceneObject()` fades it back out. Same tag key both ways: which
     image is showing (including "none") is one piece of state, not a
     separate show/hide mechanism layered on top.
-  - `# countdown: 300` — seconds, not `dd:hh:mi:ss` (matches
-    `js/timer.js`'s own internal unit, so there's no parsing layer
-    between this file and the countdown it starts). Belongs on the
-    scene's CONCLUDING line, not its opening one, and that's not just
-    filing convenience: `js/story.js` reads whatever tags arrive on
-    whatever line it's currently gathering, in order, so a `countdown`
-    tag sitting on the opening line would already be "set" (in
-    `pendingCountdown`) well before the player has actually reached the
-    end of the conversation — true internally, but confusing to read in
-    the source, since nothing dispatches `'timer:start'` until
-    `finishBeat()` sees zero choices AND ink has nothing left to
-    continue, regardless of where the tag physically sits. Putting it on
-    the closing line makes the source say what the system does: the
-    countdown begins at the conclusion of the story, because that's
-    where the tag setting it lives.
-
-  **Tags are for per-line presentation cues only** (`contact`, `image`,
-  `countdown`). Ongoing ship state is NOT tagged — see below.
+  **Tags are for per-line presentation cues only** (`contact`, `image`). Ongoing ship state is NOT tagged — see below.
 
   **Ship state lives in ink variables, not tags.** `hull`, `power`,
   `reactor`, `shield`, `cargo` (`VAR`s, 0–100) and `movement` (a `LIST`: `stopped`,
@@ -1025,13 +1016,13 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
 - **A knot ending in `-> END` with no further choices is a conversation's
   leaf** — `js/story.js` detects this exactly as `story.currentChoices.length
   === 0 && !story.canContinue` right after gathering a beat, renders
-  "Transmission ended," and (per the `countdown` tag above) starts the
-  next scene's timer. This is a hard boundary between one `SCENE_KNOTS`
-  entry and the next: don't divert from one scene's closing knot
+  "Transmission ended," and (if a scene was queued) starts the next
+  scene's timer. This is a hard boundary between one scene and the
+  next: don't divert from one scene's closing knot
   straight into another scene's opening knot in the same breath (that
   would play both in one uninterrupted beat, skipping the "wait for the
   next timer" pause entirely) — let it hit `-> END` and let
-  `'timer:complete'` be what starts the next entry in `SCENE_KNOTS`.
+  `'timer:complete'` (via `queue()`) be what starts the next one.
 
 **`js/story.js` owns `#comms-tile`, `#comms-panel`, and driving the
 Story.** `#comms-tile` (row 5 markup) is the same round `.push-btn`/

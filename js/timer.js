@@ -5,7 +5,7 @@
 // same loose, no-shared-state event pattern as 'ship:launch'.
 //
 // The countdown isn't strictly one-shot: js/story.js can restart
-// it partway through a mission (a scene's own `# countdown:` ink tag,
+// it partway through a mission (a scene's ink queue() call,
 // once that scene is done) by dispatching 'timer:start' with a new
 // duration in seconds. startCountdown() is the one place both
 // 'ship:launch' and 'timer:start' funnel through, so a restart is

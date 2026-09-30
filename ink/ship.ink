@@ -7,8 +7,8 @@
 // data/story.json — edit the .ink files and recompile. See AGENTS.md's
 // "The cutscene system" for how js/story.js drives the knots.
 //
-// No knots or story text in this file — only CONST/VAR/LIST declarations
-// and functions. Keep this header the canonical list of tags and ship
+// No story text in this file — only CONST/VAR/LIST declarations,
+// functions, and the two plumbing knots play_next/no_scene. Keep this header the canonical list of tags and ship
 // state as new ones are added.
 //
 // ── TAGS ───────────────────────────────────────────────────────────────
@@ -31,9 +31,28 @@
 //       (before or after it, either works). `clear` always applies
 //       right away.
 //
-//   # countdown: 300
-//       Seconds until the next scene. Starts once the conversation
-//       ends, so put it on the scene's closing line.
+// ── STORY THREADS (what plays next) ────────────────────────────────────
+// A scene queues the next one with queue(), anywhere in it — inside a
+// choice is fine, so different replies can lead to different threads:
+//
+//     * [Let's go!]
+//         ~ queue(-> station_beta, 300)
+//     * [I need to refuel first.]
+//         ~ queue(-> fuel_depot, 120)
+//
+//   The first argument is a knot (note the ->, so a misspelled knot name
+//   is a compile error); the second is seconds on the mission timer
+//   before it plays. The countdown starts once the current conversation
+//   ends ("Transmission ended"), and the queued knot plays when it hits
+//   zero. Calling queue() again later in the same scene replaces the
+//   earlier pick.
+//
+//   If a scene ends without calling queue(), nothing plays next and the
+//   timer doesn't restart — the story just waits there.
+//
+//   Branch on it with { next_scene == -> fuel_depot: ... }.
+//   game_start is queued from the start; it plays when the timer first
+//   runs out after launch.
 //
 // ── SHIP STATE (variables) ─────────────────────────────────────────────
 // Ongoing ship state lives in the variables below, not in tags.
@@ -182,6 +201,8 @@ VAR signal_boost = false
 VAR cabin_light = false
 LIST movement = (stopped), thruster, sideSpace
 VAR engaged_movement = stopped
+VAR next_scene = -> game_start   // set with queue(), see STORY THREADS
+VAR next_countdown = 0
 
 // ── SHIP STATE HELPERS ─────────────────────────────────────────────────
 // Clamp every write to 0–100. `ref` means the function changes the
@@ -216,6 +237,29 @@ VAR engaged_movement = stopped
 
 === function set_cabin_light(on)
 ~ cabin_light = on
+
+// ── STORY THREADS ──────────────────────────────────────────────────────
+// See the header. js/story.js plays the play_next knot each time the
+// mission timer runs out, and reads scene_queued() / next_countdown when
+// a conversation ends to decide whether to restart the timer.
+
+=== function queue(target, seconds)
+~ next_scene = target
+~ next_countdown = seconds
+
+=== function scene_queued()
+~ return next_scene != -> no_scene
+
+// Clears the queue before starting the scene, so the scene has to
+// queue() whatever comes after it.
+=== play_next ===
+~ temp target = next_scene
+~ next_scene = -> no_scene
+~ next_countdown = 0
+-> target
+
+=== no_scene ===
+-> END
 
 // ── FLIGHT MODES ───────────────────────────────────────────────────────
 // See the header. js/story.js calls engage() when the pilot presses the
