@@ -408,7 +408,8 @@ pointed wear is what reads as lived-in; either alone doesn't.
 Two reusable modifier classes carry this: `.knob.worn` and
 `.push-btn.worn` (console.css, near each control's base rule), applied in
 the markup only to controls the story treats as constantly handled — every
-knob (Phase, Freq, Scan, and both wall knobs) and the Cabin Lt toggle —
+knob (Phase, Freq, Scan, and both wall knobs) and the Cabin Lt and Auto
+toggles —
 not every button on the deck. Knob wear varies per knob via `--wear`
 (strength) and `--wear-a`/`--wear-b` (grip-patch positions) set inline
 in the markup, so no two knobs age identically — Scan, the one wired to
@@ -470,8 +471,9 @@ where the armrests overlap the console; keep controls out of those
 corners. The deck stays at **7 rows by explicit call**: an 8th row
 squashed every row (the console's height is a fixed share of
 `#forward`), and a 50/50 console/window rebalance to compensate was
-rejected. To make room, the Auto and Nav Lt toggles and the Nav and
-Comm knobs were removed (explicit call). Rows 6–7 pack exactly: blanks
+rejected. To make room, the Nav Lt toggle and the Nav and Comm knobs
+were removed (explicit call); Auto was removed then too, but came back
+as an ink-wired toggle (see "The cabin light") and still fits in 7 rows. Rows 6–7 pack exactly: blanks
 5 columns + Drive Charge 2 on phones (the arms reach further there),
 blanks 4 + Drive Charge 4 from 680px — see the comment on
 `.tile.blank` in console.css before resizing any of them, and check the
@@ -677,6 +679,11 @@ and the bulb follows ink's `cabin_lit()` = `cabin_light && power > 0`
 (power is required but never spent — nothing adds it to
 `reactor_load()` or `power_cost()`). `js/cabin-light.js` also keeps the
 bulb dark until `#cockpit.powered`. It starts OFF (explicit call).
+
+**AUTO** is wired the same way, minus any bulb: `data-stat="autopilot"`,
+ink `VAR autopilot` (starts off) + `set_autopilot()`. Nothing reacts to
+it yet — it's a switch for the story to read (`{ autopilot: ... }`) and
+flip, no costs or rules attached.
 
 **Cabin shade.** Once the ascent hands off to the starfield,
 `js/window-scenes.js` adds `#cockpit.in-space`; `js/cabin-light.js`
