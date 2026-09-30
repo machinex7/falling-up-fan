@@ -86,6 +86,9 @@
 //             bulb (top of the screen) only glows while cabin_lit() —
 //             the switch is on AND there's power left (power > 0). It
 //             doesn't draw any power or reactor points.
+//   autopilot  true/false, the pilot's AUTO button (starts off). Just a
+//             switch for the story to read and flip — no rules or costs
+//             attached yet:  { autopilot: ... }  /  ~ set_autopilot(true)
 //   cargo     0–100, how full the cargo hold is (Cargo bar). Set it
 //             from the story only — no rules or warnings attached yet.
 //               ~ set_level(cargo, 40)   or   ~ adjust(cargo, -10)
@@ -134,9 +137,10 @@
 //     Reactor               yellow above 80% used, red at 100% (maxed)
 //
 //   The pilot can move the Shield, Reactor and Drive Charge levers, turn
-//   the Scan knob and press SGNL BST / CABIN LT at any time after
+//   the Scan knob and press SGNL BST / CABIN LT / AUTO at any time after
 //   launch; those call set_shield(), set_reactor(), set_drive(),
-//   set_scan(), set_signal_boost() and set_cabin_light() below, so they
+//   set_scan(), set_signal_boost(), set_cabin_light() and
+//   set_autopilot() below, so they
 //   obey the same rules as the story.
 //
 //   Spending power: only engage() below spends it, when the pilot
@@ -154,6 +158,7 @@
 //     ~ set_scan(50)            same as set_level(scan, 50)
 //     ~ set_signal_boost(true)  SGNL BST on / off
 //     ~ set_cabin_light(false)  CABIN LT on / off
+//     ~ set_autopilot(true)     AUTO on / off
 //   (A plain `~ hull = 80` works too, but skips those rules — the
 //   readout caps what it shows, branches see the raw value.)
 //
@@ -199,6 +204,7 @@ VAR scan = 0
 VAR signal = 95
 VAR signal_boost = false
 VAR cabin_light = false
+VAR autopilot = false
 LIST movement = (stopped), thruster, sideSpace
 VAR engaged_movement = stopped
 VAR next_scene = -> game_start   // set with queue(), see STORY THREADS
@@ -237,6 +243,9 @@ VAR next_countdown = 0
 
 === function set_cabin_light(on)
 ~ cabin_light = on
+
+=== function set_autopilot(on)
+~ autopilot = on
 
 // ── STORY THREADS ──────────────────────────────────────────────────────
 // See the header. js/story.js plays the play_next knot each time the
