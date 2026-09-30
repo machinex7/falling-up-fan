@@ -401,8 +401,13 @@
   box-shadow: 0 0 3px var(--bar-glow);
 }
 
+/* --grid and --album-line are declared here, on the element js/members.js
+   sets --grid-lines/--album-lines on: a custom property's var()
+   references resolve where it's declared, so defining the colors any
+   lower would leave those stripe lists invalid (nothing drawn). */
 .member-chart {
   --grid: rgba(63, 143, 95, 0.4);
+  --album-line: var(--led-amber);
   display: grid;
   grid-template-columns: max-content 1fr;
   column-gap: 10px;
@@ -413,6 +418,14 @@
   font-size: clamp(0.72rem, 2.4vw, 0.9rem);
   letter-spacing: 0.02em;
   white-space: nowrap;
+}
+.member-track::after,
+.member-axis::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--album-lines, none);
+  pointer-events: none;
 }
 .member-track {
   position: relative;
@@ -431,11 +444,11 @@
 }
 /* instrument filter: people who don't match fade back */
 .member-name,
-.member-track {
+.member-bar {
   transition: opacity 0.2s ease;
 }
 .member-name.is-dim,
-.member-track.is-dim {
+.member-bar.is-dim {
   opacity: 0.18;
 }
 
@@ -510,6 +523,15 @@
   font-size: clamp(0.72rem, 2.3vw, 0.85rem);
   white-space: nowrap;
   scroll-snap-align: start;
+}
+.filter-divider {
+  flex: none;
+  width: 1px;
+  margin: 2px 4px;
+  background: var(--green);
+}
+.filter-btn.is-album {
+  border-style: dashed;
 }
 .filter-arrow {
   width: 30px;

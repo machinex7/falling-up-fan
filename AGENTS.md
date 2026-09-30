@@ -56,11 +56,12 @@ ink/
                      control setters, flight modes, computed stats).
 data/
   albums.json        the info monitor's Albums content — plain array
-                      of { title, year, type, tracks }, where each
+                      of { title, year, type, band, tracks }, where each
                       track is { title, lyrics }, fetched by
-                      js/monitor.js; hand-edit this file directly to
-                      correct or extend the catalog, nothing else
-                      references it. Lyrics are placeholder "TODO"
+                      js/monitor.js and (for the members timeline's
+                      album filter) js/members.js; `band` must match a
+                      group name in members.json. Hand-edit this file
+                      directly to correct or extend the catalog. Lyrics are placeholder "TODO"
                       strings to be filled in by hand later.
   members.json        the info monitor's Members content — array of { name, groups }, one entry per
                       person; each group is { name, instruments: [..],
@@ -195,7 +196,7 @@ js/
                      monitor" below
   members.js         draws the members timeline into #member-view
                      when monitor.js enters members mode
-                     ('monitor:mode'), plus the instrument filter bar
+                     ('monitor:mode'), plus the instrument/album filter bar
                      (#member-filter) along the screen's bottom — see
                      "The info monitor" below
 ```
@@ -1385,7 +1386,25 @@ and disable at either end. Selected instruments AND together across a
 person's whole career (any band): whoever hasn't played every selected
 one gets `.is-dim` on their name and track. Instrument names are
 matched exactly, so keep spellings consistent in members.json
-("guitars" was merged into "guitar" for this). The bar sits raised by
+("guitars" was merged into "guitar" for this).
+
+After a divider the same strip holds one dashed `.filter-btn.is-album`
+per album in `data/albums.json` (release order; `type: "Compilation"`
+skipped), ANDed together with the instruments: a person stays lit only
+if they were on every selected album too, and each selected album adds
+an amber marker at its release year (`--album-lines`, painted by
+`.member-track::after`/`.member-axis::after` above the bars; only the
+bars and name dim, never the track, so the marker stays unbroken).
+Albums only have a year, so membership is inferred by an explicit
+call: a stint in the album's `band` counts if the member left that
+year or later and joined BEFORE it (leaving in a release year = it was
+their last album; joining that year = missed it), except a band's
+founding lineup, which counts for a same-year debut. If albums gain
+real release dates, that's where to tighten it. `--grid`/
+`--album-line` are declared on `.member-chart`, the same element JS
+sets the stripe lists on — a custom property's `var()` resolves where
+it's declared, and defining the color lower down silently blanked the
+markers. The bar sits raised by
 `calc(var(--armrest-h) * 0.7 - 13px)`: the armrests are fixed over the
 viewport's bottom corners above this panel, and at the screen's real
 bottom edge they covered the arrows at every width. `--armrest-h`

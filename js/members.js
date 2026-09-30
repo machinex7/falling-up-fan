@@ -21,14 +21,28 @@
 // stints are drawn hatched instead of solid.
 //
 // The bar pinned to the screen's bottom edge (#member-filter) holds
-// one toggle button per instrument in the data, most-played first.
-// Selected instruments AND together: anyone who hasn't played every
-// selected instrument (in any band) gets their name and bars dimmed.
-// The buttons scroll sideways; the arrow buttons either side page
-// through them and disable themselves at either end.
+// toggle buttons: one per instrument in the data (most-played first),
+// then one per album in data/albums.json (release order, compilations
+// left out). Every selected button ANDs together: anyone who hasn't
+// played every selected instrument (in any band) and wasn't on every
+// selected album gets their name and bars dimmed, and each selected
+// album also draws a marker line at its release year. The buttons
+// scroll sideways; the arrow buttons either side page through them
+// and disable themselves at either end.
+//
+// Who was on an album is inferred from years alone (albums only have
+// a year so far): a stint in the album's `band` covers it if the
+// member left that year or later, and joined BEFORE that year —
+// someone leaving in a release year played on it as their last
+// album, someone joining that year is taken to have missed it. The
+// one exception is a band's founding lineup (joined in the band's
+// first year), so a debut released in that same year still counts
+// them. Release-year markers sit at the start of the year, on the
+// same scale as the bars.
 // ═══════════════════════════════════════════════════════
 (function () {
   const DATA_URL = 'data/members.json';
+  const ALBUMS_URL = 'data/albums.json';
   const TICK_EVERY = 5;
 
   const legendEl = document.getElementById('member-legend');
@@ -39,9 +53,12 @@
   if (!legendEl || !chartEl || !filterListEl || !prevBtn || !nextBtn) return;
 
   let loaded = null;
-  // One entry per rendered person: { plays: Set, els: [name, track] }.
+  // One entry per rendered person: { plays: Set, member, els: [name, ...bars] }.
   let rowEls = [];
-  const selected = new Set();
+  let bandStart = new Map(); // band name -> its first year
+  let pct = () => 0;
+  const selectedInstruments = new Set();
+  const selectedAlbums = new Set(); // album objects from albums.json
 
   function now() {
     const d = new Date();
@@ -61,7 +78,22 @@
     return node;
   }
 
-  function render(members) {
+  function fetchJSON(url) {
+    return fetch(url).then(res => {
+      if (!res.ok) throw new Error(`${url}: HTTP ${res.status}`);
+      return res.json();
+    });
+  }
+
+  // See the header comment for the boundary-year rule.
+  function onAlbum(member, album) {
+    const y = album.year;
+    return member.groups.some(g => g.name === album.band &&
+      (g.years.from < y || g.years.from === bandStart.get(g.name)) &&
+      (g.years.to == null || y <= g.years.to));
+  }
+
+  function render([members, albums]) {
     const today = now();
     const earliest = m => Math.min(...m.groups.map(g => g.years.from));
     // Stable sort, so members who joined the same year keep file order.
@@ -73,9 +105,14 @@
       .slice().sort((a, b) => a.years.from - b.years.from)
       .forEach(g => { if (!bands.includes(g.name)) bands.push(g.name); }));
 
+    bandStart = new Map();
+    rows.forEach(m => m.groups.forEach(g => {
+      bandStart.set(g.name, Math.min(g.years.from, bandStart.get(g.name) ?? Infinity));
+    }));
+
     const min = Math.min(...rows.map(earliest));
     const max = today;
-    const pct = year => ((year - min) / (max - min)) * 100;
+    pct = year => ((year - min) / (max - min)) * 100;
 
     legendEl.innerHTML = '';
     bands.forEach((band, i) => {
@@ -108,7 +145,7 @@
         .map(g => `${g.name}${g.touring ? ' (touring)' : ''}, ${g.instruments.join(', ')}, ${yearsLabel(g.years)}`)
         .join('; '));
 
-      m.groups.forEach(g => {
+      const bars = m.groups.map(g => {
         const end = g.years.to ?? today;
         const bar = el('span', `member-bar group-${bands.indexOf(g.name)}`);
         if (g.touring) bar.classList.add('is-touring');
@@ -116,12 +153,16 @@
         bar.style.width = `${pct(end) - pct(g.years.from)}%`;
         bar.title = `${g.name}${g.touring ? ' (touring)' : ''}\n${g.instruments.join(', ')}\n${yearsLabel(g.years)}`;
         track.appendChild(bar);
+        return bar;
       });
 
       chartEl.append(name, track);
+      // The track itself isn't dimmed, only the bars on it, so its
+      // gridlines and album markers stay unbroken down the chart.
       rowEls.push({
+        member: m,
         plays: new Set(m.groups.flatMap(g => g.instruments)),
-        els: [name, track],
+        els: [name, ...bars],
       });
     });
 
@@ -135,10 +176,23 @@
     // side-by-side layout; it's hidden when names stack above bars.
     chartEl.append(el('div', 'member-axis-spacer'), axis);
 
-    renderFilter(rows);
+    renderFilter(rows, albums.filter(a => a.type !== 'Compilation' && a.band));
   }
 
-  function renderFilter(rows) {
+  function toggleButton(label, set, key) {
+    const btn = el('button', 'filter-btn', label);
+    btn.type = 'button';
+    btn.setAttribute('aria-pressed', String(set.has(key)));
+    btn.addEventListener('click', () => {
+      if (set.has(key)) set.delete(key);
+      else set.add(key);
+      btn.setAttribute('aria-pressed', String(set.has(key)));
+      applyFilter();
+    });
+    return btn;
+  }
+
+  function renderFilter(rows, albums) {
     const counts = new Map();
     rows.forEach(m => new Set(m.groups.flatMap(g => g.instruments))
       .forEach(i => counts.set(i, (counts.get(i) || 0) + 1)));
@@ -147,26 +201,34 @@
 
     filterListEl.innerHTML = '';
     instruments.forEach(instrument => {
-      const btn = el('button', 'filter-btn', instrument);
-      btn.type = 'button';
-      btn.setAttribute('aria-pressed', String(selected.has(instrument)));
-      btn.addEventListener('click', () => {
-        if (selected.has(instrument)) selected.delete(instrument);
-        else selected.add(instrument);
-        btn.setAttribute('aria-pressed', String(selected.has(instrument)));
-        applyFilter();
-      });
-      filterListEl.appendChild(btn);
+      filterListEl.appendChild(toggleButton(instrument, selectedInstruments, instrument));
     });
+    if (albums.length) filterListEl.appendChild(el('span', 'filter-divider'));
+    albums
+      .slice().sort((a, b) => a.year - b.year)
+      .forEach(album => {
+        const btn = toggleButton(album.title, selectedAlbums, album);
+        btn.classList.add('is-album');
+        btn.title = `${album.title} (${album.year})`;
+        filterListEl.appendChild(btn);
+      });
     applyFilter();
     updateArrows();
   }
 
   function applyFilter() {
-    rowEls.forEach(({ plays, els }) => {
-      const match = [...selected].every(i => plays.has(i));
+    rowEls.forEach(({ member, plays, els }) => {
+      const match = [...selectedInstruments].every(i => plays.has(i)) &&
+        [...selectedAlbums].every(a => onAlbum(member, a));
       els.forEach(node => node.classList.toggle('is-dim', !match));
     });
+    // A 2px stripe per selected album's release year, painted over
+    // every track and the axis (css/monitor.css, .member-track::after).
+    chartEl.style.setProperty('--album-lines', selectedAlbums.size
+      ? [...selectedAlbums]
+        .map(a => `linear-gradient(to right, transparent calc(${pct(a.year)}% - 1px), var(--album-line) 0 calc(${pct(a.year)}% + 1px), transparent 0)`)
+        .join(', ')
+      : 'none');
   }
 
   function updateArrows() {
@@ -194,16 +256,12 @@
   document.addEventListener('monitor:mode', e => {
     if (e.detail.mode !== 'members' || loaded) return;
     showStatus('ACCESSING CREW MANIFEST…');
-    loaded = fetch(DATA_URL)
-      .then(res => {
-        if (!res.ok) throw new Error(`${DATA_URL}: HTTP ${res.status}`);
-        return res.json();
-      })
+    loaded = Promise.all([fetchJSON(DATA_URL), fetchJSON(ALBUMS_URL)])
       .then(render)
       .catch(err => {
         loaded = null; // let the next open retry
         showStatus('CREW MANIFEST UNAVAILABLE.');
-        console.error('members.json failed to load', err);
+        console.error('members/albums data failed to load', err);
       });
   });
 })();
