@@ -333,7 +333,7 @@
     grid-template-columns: repeat(7, var(--sq));
   }
 }
-/* one lit LED per track; c0–c4 cycle the colors. Dim at rest, full
+/* one lit LED per track, in the screen's own green. Dim at rest, full
    brightness + glow on hover/focus, like picking one lamp off a bank. */
 .track-sq {
   --sq-color: var(--led-green);
@@ -347,10 +347,6 @@
   cursor: pointer;
   transition: opacity 0.12s, box-shadow 0.12s, transform 0.12s;
 }
-.track-sq.c1 { --sq-color: var(--led-amber); }
-.track-sq.c2 { --sq-color: var(--led-cyan); }
-.track-sq.c3 { --sq-color: #ff6f8f; }
-.track-sq.c4 { --sq-color: var(--led-blue); }
 .track-sq:hover,
 .track-sq:focus-visible {
   opacity: 1;

@@ -85,8 +85,7 @@
 
   // Each album row is the big card (opens the track list, as before)
   // plus a grid of small colored squares, one per track, that jump
-  // straight to that track's lyrics. Square colors cycle through
-  // .track-sq's c0–c4 classes in css/monitor.css.
+  // straight to that track's lyrics.
   function renderAlbumList(albums) {
     albumListEl.innerHTML = '';
     albums.forEach(album => {
@@ -112,7 +111,7 @@
       album.tracks.forEach((track, i) => {
         const sq = document.createElement('button');
         sq.type = 'button';
-        sq.className = `track-sq c${i % 5}`;
+        sq.className = 'track-sq';
         sq.title = `${i + 1}. ${track.title}`;
         sq.setAttribute('aria-label', `Track ${i + 1}: ${track.title}`);
         sq.addEventListener('click', () => showLyrics(album, track));
