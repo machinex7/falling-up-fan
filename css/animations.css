@@ -128,3 +128,11 @@
   0%, 60%, 100% { opacity: 0.25; }
   30%           { opacity: 1; }
 }
+
+/* the duration trace's playhead (monitor.css .trace-line::before),
+   swept along a track's line while its row is hovered */
+@keyframes trace-sweep {
+  0%   { left: 0;    opacity: 1; }
+  92%  { left: calc(100% - 3px); opacity: 1; }
+  100% { left: calc(100% - 3px); opacity: 0; }
+}

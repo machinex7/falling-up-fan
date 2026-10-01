@@ -20,7 +20,8 @@
 // (this needs the site served over http(s); a bare file:// open
 // will fail fetch() for a local JSON file in most browsers, per
 // AGENTS.md) and cached in `dataPromise` for every open after
-// the first. Each track is `{ title, lyrics }`; lyrics are
+// the first. Each track is `{ title, duration?, lyrics }`
+// (`duration` an optional "m:ss"); lyrics are
 // placeholder `"TODO"` strings until the real words get filled
 // in by hand — this file just displays whatever string is there,
 // it doesn't know or care whether it's a placeholder.
@@ -83,10 +84,20 @@
       .toUpperCase();
   }
 
+  // "m:ss" -> seconds; null when a track has no (valid) duration yet.
+  function parseDuration(text) {
+    const m = /^(\d+):([0-5]\d)$/.exec(text || '');
+    return m ? Number(m[1]) * 60 + Number(m[2]) : null;
+  }
+
+  // Each album row is the big card (opens the track list, as before)
+  // plus a grid of small colored squares, one per track, that jump
+  // straight to that track's lyrics.
   function renderAlbumList(albums) {
     albumListEl.innerHTML = '';
     albums.forEach(album => {
       const li = document.createElement('li');
+      li.className = 'album-row';
       const card = document.createElement('button');
       card.type = 'button';
       card.className = 'album-card';
@@ -94,11 +105,26 @@
         <span class="album-art" aria-hidden="true">${initials(album.title)}</span>
         <span class="album-info">
           <span class="album-title">${album.title}</span>
-          <span class="album-meta">${album.year} &middot; ${album.type} &middot; ${album.tracks.length} tracks</span>
+          <span class="album-meta">${album.year} &middot; ${album.type}</span>
         </span>
       `;
       card.addEventListener('click', () => showTracks(album));
       li.appendChild(card);
+
+      const squares = document.createElement('div');
+      squares.className = 'track-squares';
+      squares.setAttribute('role', 'group');
+      squares.setAttribute('aria-label', `${album.title} tracks`);
+      album.tracks.forEach((track, i) => {
+        const sq = document.createElement('button');
+        sq.type = 'button';
+        sq.className = 'track-sq';
+        sq.title = `${i + 1}. ${track.title}`;
+        sq.setAttribute('aria-label', `Track ${i + 1}: ${track.title}`);
+        sq.addEventListener('click', () => showLyrics(album, track));
+        squares.appendChild(sq);
+      });
+      li.appendChild(squares);
       albumListEl.appendChild(li);
     });
   }
@@ -117,7 +143,21 @@
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'track-button';
-      btn.textContent = track.title;
+      const name = document.createElement('span');
+      name.className = 'track-name';
+      name.textContent = track.title;
+      btn.appendChild(name);
+      const secs = parseDuration(track.duration);
+      if (secs) {
+        // A signal trace extending from the name: its length is the
+        // track's duration on one shared scale (css/monitor.css), with
+        // a tick per minute, so rows compare at a glance.
+        const trace = document.createElement('span');
+        trace.className = 'track-trace';
+        trace.style.setProperty('--secs', secs);
+        trace.innerHTML = `<span class="trace-line" aria-hidden="true"></span><span class="trace-time">${track.duration}</span>`;
+        btn.appendChild(trace);
+      }
       btn.addEventListener('click', () => showLyrics(album, track));
       li.appendChild(btn);
       trackListEl.appendChild(li);
@@ -129,6 +169,7 @@
   }
 
   function showLyrics(album, track) {
+    currentAlbum = album;
     titleEl.textContent = track.title;
     lyricsMetaEl.textContent = album.title;
     lyricsBodyEl.textContent = track.lyrics;
