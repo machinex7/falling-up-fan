@@ -400,7 +400,8 @@
            #album-list, #track-view and #lyrics-view via [hidden], no
            page loads. The Members button opens the same panel in its
            members mode: #member-view, a timeline js/members.js draws
-           from data/members.json. -->
+           from data/members.json; clicking a name there opens
+           #bio-view, that person's bio card, also drawn by members.js. -->
       <div id="info-monitor" class="info-monitor" aria-hidden="true">
         <div class="monitor-bezel hull">
           <div class="bolt tl"></div>
@@ -428,6 +429,7 @@
                 <ul id="member-legend" class="member-legend"></ul>
                 <div id="member-chart" class="member-chart"></div>
               </div>
+              <div id="bio-view" class="bio-view" hidden></div>
             </div>
             <div id="member-filter" class="member-filter" hidden>
               <div class="filter-row">

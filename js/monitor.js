@@ -11,6 +11,9 @@
 // Entering the members mode dispatches 'monitor:mode' ({ mode })
 // so js/members.js can render its timeline into #member-view; this
 // file only shows/hides that view and never builds the chart.
+// Likewise, clicking a name there makes members.js fill #bio-view
+// and dispatch 'monitor:bio' ({ name }); this file then swaps to
+// that view, with the back button returning to the timeline.
 //
 // Album/track content lives in data/albums.json, not inline
 // here, so it's a plain data file to hand-edit — fetched once
@@ -35,6 +38,7 @@
   const flagEl = document.getElementById('monitor-flag');
   const memberViewEl = document.getElementById('member-view');
   const memberFilterEl = document.getElementById('member-filter');
+  const bioViewEl = document.getElementById('bio-view');
   const closeBtn = document.getElementById('monitor-close');
   const backBtn = document.getElementById('monitor-back');
   const titleEl = document.getElementById('monitor-title');
@@ -48,9 +52,9 @@
   if (!monitor || !openBtn || !closeBtn || !backBtn || !titleEl ||
       !albumListEl || !trackViewEl || !trackMetaEl || !trackListEl ||
       !lyricsViewEl || !lyricsMetaEl || !lyricsBodyEl ||
-      !membersBtn || !flagEl || !memberViewEl || !memberFilterEl) return;
+      !membersBtn || !flagEl || !memberViewEl || !memberFilterEl || !bioViewEl) return;
 
-  const VIEWS = [albumListEl, trackViewEl, lyricsViewEl, memberViewEl];
+  const VIEWS = [albumListEl, trackViewEl, lyricsViewEl, memberViewEl, bioViewEl];
   const FLAGS = {
     albums: 'Catalog cross-checked against public release listings — flag any discrepancy you spot.',
     members: 'Lineup compiled from public band histories — flag any discrepancy you spot.',
@@ -149,8 +153,17 @@
     document.dispatchEvent(new CustomEvent('monitor:mode', { detail: { mode: 'members' } }));
   }
 
+  function showBio(name) {
+    titleEl.textContent = name;
+    showView(bioViewEl);
+    backBtn.hidden = false;
+    backBtn.textContent = '← Members';
+    view = 'bio';
+  }
+
   function goBack() {
     if (view === 'lyrics') showTracks(currentAlbum);
+    else if (view === 'bio') showMembers();
     else showAlbumList();
   }
 
@@ -186,6 +199,7 @@
   membersBtn.addEventListener('click', () => openMonitor('members'));
   closeBtn.addEventListener('click', closeMonitor);
   backBtn.addEventListener('click', goBack);
+  document.addEventListener('monitor:bio', e => showBio(e.detail.name));
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && monitor.classList.contains('is-open')) closeMonitor();
   });

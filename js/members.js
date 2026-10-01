@@ -31,6 +31,14 @@
 // buttons either side page through it and disable themselves at
 // either end.
 //
+// Clicking a name (or its bars) opens that person's bio card in
+// #bio-view: a portrait, their stints, the albums they played on
+// (by the same onAlbum() rule the album filter uses) and the `bio`
+// text from members.json. The portrait is the optional `photo` path
+// (e.g. under images/members/); with none, a phosphor silhouette with
+// their initials stands in. This file fills the view, then dispatches
+// 'monitor:bio' ({ name }) so js/monitor.js swaps to it.
+//
 // Dates can be a plain year (2006) or, where known, a "YYYY-MM" or
 // "YYYY-MM-DD" string: a stint's `from`/`to` in members.json, and an
 // album's optional `released` in albums.json. An exact `from` starts
@@ -58,13 +66,15 @@
   const chartEl = document.getElementById('member-chart');
   const instrumentListEl = document.getElementById('member-filter-instruments');
   const albumListEl = document.getElementById('member-filter-albums');
-  if (!legendEl || !chartEl || !instrumentListEl || !albumListEl) return;
+  const bioEl = document.getElementById('bio-view');
+  if (!legendEl || !chartEl || !instrumentListEl || !albumListEl || !bioEl) return;
 
   let loaded = null;
   // One entry per rendered person: { plays: Set, member, els: [name, ...bars] }.
   let rowEls = [];
   let bandStart = new Map(); // band name -> its first year
   let pct = () => 0;
+  let catalog = []; // albums with a band, compilations left out
   const selectedInstruments = new Set();
   const selectedAlbums = new Set(); // album objects from albums.json
 
@@ -181,8 +191,11 @@
     rowEls = [];
 
     rows.forEach(m => {
-      const name = el('div', 'member-name', m.name);
+      const name = el('button', 'member-name', m.name);
+      name.type = 'button';
+      name.addEventListener('click', () => showBio(m));
       const track = el('div', 'member-track');
+      track.addEventListener('click', () => showBio(m));
       track.setAttribute('role', 'img');
       track.setAttribute('aria-label', m.groups
         .map(g => `${g.name}${g.touring ? ' (touring)' : ''}, ${g.instruments.join(', ')}, ${yearsLabel(g.years)}`)
@@ -221,7 +234,60 @@
     // side-by-side layout; it's hidden when names stack above bars.
     chartEl.append(el('div', 'member-axis-spacer'), axis);
 
-    renderFilter(rows, albums.filter(a => a.type !== 'Compilation' && a.band));
+    catalog = albums.filter(a => a.type !== 'Compilation' && a.band)
+      .sort((a, b) => releasedAt(a) - releasedAt(b));
+    renderFilter(rows, catalog);
+  }
+
+  function initials(name) {
+    return name.split(/\s+/).filter(Boolean).map(w => w[0]).join('').slice(0, 3).toUpperCase();
+  }
+
+  // Head-and-shoulders outline drawn in the screen's own phosphor.
+  const SILHOUETTE = `<svg viewBox="0 0 60 60" aria-hidden="true">
+    <circle cx="30" cy="22" r="11" />
+    <path d="M8 60 C8 44 18 37 30 37 C42 37 52 44 52 60" />
+  </svg>`;
+
+  function showBio(m) {
+    bioEl.innerHTML = '';
+
+    const portrait = el('div', 'bio-portrait');
+    if (m.photo) {
+      const img = el('img');
+      img.src = m.photo;
+      img.alt = `Portrait of ${m.name}`;
+      portrait.appendChild(img);
+    } else {
+      portrait.innerHTML = SILHOUETTE;
+      portrait.appendChild(el('span', 'bio-initials', initials(m.name)));
+    }
+
+    const stints = el('ul', 'bio-stints');
+    m.groups
+      .slice().sort((a, b) => when(a.years.from).start - when(b.years.from).start)
+      .forEach(g => {
+        const li = el('li');
+        li.append(
+          el('span', 'bio-band', `${g.name}${g.touring ? ' (touring)' : ''}`),
+          el('span', 'bio-years', yearsLabel(g.years)),
+          el('span', 'bio-instruments', g.instruments.join(' · ')),
+        );
+        stints.appendChild(li);
+      });
+
+    const head = el('div', 'bio-head');
+    head.append(portrait, stints);
+
+    const played = catalog.filter(a => onAlbum(m, a));
+    const albumsEl = el('p', 'bio-albums');
+    albumsEl.append(
+      el('span', 'bio-label', 'Albums: '),
+      played.length ? played.map(a => a.title).join(' · ') : 'None released during their tenure',
+    );
+
+    bioEl.append(head, albumsEl, el('p', 'bio-text', m.bio || 'No bio on file.'));
+    document.dispatchEvent(new CustomEvent('monitor:bio', { detail: { name: m.name } }));
   }
 
   function toggleButton(label, set, key) {
