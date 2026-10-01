@@ -225,6 +225,8 @@
     resolveImage(story);
   }
 
+  let awaitingReply = false; // choices on offer, conversation not over
+
   function renderEnded() {
     repliesEl.innerHTML = '';
     const p = document.createElement('p');
@@ -250,7 +252,8 @@
   // starts the mission timer toward the next scene, if the story queued
   // one (queue() in ink/ship.ink). Nothing queued = the timer stays put.
   function finishBeat(story) {
-    if (story.currentChoices.length > 0) {
+    awaitingReply = story.currentChoices.length > 0;
+    if (awaitingReply) {
       renderChoices(story);
       return;
     }
@@ -287,7 +290,12 @@
     panel.setAttribute('aria-hidden', 'false');
   }
 
+  // Closing the panel with replies still on offer (the scene hasn't hit
+  // -> END) re-flashes the tile, so a minimized conversation that's
+  // waiting on the player still says so. Not re-flashed mid-conversation
+  // while the panel is open — see the .is-pending note in AGENTS.md.
   function closePanel() {
+    if (awaitingReply) tile.classList.add('is-pending');
     panel.classList.remove('is-open');
     panel.setAttribute('aria-hidden', 'true');
     tile.setAttribute('aria-expanded', 'false');

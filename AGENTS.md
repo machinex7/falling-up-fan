@@ -1080,7 +1080,11 @@ ever set once, right when a scene starts (`playScene()`) — picking a
 reply and getting a fresh batch of choices (`pickChoice()` →
 `finishBeat()`) deliberately does NOT re-flash the tile, since that
 would read as a new unread message arriving mid-conversation the player
-is already looking at, not "you have something new to check."
+is already looking at, not "you have something new to check." The one
+exception is closing the panel while replies are still on offer (the
+scene hasn't reached `-> END`): `closePanel()` re-adds `.is-pending`,
+so a minimized conversation still waiting on the player keeps blinking
+until it's reopened. Closing after "Transmission ended" doesn't.
 
 There's no separate "resume state" to restore on reopen: the transcript
 and current reply buttons already live in the DOM inside `#comms-panel`,
