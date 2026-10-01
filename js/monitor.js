@@ -83,10 +83,15 @@
       .toUpperCase();
   }
 
+  // Each album row is the big card (opens the track list, as before)
+  // plus a grid of small colored squares, one per track, that jump
+  // straight to that track's lyrics. Square colors cycle through
+  // .track-sq's c0–c4 classes in css/monitor.css.
   function renderAlbumList(albums) {
     albumListEl.innerHTML = '';
     albums.forEach(album => {
       const li = document.createElement('li');
+      li.className = 'album-row';
       const card = document.createElement('button');
       card.type = 'button';
       card.className = 'album-card';
@@ -94,11 +99,26 @@
         <span class="album-art" aria-hidden="true">${initials(album.title)}</span>
         <span class="album-info">
           <span class="album-title">${album.title}</span>
-          <span class="album-meta">${album.year} &middot; ${album.type} &middot; ${album.tracks.length} tracks</span>
+          <span class="album-meta">${album.year} &middot; ${album.type}</span>
         </span>
       `;
       card.addEventListener('click', () => showTracks(album));
       li.appendChild(card);
+
+      const squares = document.createElement('div');
+      squares.className = 'track-squares';
+      squares.setAttribute('role', 'group');
+      squares.setAttribute('aria-label', `${album.title} tracks`);
+      album.tracks.forEach((track, i) => {
+        const sq = document.createElement('button');
+        sq.type = 'button';
+        sq.className = `track-sq c${i % 5}`;
+        sq.title = `${i + 1}. ${track.title}`;
+        sq.setAttribute('aria-label', `Track ${i + 1}: ${track.title}`);
+        sq.addEventListener('click', () => showLyrics(album, track));
+        squares.appendChild(sq);
+      });
+      li.appendChild(squares);
       albumListEl.appendChild(li);
     });
   }
@@ -129,6 +149,7 @@
   }
 
   function showLyrics(album, track) {
+    currentAlbum = album;
     titleEl.textContent = track.title;
     lyricsMetaEl.textContent = album.title;
     lyricsBodyEl.textContent = track.lyrics;

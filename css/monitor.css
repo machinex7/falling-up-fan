@@ -233,9 +233,20 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  container-type: inline-size;
+}
+/* each row: the big card (opens the track list) and, to its right, a
+   grid of small colored squares — one per track — that jump straight
+   to that track's lyrics (js/monitor.js renderAlbumList). The grid has
+   a fixed column count, so every row's card ends at the same x. */
+.album-row {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
 }
 .album-card {
-  width: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -290,6 +301,65 @@
 .album-meta {
   font-size: clamp(0.68rem, 2.2vw, 0.78rem);
   opacity: 0.75;
+}
+
+.track-squares {
+  --sq: 14px;
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(5, var(--sq));
+  grid-auto-rows: var(--sq);
+  gap: 4px;
+  align-content: center;
+  padding: 6px;
+  border: 1px solid var(--green);
+}
+/* phones: fewer, smaller squares and a smaller art tile, so the
+   title keeps enough room not to wrap a word per line */
+@container (max-width: 360px) {
+  .album-row { gap: 6px; }
+  .album-card { gap: 8px; padding: 6px 8px; }
+  .album-art { width: 30px; height: 30px; font-size: 0.7rem; }
+  .track-squares {
+    --sq: 11px;
+    grid-template-columns: repeat(4, var(--sq));
+    gap: 3px;
+    padding: 5px;
+  }
+}
+@container (min-width: 520px) {
+  .track-squares {
+    --sq: 16px;
+    grid-template-columns: repeat(7, var(--sq));
+  }
+}
+/* one lit LED per track; c0–c4 cycle the colors. Dim at rest, full
+   brightness + glow on hover/focus, like picking one lamp off a bank. */
+.track-sq {
+  --sq-color: var(--led-green);
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 0;
+  border: 1px solid var(--sq-color);
+  border-radius: 0;
+  background: var(--sq-color);
+  opacity: 0.55;
+  cursor: pointer;
+  transition: opacity 0.12s, box-shadow 0.12s, transform 0.12s;
+}
+.track-sq.c1 { --sq-color: var(--led-amber); }
+.track-sq.c2 { --sq-color: var(--led-cyan); }
+.track-sq.c3 { --sq-color: #ff6f8f; }
+.track-sq.c4 { --sq-color: var(--led-blue); }
+.track-sq:hover,
+.track-sq:focus-visible {
+  opacity: 1;
+  outline: none;
+  transform: scale(1.18);
+  box-shadow: 0 0 6px var(--sq-color), 0 0 0 1px #04140a;
+}
+.track-sq:active {
+  transform: scale(0.94);
 }
 
 /* ── track list ── */

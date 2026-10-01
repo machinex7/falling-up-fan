@@ -1313,6 +1313,16 @@ a module-scoped `view` string monitor.js sets at the end of each
 album list; from the lyrics view it reads "← <Album Title>" and returns
 to that album's track list rather than all the way out.
 
+**Track squares.** Each album-list row (`.album-row`) is the big
+`.album-card` (opens the track list) plus `.track-squares` to its
+right: one small colored `.track-sq` button per track that jumps
+straight to that track's lyrics. The back button still goes to that
+album's track list (showLyrics sets `currentAlbum`). The card no
+longer shows a track count; the squares are the count. Colors cycle
+`c0`–`c4` by track index. The grid has a fixed column count (4 under
+a 360px container, 5 normally, 7 from 520px) so every row's card ends
+at the same edge.
+
 **Why a slide-out panel instead of a real page:** the user's own framing
 was "a slot or additional monitor to the side" — an in-universe second
 screen the ship already has, not a link out of the cockpit. `#info-monitor`
