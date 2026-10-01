@@ -56,7 +56,8 @@ ink/
                      control setters, flight modes, computed stats).
 data/
   albums.json        the info monitor's Albums content — plain array
-                      of { title, year, type, band, tracks }, where each
+                      of { title, year, released?, type, band, tracks }
+                      (`released` an optional "YYYY-MM-DD"), where each
                       track is { title, lyrics }, fetched by
                       js/monitor.js and (for the members timeline's
                       album filter) js/members.js; `band` must match a
@@ -67,7 +68,8 @@ data/
                       person; each group is { name, instruments: [..],
                       years: { from, to } } for one band they were in
                       ("Falling Up" / "The Chilling Alpine Adventure"),
-                      and `to: null` means "present" — past vs current
+                      and `to: null` means "present"; `from`/`to` may be
+                      a plain year or, where known, "YYYY-MM[-DD]" — past vs current
                       is read from the years, not stored. Touring stints
                       carry `touring: true`. Fetched by js/members.js;
                       hand-edit directly.
@@ -1398,13 +1400,18 @@ if they were on every selected album too, and each selected album adds
 an amber marker at its release year (`--album-lines`, painted by
 `.member-track::after`/`.member-axis::after` above the bars; only the
 bars and name dim, never the track, so the marker stays unbroken).
-Albums only have a year, so membership is inferred by an explicit
-call: a stint in the album's `band` counts if the member left that
-year or later and joined BEFORE it (leaving in a release year = it was
-their last album; joining that year = missed it), except a band's
-founding lineup, which counts for a same-year debut. Touring stints
-never count toward an album. If albums gain
-real release dates, that's where to tighten it. `--grid`/
+Membership is decided per stint end (`onAlbum()`), with touring stints
+never counting: where both that end of the stint and the album's
+`released` are exact dates ("YYYY-MM[-DD]"), it's a straight date
+comparison (an exact `to` runs through the END of its month/day, so
+Joe Kisselburgh's `"2006-08"` misses Exit Lights' `"2006-09-12"`).
+Otherwise it falls back to years by explicit call: leaving in a
+release year = it was their last album, joining that year = missed
+it, except a band's founding lineup, which counts for a same-year
+debut. Exact dates also position bars and album markers within the
+year; a plain-year `to` still ends its bar at the start of that year.
+Add dates to members.json/albums.json to settle boundary cases rather
+than special-casing albums in code. `--grid`/
 `--album-line` are declared on `.member-chart`, the same element JS
 sets the stripe lists on — a custom property's `var()` resolves where
 it's declared, and defining the color lower down silently blanked the

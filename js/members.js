@@ -31,15 +31,23 @@
 // buttons either side page through it and disable themselves at
 // either end.
 //
-// Who was on an album is inferred from years alone (albums only have
-// a year so far): a stint in the album's `band` covers it if the
-// member left that year or later, and joined BEFORE that year —
-// someone leaving in a release year played on it as their last
-// album, someone joining that year is taken to have missed it. The
-// one exception is a band's founding lineup (joined in the band's
-// first year), so a debut released in that same year still counts
-// them. Touring stints never count as being on an album. Release-year markers sit at the start of the year, on the
-// same scale as the bars.
+// Dates can be a plain year (2006) or, where known, a "YYYY-MM" or
+// "YYYY-MM-DD" string: a stint's `from`/`to` in members.json, and an
+// album's optional `released` in albums.json. An exact `from` starts
+// at the start of that month/day, an exact `to` runs to the END of it
+// (so "2006-08" means "still in the band through August"). A plain
+// `to` year keeps the old convention of ending at the start of that
+// year, so back-to-back year stints meet.
+//
+// Who was on an album: a non-touring stint in the album's `band`
+// counts if it covers the release. Each end is compared exactly when
+// both that end and the album are exact; otherwise by year, where
+// someone leaving in a release year played on it as their last album
+// and someone joining that year is taken to have missed it — except
+// a band's founding lineup (joined in the band's first year), so a
+// debut released in that same year still counts them. Album markers
+// sit at the release date, or the start of the year without one, on
+// the same scale as the bars.
 // ═══════════════════════════════════════════════════════
 (function () {
   const DATA_URL = 'data/members.json';
@@ -67,8 +75,30 @@
     return d.getFullYear() + (d - start) / (end - start);
   }
 
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  // A plain year or a "YYYY-MM[-DD]" string -> { year, exact, start, end }
+  // where start/end are fractional years bounding that day/month/year.
+  function when(value) {
+    if (typeof value === 'number') return { year: value, exact: false, start: value, end: value };
+    const [y, m, d] = value.split('-').map(Number);
+    const frac = (mo, day) => {
+      const t = new Date(y, mo, day);
+      return y + (t - new Date(y, 0, 1)) / (new Date(y + 1, 0, 1) - new Date(y, 0, 1));
+    };
+    return d
+      ? { year: y, exact: true, start: frac(m - 1, d), end: frac(m - 1, d + 1) }
+      : { year: y, exact: true, start: frac(m - 1, 1), end: frac(m, 1) };
+  }
+
+  function dateLabel(value) {
+    if (typeof value === 'number') return String(value);
+    const [y, m, d] = value.split('-').map(Number);
+    return `${d ? d + ' ' : ''}${MONTHS[m - 1]} ${y}`;
+  }
+
   function yearsLabel(years) {
-    return `${years.from}–${years.to ?? 'present'}`;
+    return `${dateLabel(years.from)}–${years.to == null ? 'present' : dateLabel(years.to)}`;
   }
 
   function el(tag, className, text) {
@@ -85,32 +115,45 @@
     });
   }
 
-  // See the header comment for the boundary-year rule.
+  function releasedAt(album) {
+    return album.released ? when(album.released).start : album.year;
+  }
+
+  // See the header comment for the rule.
   function onAlbum(member, album) {
     const y = album.year;
-    return member.groups.some(g => g.name === album.band && !g.touring &&
-      (g.years.from < y || g.years.from === bandStart.get(g.name)) &&
-      (g.years.to == null || y <= g.years.to));
+    const rel = album.released ? when(album.released) : null;
+    return member.groups.some(g => {
+      if (g.name !== album.band || g.touring) return false;
+      const from = when(g.years.from);
+      const joined = rel && from.exact
+        ? from.start <= rel.start
+        : from.year < y || from.year === bandStart.get(g.name);
+      if (g.years.to == null) return joined;
+      const to = when(g.years.to);
+      const stayed = rel && to.exact ? rel.start < to.end : y <= to.year;
+      return joined && stayed;
+    });
   }
 
   function render([members, albums]) {
     const today = now();
-    const earliest = m => Math.min(...m.groups.map(g => g.years.from));
+    const earliest = m => Math.min(...m.groups.map(g => when(g.years.from).start));
     // Stable sort, so members who joined the same year keep file order.
     const rows = members.slice().sort((a, b) => earliest(a) - earliest(b));
 
     // Band order (and so color) by who started earliest.
     const bands = [];
     rows.forEach(m => m.groups
-      .slice().sort((a, b) => a.years.from - b.years.from)
+      .slice().sort((a, b) => when(a.years.from).start - when(b.years.from).start)
       .forEach(g => { if (!bands.includes(g.name)) bands.push(g.name); }));
 
     bandStart = new Map();
     rows.forEach(m => m.groups.forEach(g => {
-      bandStart.set(g.name, Math.min(g.years.from, bandStart.get(g.name) ?? Infinity));
+      bandStart.set(g.name, Math.min(when(g.years.from).year, bandStart.get(g.name) ?? Infinity));
     }));
 
-    const min = Math.min(...rows.map(earliest));
+    const min = Math.floor(Math.min(...rows.map(earliest)));
     const max = today;
     pct = year => ((year - min) / (max - min)) * 100;
 
@@ -146,11 +189,13 @@
         .join('; '));
 
       const bars = m.groups.map(g => {
-        const end = g.years.to ?? today;
+        const from = when(g.years.from).start;
+        const end = g.years.to == null ? today
+          : when(g.years.to).exact ? when(g.years.to).end : g.years.to;
         const bar = el('span', `member-bar group-${bands.indexOf(g.name)}`);
         if (g.touring) bar.classList.add('is-touring');
-        bar.style.left = `${pct(g.years.from)}%`;
-        bar.style.width = `${pct(end) - pct(g.years.from)}%`;
+        bar.style.left = `${pct(from)}%`;
+        bar.style.width = `${pct(end) - pct(from)}%`;
         bar.title = `${g.name}${g.touring ? ' (touring)' : ''}\n${g.instruments.join(', ')}\n${yearsLabel(g.years)}`;
         track.appendChild(bar);
         return bar;
@@ -205,11 +250,11 @@
     });
     albumListEl.innerHTML = '';
     albums
-      .slice().sort((a, b) => a.year - b.year)
+      .slice().sort((a, b) => releasedAt(a) - releasedAt(b))
       .forEach(album => {
         const btn = toggleButton(album.title, selectedAlbums, album);
         btn.classList.add('is-album');
-        btn.title = `${album.title} (${album.year})`;
+        btn.title = `${album.title} (${album.released ? dateLabel(album.released) : album.year})`;
         albumListEl.appendChild(btn);
       });
     applyFilter();
@@ -226,7 +271,7 @@
     // every track and the axis (css/monitor.css, .member-track::after).
     chartEl.style.setProperty('--album-lines', selectedAlbums.size
       ? [...selectedAlbums]
-        .map(a => `linear-gradient(to right, transparent calc(${pct(a.year)}% - 1px), var(--album-line) 0 calc(${pct(a.year)}% + 1px), transparent 0)`)
+        .map(a => `linear-gradient(to right, transparent calc(${pct(releasedAt(a))}% - 1px), var(--album-line) 0 calc(${pct(releasedAt(a))}% + 1px), transparent 0)`)
         .join(', ')
       : 'none');
   }
