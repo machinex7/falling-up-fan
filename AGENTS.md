@@ -1379,16 +1379,19 @@ year labels collided).
 
 **Instrument filter.** `#member-filter` is a bar pinned under
 `.monitor-body` (a direct child of `.monitor-screen`, shown only in
-members mode by monitor.js's `showView()`): one toggle `.filter-btn`
-per instrument found in the data (`aria-pressed`), most-played first,
-in a sideways-scrolling strip with ‹ › `.filter-arrow`s that page it
-and disable at either end. Selected instruments AND together across a
+members mode by monitor.js's `showView()`) of two `.filter-row`s, each
+a sideways-scrolling strip with its own ‹ › `.filter-arrow`s
+(`data-dir`) that page it and disable at either end (`strip()` in
+members.js wires one row). The top row (`#member-filter-instruments`)
+has one toggle `.filter-btn` per instrument found in the data
+(`aria-pressed`), most-played first. Selected instruments AND together across a
 person's whole career (any band): whoever hasn't played every selected
 one gets `.is-dim` on their name and track. Instrument names are
 matched exactly, so keep spellings consistent in members.json
 ("guitars" was merged into "guitar" for this).
 
-After a divider the same strip holds one dashed `.filter-btn.is-album`
+The second row (`#member-filter-albums`, its own row by explicit call)
+holds one dashed `.filter-btn.is-album`
 per album in `data/albums.json` (release order; `type: "Compilation"`
 skipped), ANDed together with the instruments: a person stays lit only
 if they were on every selected album too, and each selected album adds

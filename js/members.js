@@ -21,14 +21,15 @@
 // stints are drawn hatched instead of solid.
 //
 // The bar pinned to the screen's bottom edge (#member-filter) holds
-// toggle buttons: one per instrument in the data (most-played first),
-// then one per album in data/albums.json (release order, compilations
-// left out). Every selected button ANDs together: anyone who hasn't
-// played every selected instrument (in any band) and wasn't on every
-// selected album gets their name and bars dimmed, and each selected
-// album also draws a marker line at its release year. The buttons
-// scroll sideways; the arrow buttons either side page through them
-// and disable themselves at either end.
+// two rows of toggle buttons: one per instrument in the data
+// (most-played first), and below it one per album in data/albums.json
+// (release order, compilations left out). Every selected button ANDs
+// together: anyone who hasn't played every selected instrument (in any
+// band) and wasn't on every selected album gets their name and bars
+// dimmed, and each selected album also draws a marker line at its
+// release year. Each row scrolls sideways on its own; the arrow
+// buttons either side page through it and disable themselves at
+// either end.
 //
 // Who was on an album is inferred from years alone (albums only have
 // a year so far): a stint in the album's `band` covers it if the
@@ -47,10 +48,9 @@
 
   const legendEl = document.getElementById('member-legend');
   const chartEl = document.getElementById('member-chart');
-  const filterListEl = document.getElementById('member-filter-list');
-  const prevBtn = document.getElementById('member-filter-prev');
-  const nextBtn = document.getElementById('member-filter-next');
-  if (!legendEl || !chartEl || !filterListEl || !prevBtn || !nextBtn) return;
+  const instrumentListEl = document.getElementById('member-filter-instruments');
+  const albumListEl = document.getElementById('member-filter-albums');
+  if (!legendEl || !chartEl || !instrumentListEl || !albumListEl) return;
 
   let loaded = null;
   // One entry per rendered person: { plays: Set, member, els: [name, ...bars] }.
@@ -199,21 +199,21 @@
     const instruments = [...counts.keys()]
       .sort((a, b) => counts.get(b) - counts.get(a) || a.localeCompare(b));
 
-    filterListEl.innerHTML = '';
+    instrumentListEl.innerHTML = '';
     instruments.forEach(instrument => {
-      filterListEl.appendChild(toggleButton(instrument, selectedInstruments, instrument));
+      instrumentListEl.appendChild(toggleButton(instrument, selectedInstruments, instrument));
     });
-    if (albums.length) filterListEl.appendChild(el('span', 'filter-divider'));
+    albumListEl.innerHTML = '';
     albums
       .slice().sort((a, b) => a.year - b.year)
       .forEach(album => {
         const btn = toggleButton(album.title, selectedAlbums, album);
         btn.classList.add('is-album');
         btn.title = `${album.title} (${album.year})`;
-        filterListEl.appendChild(btn);
+        albumListEl.appendChild(btn);
       });
     applyFilter();
-    updateArrows();
+    strips.forEach(s => s.update());
   }
 
   function applyFilter() {
@@ -231,21 +231,26 @@
       : 'none');
   }
 
-  function updateArrows() {
-    const { scrollLeft, scrollWidth, clientWidth } = filterListEl;
-    prevBtn.disabled = scrollLeft <= 1;
-    nextBtn.disabled = scrollLeft + clientWidth >= scrollWidth - 1;
+  // Wires one .filter-row: its two arrows page the strip between them
+  // and disable themselves at either end.
+  function strip(listEl) {
+    const row = listEl.closest('.filter-row');
+    const prev = row.querySelector('.filter-arrow[data-dir="-1"]');
+    const next = row.querySelector('.filter-arrow[data-dir="1"]');
+    const update = () => {
+      const { scrollLeft, scrollWidth, clientWidth } = listEl;
+      prev.disabled = scrollLeft <= 1;
+      next.disabled = scrollLeft + clientWidth >= scrollWidth - 1;
+    };
+    [prev, next].forEach(btn => btn.addEventListener('click', () => {
+      listEl.scrollBy({ left: Number(btn.dataset.dir) * listEl.clientWidth * 0.75, behavior: 'smooth' });
+    }));
+    listEl.addEventListener('scroll', update, { passive: true });
+    // Covers resizes and the bar being unhidden (it measures 0 while hidden).
+    new ResizeObserver(update).observe(listEl);
+    return { update };
   }
-
-  function page(dir) {
-    filterListEl.scrollBy({ left: dir * filterListEl.clientWidth * 0.75, behavior: 'smooth' });
-  }
-
-  prevBtn.addEventListener('click', () => page(-1));
-  nextBtn.addEventListener('click', () => page(1));
-  filterListEl.addEventListener('scroll', updateArrows, { passive: true });
-  // Covers resizes and the bar being unhidden (it measures 0 while hidden).
-  new ResizeObserver(updateArrows).observe(filterListEl);
+  const strips = [strip(instrumentListEl), strip(albumListEl)];
 
   function showStatus(message) {
     legendEl.innerHTML = '';

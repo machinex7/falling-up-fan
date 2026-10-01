@@ -481,7 +481,7 @@
 .member-filter {
   flex: 0 0 auto;
   display: flex;
-  align-items: stretch;
+  flex-direction: column;
   gap: 6px;
   margin-bottom: max(0px, calc(var(--armrest-h) * 0.7 - 13px));
   padding: 8px 12px;
@@ -490,6 +490,11 @@
 }
 .member-filter[hidden] {
   display: none;
+}
+.filter-row {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
 }
 .member-filter-list {
   flex: 1 1 auto;
@@ -523,12 +528,6 @@
   font-size: clamp(0.72rem, 2.3vw, 0.85rem);
   white-space: nowrap;
   scroll-snap-align: start;
-}
-.filter-divider {
-  flex: none;
-  width: 1px;
-  margin: 2px 4px;
-  background: var(--green);
 }
 .filter-btn.is-album {
   border-style: dashed;

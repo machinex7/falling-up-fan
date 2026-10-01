@@ -430,9 +430,16 @@
               </div>
             </div>
             <div id="member-filter" class="member-filter" hidden>
-              <button type="button" id="member-filter-prev" class="filter-arrow" aria-label="Scroll instruments left">&lsaquo;</button>
-              <div id="member-filter-list" class="member-filter-list" role="group" aria-label="Filter members by instrument and album"></div>
-              <button type="button" id="member-filter-next" class="filter-arrow" aria-label="Scroll instruments right">&rsaquo;</button>
+              <div class="filter-row">
+                <button type="button" class="filter-arrow" data-dir="-1" aria-label="Scroll instruments left">&lsaquo;</button>
+                <div id="member-filter-instruments" class="member-filter-list" role="group" aria-label="Filter members by instrument"></div>
+                <button type="button" class="filter-arrow" data-dir="1" aria-label="Scroll instruments right">&rsaquo;</button>
+              </div>
+              <div class="filter-row">
+                <button type="button" class="filter-arrow" data-dir="-1" aria-label="Scroll albums left">&lsaquo;</button>
+                <div id="member-filter-albums" class="member-filter-list" role="group" aria-label="Filter members by album"></div>
+                <button type="button" class="filter-arrow" data-dir="1" aria-label="Scroll albums right">&rsaquo;</button>
+              </div>
             </div>
           </div>
         </div>
