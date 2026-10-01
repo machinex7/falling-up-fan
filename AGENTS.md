@@ -71,8 +71,11 @@ data/
                       and `to: null` means "present"; `from`/`to` may be
                       a plain year or, where known, "YYYY-MM[-DD]" — past vs current
                       is read from the years, not stored. Touring stints
-                      carry `touring: true`. Fetched by js/members.js;
-                      hand-edit directly.
+                      carry `touring: true`. Each person also has a short
+                      `bio` (written from this file's own data) and a
+                      `photo` path, null until a real one is added
+                      (e.g. under images/members/). Fetched by
+                      js/members.js; hand-edit directly.
   story.json          GENERATED from ink/*.ink by scripts/compile-ink.js
                       — never hand-edit this, edit the .ink source and
                       recompile (or just push; the GitHub Action does it
@@ -199,7 +202,8 @@ js/
   members.js         draws the members timeline into #member-view
                      when monitor.js enters members mode
                      ('monitor:mode'), plus the instrument/album filter bar
-                     (#member-filter) along the screen's bottom — see
+                     (#member-filter) along the screen's bottom, and each
+                     person's bio card (#bio-view) — see
                      "The info monitor" below
 ```
 
@@ -1422,6 +1426,17 @@ bottom edge they covered the arrows at every width. `--armrest-h`
 (base.css) is the armrest box height cockpit.css also uses, so the
 two stay in step. Mode-switch buttons for the monitor are still
 planned but not built.
+
+**Bio cards.** Clicking a name (a `<button>`) or its bars in the
+timeline fills `#bio-view` (members.js `showBio()`): a portrait, the
+person's stints, the albums they were on (the same `onAlbum()` rule
+the album filter uses, so the two never disagree), and `bio` from
+members.json. Then it dispatches `'monitor:bio'` (`{ name }`) and
+monitor.js swaps to the view with a "← Members" back button — the
+same split as members mode: members.js builds content, monitor.js
+owns which view is showing. With `photo` null the portrait is a
+phosphor head-and-shoulders silhouette with initials; a real `photo`
+is green-tinted by a CSS filter so it still reads as on-screen.
 
 **A `[hidden]`-vs-`display` gotcha worth knowing before adding a fourth
 view here:** `.album-list`, `.track-view`, and `.lyrics-view` each set
