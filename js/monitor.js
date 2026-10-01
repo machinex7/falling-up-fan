@@ -20,7 +20,8 @@
 // (this needs the site served over http(s); a bare file:// open
 // will fail fetch() for a local JSON file in most browsers, per
 // AGENTS.md) and cached in `dataPromise` for every open after
-// the first. Each track is `{ title, lyrics }`; lyrics are
+// the first. Each track is `{ title, duration?, lyrics }`
+// (`duration` an optional "m:ss"); lyrics are
 // placeholder `"TODO"` strings until the real words get filled
 // in by hand — this file just displays whatever string is there,
 // it doesn't know or care whether it's a placeholder.
@@ -83,6 +84,12 @@
       .toUpperCase();
   }
 
+  // "m:ss" -> seconds; null when a track has no (valid) duration yet.
+  function parseDuration(text) {
+    const m = /^(\d+):([0-5]\d)$/.exec(text || '');
+    return m ? Number(m[1]) * 60 + Number(m[2]) : null;
+  }
+
   // Each album row is the big card (opens the track list, as before)
   // plus a grid of small colored squares, one per track, that jump
   // straight to that track's lyrics.
@@ -136,7 +143,21 @@
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'track-button';
-      btn.textContent = track.title;
+      const name = document.createElement('span');
+      name.className = 'track-name';
+      name.textContent = track.title;
+      btn.appendChild(name);
+      const secs = parseDuration(track.duration);
+      if (secs) {
+        // A signal trace extending from the name: its length is the
+        // track's duration on one shared scale (css/monitor.css), with
+        // a tick per minute, so rows compare at a glance.
+        const trace = document.createElement('span');
+        trace.className = 'track-trace';
+        trace.style.setProperty('--secs', secs);
+        trace.innerHTML = `<span class="trace-line" aria-hidden="true"></span><span class="trace-time">${track.duration}</span>`;
+        btn.appendChild(trace);
+      }
       btn.addEventListener('click', () => showLyrics(album, track));
       li.appendChild(btn);
       trackListEl.appendChild(li);

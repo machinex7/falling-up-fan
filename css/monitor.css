@@ -370,6 +370,7 @@
   list-style: none;
   counter-reset: track;
   border-top: 1px solid var(--green);
+  container-type: inline-size;
 }
 .track-list li {
   counter-increment: track;
@@ -391,6 +392,11 @@
 .track-button {
   flex: 1 1 auto;
   min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 10px;
+  row-gap: 4px;
   padding: 8px 4px;
   appearance: none;
   -webkit-appearance: none;
@@ -410,6 +416,78 @@
   background: var(--led-green);
   color: #04140a;
   text-shadow: none;
+}
+
+.track-name {
+  min-width: 0;
+}
+
+/* duration trace (js/monitor.js showTracks): a signal line running out
+   from the track name, its length = duration on ONE fixed scale
+   (--per-min of the list's width per minute, so a 6-minute track is
+   ~42% wide) rather than scaled per album, so rows — and albums —
+   compare directly. A faint tick marks each minute, a lit dot marks the
+   end, and hovering the row sweeps a "playhead" along it. Everything
+   paints in currentColor, so the hover inversion flips it to dark too.
+   If the name leaves no room, the trace wraps under it. */
+.track-trace {
+  --per-min: 7cqi;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+/* phones: names usually fill the row, so the trace sits under them and
+   gets a bigger scale (a 6-minute track is ~3/4 of the row) */
+@container (max-width: 420px) {
+  .track-trace { --per-min: 12.5cqi; }
+}
+.trace-line {
+  position: relative;
+  width: calc(var(--secs) / 60 * var(--per-min));
+  height: 9px;
+  background:
+    linear-gradient(currentColor, currentColor) left center / 100% 2px no-repeat,
+    repeating-linear-gradient(90deg,
+      color-mix(in srgb, currentColor 55%, transparent) 0 1px,
+      transparent 1px var(--per-min)) left center / 100% 100% no-repeat;
+  filter: drop-shadow(0 0 2px var(--green-glow));
+}
+.trace-line::after {
+  content: '';
+  position: absolute;
+  right: -3px;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  margin-top: -3px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 4px currentColor;
+}
+.trace-line::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 3px;
+  height: 9px;
+  margin-top: -4.5px;
+  background: currentColor;
+  opacity: 0;
+}
+.track-button:hover .trace-line::before,
+.track-button:focus-visible .trace-line::before {
+  animation: trace-sweep 1.6s linear infinite;
+}
+.trace-time {
+  font-size: 0.85em;
+  letter-spacing: 0.04em;
+  opacity: 0.8;
+}
+.track-button:hover .trace-line,
+.track-button:focus-visible .trace-line {
+  filter: none;
 }
 
 /* ── lyrics view ── */

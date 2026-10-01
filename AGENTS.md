@@ -58,7 +58,8 @@ data/
   albums.json        the info monitor's Albums content — plain array
                       of { title, year, released?, type, band, tracks }
                       (`released` an optional "YYYY-MM-DD"), where each
-                      track is { title, lyrics }, fetched by
+                      track is { title, duration?, lyrics } (`duration`
+                      an optional "m:ss"), fetched by
                       js/monitor.js and (for the members timeline's
                       album filter) js/members.js; `band` must match a
                       group name in members.json. Hand-edit this file
@@ -1323,6 +1324,16 @@ the screen's own green (explicit call; a multicolor cycle was tried
 and dropped). The grid has a fixed column count (4 under
 a 360px container, 5 normally, 7 from 520px) so every row's card ends
 at the same edge.
+
+**Duration traces.** In the track list, a track with a `duration`
+gets a `.track-trace` running out from its name: a line whose length
+is the duration on one fixed scale (`--per-min` of the list's width
+per minute, larger under a 420px container), a faint tick per minute,
+a lit end dot, the time after it, and a playhead that sweeps along the
+line while the row is hovered. The scale is shared, not fit to each
+album, so tracks and albums compare directly. Where the name leaves no
+room the trace wraps under it. Tracks with no `duration` show no
+trace. Only Captiva has durations so far.
 
 **Why a slide-out panel instead of a real page:** the user's own framing
 was "a slot or additional monitor to the side" — an in-universe second
