@@ -312,50 +312,62 @@
     "tracks": [
       {
         "title": "A Colour Eutopian",
+        "duration": "3:48",
         "lyrics": "TODO"
       },
       {
         "title": "Lotus and the Languorous",
+        "duration": "4:43",
         "lyrics": "TODO"
       },
       {
         "title": "Streams of Woe at Acheron",
+        "duration": "4:20",
         "lyrics": "TODO"
       },
       {
         "title": "Magician Reversed",
+        "duration": "5:07",
         "lyrics": "TODO"
       },
       {
         "title": "Golden Arrows",
+        "duration": "4:07",
         "lyrics": "TODO"
       },
       {
         "title": "The King's Garden",
+        "duration": "2:34",
         "lyrics": "TODO"
       },
       {
         "title": "Panic and Geo-Primaries",
+        "duration": "3:56",
         "lyrics": "TODO"
       },
       {
         "title": "The Moon and Sixpence",
+        "duration": "3:33",
         "lyrics": "TODO"
       },
       {
         "title": "Goddess of the Dayspring, Am I",
+        "duration": "4:31",
         "lyrics": "TODO"
       },
       {
         "title": "The Sidewinder Flux",
+        "duration": "4:36",
         "lyrics": "TODO"
       },
       {
         "title": "The Chilling Alpine Adventure",
+        "duration": "3:39",
         "lyrics": "TODO"
       },
       {
         "title": "Swimming Towards Propellers",
+        "duration": "2:04",
         "lyrics": "TODO"
       }
     ]
@@ -368,46 +380,57 @@
     "tracks": [
       {
         "title": "Circadian",
+        "duration": "7:21",
         "lyrics": "TODO"
       },
       {
         "title": "The Wonder",
+        "duration": "4:56",
         "lyrics": "TODO"
       },
       {
         "title": "Blue Ghost",
+        "duration": "5:06",
         "lyrics": "TODO"
       },
       {
         "title": "Diamonds",
+        "duration": "4:18",
         "lyrics": "TODO"
       },
       {
         "title": "The Light Beam Rider",
+        "duration": "4:34",
         "lyrics": "TODO"
       },
       {
         "title": "Oceans",
+        "duration": "5:58",
         "lyrics": "TODO"
       },
       {
         "title": "Mscron",
+        "duration": "6:49",
         "lyrics": "TODO"
       },
       {
         "title": "Vates",
+        "duration": "5:22",
         "lyrics": "TODO"
       },
       {
         "title": "Forms and Shapes",
+        "duration": "5:31",
         "lyrics": "TODO"
       },
       {
         "title": "Slow Waves",
+        "duration": "6:41",
         "lyrics": "TODO"
       },
       {
         "title": "Darkspeed (Bonus Song)",
+        "duration": "7:01",
         "lyrics": "TODO"
       }
     ]
@@ -420,38 +443,52 @@
     "tracks": [
       {
         "title": "Pete the Little Robot Comes Home",
+        "duration": "6:00",
         "lyrics": "TODO"
       },
       {
         "title": "Taipan",
+        "duration": "6:51",
         "lyrics": "TODO"
       },
       {
         "title": "Alexis",
+        "duration": "4:58",
         "lyrics": "TODO"
       },
       {
         "title": "Glassen",
+        "duration": "4:30",
         "lyrics": "TODO"
       },
       {
         "title": "Caves",
+        "duration": "3:52",
         "lyrics": "TODO"
       },
       {
         "title": "Earthship",
+        "duration": "6:00",
         "lyrics": "TODO"
       },
       {
         "title": "Remembering Pete",
+        "duration": "0:47",
         "lyrics": "TODO"
       },
       {
         "title": "Evidence (Bonus Track)",
+        "duration": "6:08",
         "lyrics": "TODO"
       },
       {
         "title": "Now Available on VHS (Bonus Track)",
+        "duration": "3:49",
+        "lyrics": "TODO"
+      },
+      {
+        "title": 	"Now Sleep Sound Pete (Groupees exclusive)",
+        "duration": "2:24",
         "lyrics": "TODO"
       }
     ]
@@ -464,54 +501,67 @@
     "tracks": [
       {
         "title": "The Contract",
+        "duration": "3:59",
         "lyrics": "TODO"
       },
       {
         "title": "The Climb",
+        "duration": "6:10",
         "lyrics": "TODO"
       },
       {
         "title": "Finn Hatches a Plan",
+        "duration": "5:37",
         "lyrics": "TODO"
       },
       {
         "title": "The Rest Will Soon Follow",
+        "duration": "4:59",
         "lyrics": "TODO"
       },
       {
         "title": "Aeva and the Waving World",
+        "duration": "6:01",
         "lyrics": "TODO"
       },
       {
         "title": "On Growing Things",
+        "duration": "6:04",
         "lyrics": "TODO"
       },
       {
         "title": "Intro to the Radio Room",
+        "duration": "5:48",
         "lyrics": "TODO"
       },
       {
         "title": "The Outsider",
+        "duration": "5:21",
         "lyrics": "TODO"
       },
       {
         "title": "Blue Ruins",
+        "duration": "5:10",
         "lyrics": "TODO"
       },
       {
         "title": "Transmission",
+        "duration": "5:36",
         "lyrics": "TODO"
       },
       {
         "title": "Prillicians",
+        "duration": "4:49",
         "lyrics": "TODO"
       },
       {
         "title": "In Echoes Forever",
+        "duration": "4:31",
         "lyrics": "TODO"
       },
       {
         "title": "The Station (Bonus Track)",
+        "duration": "6:42",
         "lyrics": "TODO"
       }
     ]
@@ -572,50 +622,62 @@
     "tracks": [
       {
         "title": "Intro/Jingle Bells",
+        "duration": "1:54",
         "lyrics": "TODO"
       },
       {
         "title": "Carol of the Bells",
+        "duration": "5:28",
         "lyrics": "TODO"
       },
       {
         "title": "Emanuel",
+        "duration": "6:28",
         "lyrics": "TODO"
       },
       {
         "title": "Silent Night",
+        "duration": "3:44",
         "lyrics": "TODO"
       },
       {
         "title": "Oh Holy Night",
+        "duration": "4:51",
         "lyrics": "TODO"
       },
       {
         "title": "Oh Holy Night (Reprise)",
+        "duration": "4:35",
         "lyrics": "TODO"
       },
       {
         "title": "Silver Creek",
+        "duration": "1:55",
         "lyrics": "TODO"
       },
       {
         "title": "Sugar Plum Fairy",
+        "duration": "2:31",
         "lyrics": "TODO"
       },
       {
         "title": "Song in the Air",
+        "duration": "5:21",
         "lyrics": "TODO"
       },
       {
         "title": "Silver City",
+        "duration": "3:02",
         "lyrics": "TODO"
       },
       {
         "title": "The Little Robot",
+        "duration": "6:04",
         "lyrics": "TODO"
       },
       {
         "title": "Silver City Sleeps",
+        "duration": "2:24",
         "lyrics": "TODO"
       }
     ]
@@ -668,50 +730,62 @@
     "tracks": [
       {
         "title": "Boone Flyer",
+        "duration": "5:51",
         "lyrics": "TODO"
       },
       {
         "title": "Flora",
+        "duration": "7:08",
         "lyrics": "TODO"
       },
       {
         "title": "The Green Rider",
+        "duration": "5:53",
         "lyrics": "TODO"
       },
       {
         "title": "Hydro",
+        "duration": "4:49",
         "lyrics": "TODO"
       },
       {
         "title": "The Woodworker",
+        "duration": "5:13",
         "lyrics": "TODO"
       },
       {
         "title": "Wild Bird",
+        "duration": "5:35",
         "lyrics": "TODO"
       },
       {
         "title": "Typhoon",
+        "duration": "4:13",
         "lyrics": "TODO"
       },
       {
         "title": "In the Woodshop",
+        "duration": "3:02",
         "lyrics": "TODO"
       },
       {
         "title": "Rangers",
+        "duration": "6:20",
         "lyrics": "TODO"
       },
       {
         "title": "Up in Houses",
+        "duration": "5:18",
         "lyrics": "TODO"
       },
       {
         "title": "The Insect",
+        "duration": "3:52",
         "lyrics": "TODO"
       },
       {
         "title": "Flares",
+        "duration": "6:28",
         "lyrics": "TODO"
       }
     ]
