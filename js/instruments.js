@@ -23,6 +23,11 @@
 // THRESHOLDS (data-level on the tile, colored in console.css) — low is
 // bad for most stats, high is bad for reactor use (maxed out). Clicking a lit one acknowledges it — stops the flash,
 // stays lit — until the severity changes, which flashes again.
+//
+// Launch power-up: before LAUNCH the digits are blank (console.css
+// hides them under #cockpit.unpowered). On 'ship:launch' the Power dial
+// climbs from 0 to its real value over SWEEP_MS instead of just
+// appearing; stat changes during the climb are kept and land at its end.
 // ═══════════════════════════════════════════════════════
 (function () {
   // `below`: warn/critical when the value drops under these.
@@ -93,12 +98,12 @@
     knob.title = `${v}`;
   }
 
-  function renderGauge(name, v) {
+  function renderGauge(name, v, { tint = true } = {}) {
     const arc = document.getElementById(`gauge-${name}-arc`);
     const text = document.getElementById(`gauge-${name}-text`);
     if (text) text.textContent = `${v}%`;
     const tile = document.querySelector(`.tile.gauge[data-stat="${name}"]`);
-    if (tile) {
+    if (tile && tint) {
       const level = severity(name, v);
       if (level) tile.dataset.level = level;
       else delete tile.dataset.level;
@@ -128,6 +133,32 @@
     tile.classList.remove('is-acked');
   }
 
+  // the Power dial's two arcs, swept up from 0 on launch
+  const SWEPT = ['power', 'projected_power'];
+  const SWEEP_MS = 1500;
+  const latest = {};
+  let sweeping = false;
+
+  function sweepGauges() {
+    const arcs = SWEPT.map(n => document.getElementById(`gauge-${n}-arc`)).filter(Boolean);
+    arcs.forEach(arc => { arc.style.transition = 'none'; }); // per-frame, no smoothing lag
+    sweeping = true;
+    let start = null;
+    const frame = now => {
+      start ??= now;
+      const t = Math.min(1, (now - start) / SWEEP_MS);
+      const eased = 1 - (1 - t) ** 3;
+      // no warning tint mid-climb, or the dial would flash red/yellow on the way up
+      SWEPT.forEach(n => { if (n in latest) renderGauge(n, Math.round(latest[n] * eased), { tint: false }); });
+      if (t < 1) { requestAnimationFrame(frame); return; }
+      sweeping = false;
+      arcs.forEach(arc => { arc.style.transition = ''; });
+      SWEPT.forEach(n => { if (n in latest) renderGauge(n, latest[n]); });
+    };
+    requestAnimationFrame(frame);
+  }
+  document.addEventListener('ship:launch', sweepGauges);
+
   document.querySelectorAll('.tile.alert[data-stat]').forEach(tile => {
     tile.addEventListener('click', () => {
       if (tile.dataset.level) tile.classList.add('is-acked');
@@ -141,8 +172,9 @@
       return;
     }
     const v = clamp(name, e.detail.value);
+    latest[name] = v;
     renderReadout(name, v);
-    renderGauge(name, v);
+    if (!(sweeping && SWEPT.includes(name))) renderGauge(name, v);
     renderLamp(name, v);
     renderLever(name, v);
     renderKnob(name, v);

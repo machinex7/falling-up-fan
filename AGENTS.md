@@ -591,6 +591,11 @@ dimmed element directly:
   that's "the point of the site"), which stay lit and clickable at
   every power state. `.nav-tile` still plays the `.flicker` power-up
   animation below, purely decorative since it was never actually dimmed.
+  The digital readouts go further: every `.r-value`, the Power
+  dial's `.gauge-text`/`.gauge-arc`s and the Audio `.eq-bars` are
+  `visibility: hidden` while unpowered (blank, not dim), and on
+  `'ship:launch'` `js/instruments.js` sweeps the Power dial up from 0
+  to its real value over ~1.5s (no warning tint mid-climb).
 - `cockpit.css`: `.wall-light` goes fully dark (`background:
   var(--bezel-lo)`, animation stopped) instead of just dimming — it's a
   bare glowing dot with no surrounding material to fade, so a dimmed
