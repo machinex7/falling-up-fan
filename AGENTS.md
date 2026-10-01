@@ -1399,7 +1399,8 @@ Albums only have a year, so membership is inferred by an explicit
 call: a stint in the album's `band` counts if the member left that
 year or later and joined BEFORE it (leaving in a release year = it was
 their last album; joining that year = missed it), except a band's
-founding lineup, which counts for a same-year debut. If albums gain
+founding lineup, which counts for a same-year debut. Touring stints
+never count toward an album. If albums gain
 real release dates, that's where to tighten it. `--grid`/
 `--album-line` are declared on `.member-chart`, the same element JS
 sets the stripe lists on — a custom property's `var()` resolves where

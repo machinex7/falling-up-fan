@@ -37,7 +37,7 @@
 // album, someone joining that year is taken to have missed it. The
 // one exception is a band's founding lineup (joined in the band's
 // first year), so a debut released in that same year still counts
-// them. Release-year markers sit at the start of the year, on the
+// them. Touring stints never count as being on an album. Release-year markers sit at the start of the year, on the
 // same scale as the bars.
 // ═══════════════════════════════════════════════════════
 (function () {
@@ -88,7 +88,7 @@
   // See the header comment for the boundary-year rule.
   function onAlbum(member, album) {
     const y = album.year;
-    return member.groups.some(g => g.name === album.band &&
+    return member.groups.some(g => g.name === album.band && !g.touring &&
       (g.years.from < y || g.years.from === bandStart.get(g.name)) &&
       (g.years.to == null || y <= g.years.to));
   }
