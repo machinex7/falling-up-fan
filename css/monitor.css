@@ -359,3 +359,218 @@
   font-size: clamp(0.78rem, 2.5vw, 0.92rem);
   letter-spacing: 0.02em;
 }
+
+/* ── members timeline (js/members.js) ──
+   Names down the left, years along the bottom, one bar per band
+   stint. Year gridlines come from JS as --grid-lines (one gradient
+   stripe per tick) and paint behind every track row and the axis,
+   so rows stay plain auto-placed grid items. Band colors are
+   assigned by order (.group-0/.group-1) via --bar/--bar-glow, so the
+   legend swatches and the bars share one definition. On a narrow
+   monitor (phones) the @container rule below stacks each name above
+   its bar so the bars get the full width. */
+.member-view {
+  container-type: inline-size;
+}
+.member-view[hidden] {
+  display: none;
+}
+.member-view .group-0 { --bar: var(--led-green); --bar-glow: var(--green-glow); }
+.member-view .group-1 { --bar: var(--led-cyan);  --bar-glow: var(--cyan-glow); }
+
+.member-legend {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin-bottom: 12px;
+  font-size: clamp(0.66rem, 2.2vw, 0.78rem);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.member-legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.legend-swatch {
+  flex: none;
+  width: 16px;
+  height: 8px;
+  background: var(--bar);
+  box-shadow: 0 0 3px var(--bar-glow);
+}
+
+/* --grid and --album-line are declared here, on the element js/members.js
+   sets --grid-lines/--album-lines on: a custom property's var()
+   references resolve where it's declared, so defining the colors any
+   lower would leave those stripe lists invalid (nothing drawn). */
+.member-chart {
+  --grid: rgba(63, 143, 95, 0.4);
+  --album-line: var(--led-amber);
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  column-gap: 10px;
+  text-transform: uppercase;
+}
+.member-name {
+  padding: 3px 0;
+  font-size: clamp(0.72rem, 2.4vw, 0.9rem);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.member-track::after,
+.member-axis::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--album-lines, none);
+  pointer-events: none;
+}
+.member-track {
+  position: relative;
+  min-height: 16px;
+  background: var(--grid-lines);
+  border-bottom: 1px dotted rgba(94, 232, 138, 0.18);
+}
+.member-bar {
+  position: absolute;
+  top: 50%;
+  height: 10px;
+  min-width: 2px;
+  transform: translateY(-50%);
+  background: var(--bar);
+  box-shadow: 0 0 3px var(--bar-glow);
+}
+/* instrument filter: people who don't match fade back */
+.member-name,
+.member-bar {
+  transition: opacity 0.2s ease;
+}
+.member-name.is-dim,
+.member-bar.is-dim {
+  opacity: 0.18;
+}
+
+.member-bar.is-touring,
+.legend-swatch.is-touring {
+  background: repeating-linear-gradient(135deg, var(--bar) 0 2px, transparent 2px 5px);
+  box-shadow: inset 0 0 0 1px var(--bar);
+}
+
+.member-axis {
+  position: relative;
+  height: 1.6em;
+  border-top: 1px solid var(--green);
+  font-size: clamp(0.66rem, 2.2vw, 0.78rem);
+}
+.member-tick {
+  position: absolute;
+  top: 3px;
+  transform: translateX(-50%);
+}
+
+/* the instrument filter bar, pinned under .monitor-body. It sits
+   raised by most of the armrests' height: they're fixed over the
+   viewport's bottom corners (z-index above this panel, see
+   cockpit.css), so a bar at the screen's true bottom edge would have
+   its arrow buttons painted over at every width. 0.7 is roughly how
+   much of the armrest box the tilted pad actually covers; 13px is the
+   bezel's margin + padding below the screen. The strip of screen
+   left under the bar is just empty phosphor behind the arms. */
+.member-filter {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: max(0px, calc(var(--armrest-h) * 0.7 - 13px));
+  padding: 8px 12px;
+  border-top: 1px solid var(--green);
+  border-bottom: 1px solid var(--green);
+}
+.member-filter[hidden] {
+  display: none;
+}
+.filter-row {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+}
+.member-filter-list {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+.member-filter-list::-webkit-scrollbar {
+  display: none;
+}
+.filter-btn,
+.filter-arrow {
+  flex: none;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 1px solid var(--green);
+  border-radius: 0;
+  background: transparent;
+  color: var(--led-green);
+  font: inherit;
+  text-shadow: inherit;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+.filter-btn {
+  padding: 5px 10px;
+  font-size: clamp(0.72rem, 2.3vw, 0.85rem);
+  white-space: nowrap;
+  scroll-snap-align: start;
+}
+.filter-btn.is-album {
+  border-style: dashed;
+}
+.filter-arrow {
+  width: 30px;
+  font-size: 1.3rem;
+  line-height: 1;
+}
+/* hover only where a real pointer hovers: on touch screens :hover
+   sticks after a tap, which would make a just-deselected button still
+   look selected */
+.filter-btn[aria-pressed="true"],
+.filter-btn:focus-visible,
+.filter-arrow:focus-visible {
+  background: var(--led-green);
+  color: #04140a;
+  text-shadow: none;
+}
+@media (hover: hover) {
+  .filter-btn:hover,
+  .filter-arrow:not(:disabled):hover {
+    background: var(--led-green);
+    color: #04140a;
+    text-shadow: none;
+  }
+}
+.filter-arrow:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+@container (max-width: 420px) {
+  .member-chart {
+    grid-template-columns: 1fr;
+  }
+  .member-name {
+    padding: 6px 0 1px;
+  }
+  .member-track {
+    min-height: 14px;
+  }
+  .member-axis-spacer {
+    display: none;
+  }
+}

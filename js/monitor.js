@@ -1,11 +1,16 @@
 // ═══════════════════════════════════════════════════════
-// INFO MONITOR — the Albums button (#albums-tile) slides
-// #info-monitor in over #forward (css/monitor.css handles the
-// actual animation) instead of navigating to tracks.html. This
-// file just owns the three-view terminal nav inside that panel —
-// an album list, a per-album track list, and a per-track lyrics
-// view, swapped via [hidden] — and the open/close/back wiring.
-// No routing, no page loads.
+// INFO MONITOR — the Albums (#albums-tile) and Members
+// (#members-tile) buttons slide #info-monitor in over #forward
+// (css/monitor.css handles the actual animation) instead of
+// navigating to separate pages. This file owns the panel's views,
+// swapped via [hidden] — an album list, a per-album track list, a
+// per-track lyrics view, and the members timeline — plus the
+// open/close/back wiring. No routing, no page loads.
+//
+// Which button opened the panel is its MODE ('albums' | 'members').
+// Entering the members mode dispatches 'monitor:mode' ({ mode })
+// so js/members.js can render its timeline into #member-view; this
+// file only shows/hides that view and never builds the chart.
 //
 // Album/track content lives in data/albums.json, not inline
 // here, so it's a plain data file to hand-edit — fetched once
@@ -26,6 +31,10 @@
 
   const monitor = document.getElementById('info-monitor');
   const openBtn = document.getElementById('albums-tile');
+  const membersBtn = document.getElementById('members-tile');
+  const flagEl = document.getElementById('monitor-flag');
+  const memberViewEl = document.getElementById('member-view');
+  const memberFilterEl = document.getElementById('member-filter');
   const closeBtn = document.getElementById('monitor-close');
   const backBtn = document.getElementById('monitor-back');
   const titleEl = document.getElementById('monitor-title');
@@ -38,7 +47,21 @@
   const lyricsBodyEl = document.getElementById('lyrics-body');
   if (!monitor || !openBtn || !closeBtn || !backBtn || !titleEl ||
       !albumListEl || !trackViewEl || !trackMetaEl || !trackListEl ||
-      !lyricsViewEl || !lyricsMetaEl || !lyricsBodyEl) return;
+      !lyricsViewEl || !lyricsMetaEl || !lyricsBodyEl ||
+      !membersBtn || !flagEl || !memberViewEl || !memberFilterEl) return;
+
+  const VIEWS = [albumListEl, trackViewEl, lyricsViewEl, memberViewEl];
+  const FLAGS = {
+    albums: 'Catalog cross-checked against public release listings — flag any discrepancy you spot.',
+    members: 'Lineup compiled from public band histories — flag any discrepancy you spot.',
+  };
+
+  // Hides every view except `el`. The instrument filter bar pinned
+  // to the screen's bottom edge belongs to the members view.
+  function showView(el) {
+    VIEWS.forEach(v => { v.hidden = v !== el; });
+    memberFilterEl.hidden = el !== memberViewEl;
+  }
 
   // Which view goBack() should treat as "current" — set at the end of
   // each showX() below rather than inferred from [hidden] state, so
@@ -95,9 +118,7 @@
       li.appendChild(btn);
       trackListEl.appendChild(li);
     });
-    lyricsViewEl.hidden = true;
-    albumListEl.hidden = true;
-    trackViewEl.hidden = false;
+    showView(trackViewEl);
     backBtn.hidden = false;
     backBtn.textContent = '← Albums';
     view = 'tracks';
@@ -107,9 +128,7 @@
     titleEl.textContent = track.title;
     lyricsMetaEl.textContent = album.title;
     lyricsBodyEl.textContent = track.lyrics;
-    trackViewEl.hidden = true;
-    albumListEl.hidden = true;
-    lyricsViewEl.hidden = false;
+    showView(lyricsViewEl);
     backBtn.hidden = false;
     backBtn.textContent = `← ${album.title}`;
     view = 'lyrics';
@@ -117,11 +136,17 @@
 
   function showAlbumList() {
     titleEl.textContent = 'Albums';
-    trackViewEl.hidden = true;
-    lyricsViewEl.hidden = true;
-    albumListEl.hidden = false;
+    showView(albumListEl);
     backBtn.hidden = true;
     view = 'albums';
+  }
+
+  function showMembers() {
+    titleEl.textContent = 'Members';
+    showView(memberViewEl);
+    backBtn.hidden = true;
+    view = 'members';
+    document.dispatchEvent(new CustomEvent('monitor:mode', { detail: { mode: 'members' } }));
   }
 
   function goBack() {
@@ -129,12 +154,18 @@
     else showAlbumList();
   }
 
-  function openMonitor() {
-    showAlbumList();
+  function openMonitor(mode) {
+    flagEl.textContent = FLAGS[mode];
     monitor.classList.add('is-open');
     monitor.setAttribute('aria-hidden', 'false');
-    openBtn.setAttribute('aria-expanded', 'true');
+    openBtn.setAttribute('aria-expanded', String(mode === 'albums'));
+    membersBtn.setAttribute('aria-expanded', String(mode === 'members'));
 
+    if (mode === 'members') {
+      showMembers();
+      return;
+    }
+    showAlbumList();
     showStatus('ACCESSING CATALOG…');
     dataPromise
       .then(albums => renderAlbumList(albums))
@@ -148,9 +179,11 @@
     monitor.classList.remove('is-open');
     monitor.setAttribute('aria-hidden', 'true');
     openBtn.setAttribute('aria-expanded', 'false');
+    membersBtn.setAttribute('aria-expanded', 'false');
   }
 
-  openBtn.addEventListener('click', openMonitor);
+  openBtn.addEventListener('click', () => openMonitor('albums'));
+  membersBtn.addEventListener('click', () => openMonitor('members'));
   closeBtn.addEventListener('click', closeMonitor);
   backBtn.addEventListener('click', goBack);
   document.addEventListener('keydown', e => {

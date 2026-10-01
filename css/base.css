@@ -62,6 +62,7 @@
   --wall-w:       11%;
   --seam-w:       4px;
   --wall-tilt:    46deg;
+  --armrest-h:    clamp(120px, 22vw, 190px); /* .armrest's box height; monitor.css clears it */
 
   /* ── light source ──
      Every specular highlight (bolts, rivets, knobs, the throttle

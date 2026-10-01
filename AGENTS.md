@@ -29,10 +29,10 @@ about loading `index.html` requires it to have run recently either;
 `data/story.json` is a committed, generated file, same as any other
 static asset here.
 
-`members.html` and `connections.html` are linked from the console but
-don't exist yet — they're the planned next pages. The former `tracks.html`
-link is gone: what was going to be a Tracks page is now the Albums info
-monitor described below, built in-page rather than as a separate site.
+`connections.html` is linked from the console but doesn't exist yet.
+The former `tracks.html` and `members.html` links are gone: Albums and
+Members both open the in-page info monitor described below (Members
+shows a band-membership timeline there) rather than separate pages.
 `Stories.md` has narrative/world-building notes for the site's fiction if
 that's ever relevant to future content.
 
@@ -56,12 +56,23 @@ ink/
                      control setters, flight modes, computed stats).
 data/
   albums.json        the info monitor's Albums content — plain array
-                      of { title, year, type, tracks }, where each
+                      of { title, year, released?, type, band, tracks }
+                      (`released` an optional "YYYY-MM-DD"), where each
                       track is { title, lyrics }, fetched by
-                      js/monitor.js; hand-edit this file directly to
-                      correct or extend the catalog, nothing else
-                      references it. Lyrics are placeholder "TODO"
+                      js/monitor.js and (for the members timeline's
+                      album filter) js/members.js; `band` must match a
+                      group name in members.json. Hand-edit this file
+                      directly to correct or extend the catalog. Lyrics are placeholder "TODO"
                       strings to be filled in by hand later.
+  members.json        the info monitor's Members content — array of { name, groups }, one entry per
+                      person; each group is { name, instruments: [..],
+                      years: { from, to } } for one band they were in
+                      ("Falling Up" / "The Chilling Alpine Adventure"),
+                      and `to: null` means "present"; `from`/`to` may be
+                      a plain year or, where known, "YYYY-MM[-DD]" — past vs current
+                      is read from the years, not stored. Touring stints
+                      carry `touring: true`. Fetched by js/members.js;
+                      hand-edit directly.
   story.json          GENERATED from ink/*.ink by scripts/compile-ink.js
                       — never hand-edit this, edit the .ink source and
                       recompile (or just push; the GitHub Action does it
@@ -181,9 +192,15 @@ js/
                      what used to be two files (cutscenes.js + comms.js
                      walking a hand-rolled JSON node graph) — see "The
                      cutscene system" below
-  monitor.js         opens/closes #info-monitor and swaps its
-                     album-list/track-list/lyrics-view views —
-                     see "The info monitor" below
+  monitor.js         opens/closes #info-monitor in its albums or
+                     members mode and swaps its album-list/track-list/
+                     lyrics-view/member-view views — see "The info
+                     monitor" below
+  members.js         draws the members timeline into #member-view
+                     when monitor.js enters members mode
+                     ('monitor:mode'), plus the instrument/album filter bar
+                     (#member-filter) along the screen's bottom — see
+                     "The info monitor" below
 ```
 
 Split for size/readability, not for reuse or bundling — the site itself
@@ -1252,8 +1269,9 @@ future cross-file trigger instead of adding direct references between
 
 ## The info monitor: a second screen, not a second page
 
-`members.html`/`connections.html` are still meant to be real separate
-pages once they exist, but the planned Tracks page turned into something
+`connections.html` is still meant to be a real separate page once it
+exists, but the planned Tracks page (and later Members, see "Members
+mode" below) turned into something
 different once it was actually being built: instead of navigating away,
 the **Albums** nav button (`#albums-tile`, a `<button>` now rather than an
 `<a>` — see the `button.tile` reset in console.css) opens `#info-monitor`,
@@ -1342,13 +1360,76 @@ for free via the `> *` selector; a future non-child decoration (another
 pseudo-element, or something appended straight to `.monitor-bezel`)
 would need the same explicit treatment the scanline layer got.
 
+**Members mode.** The Members nav button (`#members-tile`, also a
+`<button>` now) opens the same panel in a second mode: `js/monitor.js`
+tracks which button opened it, swaps in `#member-view`, sets the title
+and the `#monitor-flag` text per mode, and dispatches `'monitor:mode'`
+(`{ mode: 'members' }`). `js/members.js` listens for that, fetches
+`data/members.json` on the first open, and draws a timeline: one row
+per person (sorted by the year they first joined), years along the
+bottom axis, one bar per band stint, positioned in % of the year range
+so it needs no measuring. A stint spans the start of its `from` year to
+the start of its `to` year (so back-to-back stints meet), and `to: null`
+runs to today. Bands get colors by order of first appearance
+(`.group-0`/`.group-1` in monitor.css, which set `--bar`/`--bar-glow`
+for both bars and legend swatches); touring stints are hatched. Year
+gridlines are a `--grid-lines` background JS sets on the chart and each
+row paints, so rows stay plain auto-placed grid items — which is what
+lets the `@container (max-width: 420px)` rule stack each name above its
+bar on phones (side by side, the names ate most of the width and the
+year labels collided).
+
+**Instrument filter.** `#member-filter` is a bar pinned under
+`.monitor-body` (a direct child of `.monitor-screen`, shown only in
+members mode by monitor.js's `showView()`) of two `.filter-row`s, each
+a sideways-scrolling strip with its own ‹ › `.filter-arrow`s
+(`data-dir`) that page it and disable at either end (`strip()` in
+members.js wires one row). The top row (`#member-filter-instruments`)
+has one toggle `.filter-btn` per instrument found in the data
+(`aria-pressed`), most-played first. Selected instruments AND together across a
+person's whole career (any band): whoever hasn't played every selected
+one gets `.is-dim` on their name and track. Instrument names are
+matched exactly, so keep spellings consistent in members.json
+("guitars" was merged into "guitar" for this).
+
+The second row (`#member-filter-albums`, its own row by explicit call)
+holds one dashed `.filter-btn.is-album`
+per album in `data/albums.json` (release order; `type: "Compilation"`
+skipped), ANDed together with the instruments: a person stays lit only
+if they were on every selected album too, and each selected album adds
+an amber marker at its release year (`--album-lines`, painted by
+`.member-track::after`/`.member-axis::after` above the bars; only the
+bars and name dim, never the track, so the marker stays unbroken).
+Membership is decided per stint end (`onAlbum()`), with touring stints
+never counting: where both that end of the stint and the album's
+`released` are exact dates ("YYYY-MM[-DD]"), it's a straight date
+comparison (an exact `to` runs through the END of its month/day, so
+Joe Kisselburgh's `"2006-08"` misses Exit Lights' `"2006-09-12"`).
+Otherwise it falls back to years by explicit call: leaving in a
+release year = it was their last album, joining that year = missed
+it, except a band's founding lineup, which counts for a same-year
+debut. Exact dates also position bars and album markers within the
+year; a plain-year `to` still ends its bar at the start of that year.
+Add dates to members.json/albums.json to settle boundary cases rather
+than special-casing albums in code. `--grid`/
+`--album-line` are declared on `.member-chart`, the same element JS
+sets the stripe lists on — a custom property's `var()` resolves where
+it's declared, and defining the color lower down silently blanked the
+markers. The bar sits raised by
+`calc(var(--armrest-h) * 0.7 - 13px)`: the armrests are fixed over the
+viewport's bottom corners above this panel, and at the screen's real
+bottom edge they covered the arrows at every width. `--armrest-h`
+(base.css) is the armrest box height cockpit.css also uses, so the
+two stay in step. Mode-switch buttons for the monitor are still
+planned but not built.
+
 **A `[hidden]`-vs-`display` gotcha worth knowing before adding a fourth
 view here:** `.album-list`, `.track-view`, and `.lyrics-view` each set
 their own `display` for layout (`flex` / block-with-children), and at
 equal specificity an author rule for `display` beats the browser's own
 `[hidden] { display: none }` UA rule — so without the explicit
 `.album-list[hidden], .track-view[hidden], .lyrics-view[hidden] {
-display: none; }` override near the top of monitor.css, toggling the
+display: none; }` override (and `.member-view[hidden]`, further down) near the top of monitor.css, toggling the
 `hidden` attribute did nothing and all three views rendered stacked on
 top of each other. Any future view swapped the same way needs that same
 explicit `[hidden]` override the moment it sets its own `display`.

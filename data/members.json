@@ -1,0 +1,243 @@
+[
+  {
+    "name": "Jessy Ribordy",
+    "groups": [
+      {
+        "name": "The Chilling Alpine Adventure",
+        "instruments": [
+          "lead vocals",
+          "bass guitar"
+        ],
+        "years": {
+          "from": 2024,
+          "to": null
+        }
+      },
+      {
+        "name": "Falling Up",
+        "instruments": [
+          "lead vocals",
+          "guitar",
+          "keyboards",
+          "programming"
+        ],
+        "years": {
+          "from": 2001,
+          "to": 2024
+        }
+      }
+    ]
+  },
+  {
+    "name": "Daniel Elder",
+    "groups": [
+      {
+        "name": "The Chilling Alpine Adventure",
+        "instruments": [
+          "guitar"
+        ],
+        "years": {
+          "from": 2024,
+          "to": null
+        }
+      },
+      {
+        "name": "Falling Up",
+        "instruments": [
+          "guitar",
+          "backing vocals"
+        ],
+        "years": {
+          "from": 2008,
+          "to": 2024
+        }
+      }
+    ]
+  },
+  {
+    "name": "Nick Lambert",
+    "groups": [
+      {
+        "name": "The Chilling Alpine Adventure",
+        "instruments": [
+          "guitar"
+        ],
+        "years": {
+          "from": 2024,
+          "to": null
+        }
+      },
+      {
+        "name": "Falling Up",
+        "instruments": [
+          "guitar"
+        ],
+        "years": {
+          "from": 2012,
+          "to": 2024
+        }
+      }
+    ]
+  },
+  {
+    "name": "Jordan Wood",
+    "groups": [
+      {
+        "name": "The Chilling Alpine Adventure",
+        "instruments": [
+          "drums"
+        ],
+        "years": {
+          "from": 2024,
+          "to": null
+        }
+      }
+    ]
+  },
+  {
+    "name": "Jeremy Miller",
+    "groups": [
+      {
+        "name": "Falling Up",
+        "instruments": [
+          "bass guitar",
+          "keyboards"
+        ],
+        "years": {
+          "from": 2001,
+          "to": 2024
+        }
+      }
+    ]
+  },
+  {
+    "name": "Josh Shroy",
+    "groups": [
+      {
+        "name": "Falling Up",
+        "instruments": [
+          "drums",
+          "percussion"
+        ],
+        "years": {
+          "from": 2001,
+          "to": 2024
+        }
+      }
+    ]
+  },
+  {
+    "name": "Tom Cox",
+    "groups": [
+      {
+        "name": "Falling Up",
+        "instruments": [
+          "guitar",
+          "backing vocals"
+        ],
+        "years": {
+          "from": 2001,
+          "to": 2005
+        }
+      }
+    ]
+  },
+  {
+    "name": "Joe Kisselburgh",
+    "groups": [
+      {
+        "name": "Falling Up",
+        "instruments": [
+          "guitar",
+          "backing vocals"
+        ],
+        "years": {
+          "from": 2001,
+          "to": "2006-08"
+        }
+      }
+    ]
+  },
+  {
+    "name": "Andrew Wadlow",
+    "groups": [
+      {
+        "name": "Falling Up",
+        "instruments": [
+          "turntables",
+          "keyboards",
+          "programming"
+        ],
+        "years": {
+          "from": 2001,
+          "to": 2003
+        }
+      }
+    ]
+  },
+  {
+    "name": "Michael Humphrey",
+    "groups": [
+      {
+        "name": "Falling Up",
+        "instruments": [
+          "turntables",
+          "keyboards",
+          "programming"
+        ],
+        "years": {
+          "from": 2003,
+          "to": 2005
+        }
+      }
+    ]
+  },
+  {
+    "name": "Micah Sannan",
+    "groups": [
+      {
+        "name": "Falling Up",
+        "instruments": [
+          "guitar"
+        ],
+        "years": {
+          "from": 2005,
+          "to": 2007
+        }
+      }
+    ]
+  },
+  {
+    "name": "Adam Taylor",
+    "groups": [
+      {
+        "name": "Falling Up",
+        "instruments": [
+          "keyboards",
+          "programming",
+          "backing vocals"
+        ],
+        "years": {
+          "from": 2005,
+          "to": 2007
+        }
+      }
+    ]
+  },
+  {
+    "name": "Daniel Huddleston",
+    "groups": [
+      {
+        "name": "Falling Up",
+        "instruments": [
+          "guitar"
+        ],
+        "years": {
+          "from": 2007,
+          "to": 2010
+        },
+        "touring": true
+      }
+    ]
+  }
+]
