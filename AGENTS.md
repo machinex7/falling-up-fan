@@ -1086,6 +1086,18 @@ scene hasn't reached `-> END`): `closePanel()` re-adds `.is-pending`,
 so a minimized conversation still waiting on the player keeps blinking
 until it's reopened. Closing after "Transmission ended" doesn't.
 
+**Incoming lines are paced.** `runContinueLoop()` only gathers a
+beat's lines; `deliverLines()` then shows each contact line after a
+"typing" indicator (`.comms-msg.is-typing`, three `.typing-dots`, in
+comms.css) for `TYPING_BASE_MS` + `TYPING_PER_CHAR_MS` per character,
+capped at `TYPING_MAX_MS`, with a short `REPLY_PAUSE_MS` beat first
+after the player's own reply. Lines only advance while the panel is
+open, so a scene that arrives with it closed waits for the player.
+Reply buttons (and "Transmission ended" plus the next scene's timer)
+appear only after the last line lands. Closing mid-delivery re-flashes
+the tile, same as closing with replies on offer. Ink state (tags,
+images, ship VARs) still runs immediately; only the text is paced.
+
 There's no separate "resume state" to restore on reopen: the transcript
 and current reply buttons already live in the DOM inside `#comms-panel`,
 which only ever toggles visibility (`.is-open`), never gets torn down —

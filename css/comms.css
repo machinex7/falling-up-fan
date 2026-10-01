@@ -115,3 +115,21 @@
   letter-spacing: 0.04em;
   font-size: clamp(0.7rem, 2.3vw, 0.8rem);
 }
+
+/* ── "typing" indicator — stands in for an incoming line while it's
+   on its way (js/story.js deliverLines()), three dots pulsing in turn ── */
+.comms-msg.is-typing { align-self: flex-start; } /* hug the dots, not a full-width empty box */
+.typing-dots {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px 0 2px;
+}
+.typing-dots i {
+  width: 6px;
+  height: 6px;
+  background: var(--led-green);
+  box-shadow: 0 0 2px var(--green-glow);
+  animation: typing-dot 1.2s ease-in-out infinite;
+}
+.typing-dots i:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots i:nth-child(3) { animation-delay: 0.4s; }
