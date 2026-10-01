@@ -591,6 +591,11 @@ dimmed element directly:
   that's "the point of the site"), which stay lit and clickable at
   every power state. `.nav-tile` still plays the `.flicker` power-up
   animation below, purely decorative since it was never actually dimmed.
+  The digital readouts go further: every `.r-value`, the Power
+  dial's `.gauge-text`/`.gauge-arc`s and the Audio `.eq-bars` are
+  `visibility: hidden` while unpowered (blank, not dim), and on
+  `'ship:launch'` `js/instruments.js` sweeps the Power dial up from 0
+  to its real value over ~1.5s (no warning tint mid-climb).
 - `cockpit.css`: `.wall-light` goes fully dark (`background:
   var(--bezel-lo)`, animation stopped) instead of just dimming — it's a
   bare glowing dot with no surrounding material to fade, so a dimmed
@@ -1075,7 +1080,23 @@ ever set once, right when a scene starts (`playScene()`) — picking a
 reply and getting a fresh batch of choices (`pickChoice()` →
 `finishBeat()`) deliberately does NOT re-flash the tile, since that
 would read as a new unread message arriving mid-conversation the player
-is already looking at, not "you have something new to check."
+is already looking at, not "you have something new to check." The one
+exception is closing the panel while replies are still on offer (the
+scene hasn't reached `-> END`): `closePanel()` re-adds `.is-pending`,
+so a minimized conversation still waiting on the player keeps blinking
+until it's reopened. Closing after "Transmission ended" doesn't.
+
+**Incoming lines are paced.** `runContinueLoop()` only gathers a
+beat's lines; `deliverLines()` then shows each contact line after a
+"typing" indicator (`.comms-msg.is-typing`, three `.typing-dots`, in
+comms.css) for `TYPING_BASE_MS` + `TYPING_PER_CHAR_MS` per character,
+capped at `TYPING_MAX_MS`, with a short `REPLY_PAUSE_MS` beat first
+after the player's own reply. Lines only advance while the panel is
+open, so a scene that arrives with it closed waits for the player.
+Reply buttons (and "Transmission ended" plus the next scene's timer)
+appear only after the last line lands. Closing mid-delivery re-flashes
+the tile, same as closing with replies on offer. Ink state (tags,
+images, ship VARs) still runs immediately; only the text is paced.
 
 There's no separate "resume state" to restore on reopen: the transcript
 and current reply buttons already live in the DOM inside `#comms-panel`,

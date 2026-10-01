@@ -122,3 +122,9 @@
   55%  { filter: brightness(0.4) saturate(0.5); }
   65%  { filter: brightness(1) saturate(1); }
 }
+
+/* comms "typing" dots (css/comms.css) */
+@keyframes typing-dot {
+  0%, 60%, 100% { opacity: 0.25; }
+  30%           { opacity: 1; }
+}

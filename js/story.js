@@ -212,18 +212,68 @@
     });
   }
 
-  // Runs the story forward, appending one transcript line per ink
+  // Runs the story forward, collecting one transcript line per ink
   // Continue() call, until it hits a choice point or runs out of content
   // — this IS the "one beat" of a conversation, whether that beat started
-  // a brand-new scene or resumed after the player picked a reply.
+  // a brand-new scene or resumed after the player picked a reply. The
+  // lines are returned, not shown: deliverLines() paces them out.
   function runContinueLoop(story) {
+    const lines = [];
     while (story.canContinue) {
       const text = story.Continue().trim();
       applyTags(story.currentTags || []);
-      if (text) appendLine(currentContact, text, false);
+      if (text) lines.push({ from: currentContact, text });
     }
     resolveImage(story);
+    return lines;
   }
+
+  // Incoming lines arrive like a conversation, not all at once: each one
+  // waits behind a "typing" indicator for a few seconds (longer for
+  // longer lines), and only while the panel is open — a scene that
+  // starts with the panel closed waits for the player to open it, so
+  // nobody misses the pacing. Reply buttons appear after the last line.
+  const REPLY_PAUSE_MS = 500;               // beat before they start "typing"
+  const TYPING_BASE_MS = 1200;
+  const TYPING_PER_CHAR_MS = 25;
+  const TYPING_MAX_MS = 4000;
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+
+  let delivering = 0;          // id of the delivery in progress, 0 = none
+  let deliveryCount = 0;
+  let resolvePanelOpen = null; // set while a delivery waits for openPanel()
+  const panelIsOpen = () => panel.classList.contains('is-open');
+  const untilPanelOpen = () => panelIsOpen()
+    ? Promise.resolve()
+    : new Promise(r => { resolvePanelOpen = r; });
+
+  function showTyping(from) {
+    const li = document.createElement('li');
+    li.className = 'comms-msg is-typing';
+    li.setAttribute('aria-label', `${from} is typing`);
+    li.innerHTML = `<span class="comms-from">${from}</span>` +
+      '<span class="typing-dots" aria-hidden="true"><i></i><i></i><i></i></span>';
+    logEl.appendChild(li);
+    logEl.scrollTop = logEl.scrollHeight;
+    return li;
+  }
+
+  async function deliverLines(lines, firstPause) {
+    const id = delivering = ++deliveryCount;
+    repliesEl.innerHTML = '';
+    for (const [i, line] of lines.entries()) {
+      await untilPanelOpen();
+      if (i === 0 && firstPause) await wait(REPLY_PAUSE_MS);
+      const typing = showTyping(line.from);
+      await wait(Math.min(TYPING_MAX_MS, TYPING_BASE_MS + line.text.length * TYPING_PER_CHAR_MS));
+      typing.remove();
+      if (id !== delivering) return; // superseded by a new scene
+      appendLine(line.from, line.text, false);
+    }
+    if (id === delivering) delivering = 0;
+  }
+
+  let awaitingReply = false; // choices on offer, conversation not over
 
   function renderEnded() {
     repliesEl.innerHTML = '';
@@ -250,7 +300,8 @@
   // starts the mission timer toward the next scene, if the story queued
   // one (queue() in ink/ship.ink). Nothing queued = the timer stays put.
   function finishBeat(story) {
-    if (story.currentChoices.length > 0) {
+    awaitingReply = story.currentChoices.length > 0;
+    if (awaitingReply) {
       renderChoices(story);
       return;
     }
@@ -261,22 +312,25 @@
     }
   }
 
-  function pickChoice(story, i, text) {
+  async function pickChoice(story, i, text) {
     appendLine('You', text, true);
     story.ChooseChoiceIndex(i);
-    runContinueLoop(story);
-    finishBeat(story);
+    const id = deliveryCount + 1;
+    await deliverLines(runContinueLoop(story), true);
+    if (deliveryCount === id) finishBeat(story);
   }
 
-  function playScene(story, knotName) {
+  async function playScene(story, knotName) {
     story.ChoosePathString(knotName);
     logEl.innerHTML = '';
-    runContinueLoop(story);
+    const lines = runContinueLoop(story);
 
     hasActiveConversation = true;
     titleEl.textContent = `Incoming Transmission: ${currentContact}`;
-    finishBeat(story);
     tile.classList.add('is-pending');
+    const id = deliveryCount + 1;
+    await deliverLines(lines, false);
+    if (deliveryCount === id) finishBeat(story);
   }
 
   function openPanel() {
@@ -285,9 +339,15 @@
     tile.setAttribute('aria-expanded', 'true');
     panel.classList.add('is-open');
     panel.setAttribute('aria-hidden', 'false');
+    if (resolvePanelOpen) { resolvePanelOpen(); resolvePanelOpen = null; }
   }
 
+  // Closing the panel with replies still on offer, or lines still on
+  // their way in (the scene hasn't hit -> END) re-flashes the tile, so a minimized conversation that's
+  // waiting on the player still says so. Not re-flashed mid-conversation
+  // while the panel is open — see the .is-pending note in AGENTS.md.
   function closePanel() {
+    if (awaitingReply || delivering) tile.classList.add('is-pending');
     panel.classList.remove('is-open');
     panel.setAttribute('aria-hidden', 'true');
     tile.setAttribute('aria-expanded', 'false');

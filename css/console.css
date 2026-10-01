@@ -714,6 +714,15 @@ button.tile {
   filter: brightness(0.3) saturate(0.4);
   pointer-events: none;
 }
+/* ...and its digital readouts are blank, not just dim: no digits, no
+   dial arcs, no equalizer. They appear with the power-up flicker, the
+   Power dial climbing from 0 (js/instruments.js). */
+#cockpit.unpowered #deck-grid .r-value,
+#cockpit.unpowered #deck-grid .gauge-text,
+#cockpit.unpowered #deck-grid .gauge-arc,
+#cockpit.unpowered #deck-grid .eq-bars {
+  visibility: hidden;
+}
 #cockpit.flicker #deck-grid > .tile:not(.launch) {
   animation: power-flicker 1.1s steps(1, jump-end) 1;
 }
