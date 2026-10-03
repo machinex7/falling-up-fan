@@ -1087,6 +1087,10 @@ scene hasn't reached `-> END`): `closePanel()` re-adds `.is-pending`,
 so a minimized conversation still waiting on the player keeps blinking
 until it's reopened. Closing after "Transmission ended" doesn't.
 
+**ASSIST** (`#assist-tile`, right after `#comms-tile`) is the same
+`<button>` + round `.push-btn`/`.btn-lens` face as COMMS, but inert
+for now: no JS, no color variant, so its lens never lights.
+
 **Incoming lines are paced.** `runContinueLoop()` only gathers a
 beat's lines; `deliverLines()` then shows each contact line after a
 "typing" indicator (`.comms-msg.is-typing`, three `.typing-dots`, in
