@@ -13,8 +13,10 @@
 //   - No `# image:` tags. The window belongs to the story.
 //   - Ship state is fair game to read ({ shield }, { launch_ready() }).
 //     Change it only if helping the pilot really calls for it.
-//   - An incoming COMMS scene cuts an assist conversation off, so don't
-//     count on it being finished.
+//   - A COMMS scene that arrives while the pilot is talking to the
+//     assistant waits until they close the panel, then ends this
+//     conversation; if the panel was already closed, it ends it right
+//     away. Either way, don't count on it being finished.
 
 === assist ===
 # contact: Assist

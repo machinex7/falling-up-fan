@@ -1101,8 +1101,11 @@ transcript/replies pairs (`#comms-log`/`#comms-replies` and
 so the last COMMS transcript is still there when COMMS is reopened.
 Rules: ASSIST is `disabled` while a COMMS scene hasn't ended
 (`commsActive`, set in `playScene()`, cleared when `finishBeat()` hits
-the end); an incoming scene cuts an assist conversation off (switching
-modes abandons whatever is in flight); and ending an assist
+the end); a scene that arrives while the assistant is open on screen
+waits (`sceneDeferred`) until the panel closes, with COMMS already
+flashing and ASSIST disabled, then plays as usual (if the panel was
+closed, it plays at once; switching modes abandons whatever assist
+conversation was in flight); and ending an assist
 conversation never starts the mission timer. `assist.ink`'s header
 lists what not to do there (no `queue()`, no `# image:`).
 

@@ -75,7 +75,9 @@
   // function below writes to whichever pair logEl/repliesEl point at.
   // Only one conversation is ever in progress: ASSIST is disabled while
   // a COMMS scene is (commsActive), and switching modes abandons
-  // whatever was in flight, so an incoming scene cuts the assistant off.
+  // whatever was in flight. An incoming scene doesn't interrupt an
+  // assistant conversation the player is looking at: it's deferred until
+  // the panel closes, with COMMS already flashing.
   const ASSIST_KNOT = 'assist';
   const ASSIST_TITLE = 'Ship Assistant';
   const VIEWS = {
@@ -88,6 +90,9 @@
   let commsTitle = titleEl.textContent;
   let commsContact = currentContact; // saved while the assistant talks
   let commsActive = false;           // a COMMS scene hasn't ended yet
+  // A scene that arrived while the player was talking to the assistant
+  // waits until they close the panel (see 'timer:complete' below).
+  let sceneDeferred = false;
 
   // Ship state that lives in ink variables (see ink/ship.ink's "SHIP
   // STATE" header). Ink is the one source of truth — there are no tags
@@ -432,12 +437,23 @@
     panel.setAttribute('aria-hidden', 'true');
     tile.setAttribute('aria-expanded', 'false');
     assistTile.setAttribute('aria-expanded', 'false');
+    if (sceneDeferred) {
+      sceneDeferred = false;
+      storyPromise.then(story => playScene(story, NEXT_SCENE_KNOT));
+    }
   }
 
   document.addEventListener('timer:complete', () => {
     storyPromise
       .then(story => {
         if (!story.EvaluateFunction('scene_queued')) return; // nothing queued
+        if (mode === 'assist' && panelIsOpen()) {
+          // let them finish with the assistant; plays when the panel closes
+          sceneDeferred = true;
+          setCommsActive(true);
+          tile.classList.add('is-pending');
+          return;
+        }
         playScene(story, NEXT_SCENE_KNOT);
       })
       .catch(err => console.error('data/story.json failed to load', err));
