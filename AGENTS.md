@@ -49,6 +49,9 @@ ink/
                      here as the story grows (a character per file, a
                      chapter per file, whatever); nothing else needs to
                      change for that. See "The cutscene system" below.
+  assist.ink         the ASSIST button's conversation: one entry knot,
+                     `assist`, replayed from the top on every press.
+                     Not a story thread — see "The cutscene system".
   ship.ink           the ship's rules, no story: the big header comment
                      documenting every tag, ship-state VAR and helper
                      function, then the CONST/VAR/LIST declarations and
@@ -1088,8 +1091,20 @@ so a minimized conversation still waiting on the player keeps blinking
 until it's reopened. Closing after "Transmission ended" doesn't.
 
 **ASSIST** (`#assist-tile`, right after `#comms-tile`) is the same
-`<button>` + round `.push-btn`/`.btn-lens` face as COMMS, but inert
-for now: no JS, no color variant, so its lens never lights.
+`<button>` + round `.push-btn`/`.btn-lens` face as COMMS, but its lens
+never lights. It talks to the ship's "AI assistant": every press plays
+`ink/assist.ink`'s `assist` knot (`ASSIST_KNOT`) from the top, through
+the same Story object (so it can read live ship state) and in the same
+`#comms-panel`, titled "Ship Assistant". The panel holds two
+transcript/replies pairs (`#comms-log`/`#comms-replies` and
+`#assist-log`/`#assist-replies`) and story.js's `setMode()` shows one,
+so the last COMMS transcript is still there when COMMS is reopened.
+Rules: ASSIST is `disabled` while a COMMS scene hasn't ended
+(`commsActive`, set in `playScene()`, cleared when `finishBeat()` hits
+the end); an incoming scene cuts an assist conversation off (switching
+modes abandons whatever is in flight); and ending an assist
+conversation never starts the mission timer. `assist.ink`'s header
+lists what not to do there (no `queue()`, no `# image:`).
 
 **Incoming lines are paced.** `runContinueLoop()` only gathers a
 beat's lines; `deliverLines()` then shows each contact line after a

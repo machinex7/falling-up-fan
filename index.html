@@ -353,9 +353,11 @@
             <div class="push-btn round"><div class="btn-lens"></div></div>
             <div class="tile-label">Comms</div>
           </button>
-          <!-- ASSIST — same face as COMMS, but inert for now: no lens
-               color variant and no .toggle-btn, so it never lights. -->
-          <button type="button" id="assist-tile" class="tile assist">
+          <!-- ASSIST — same face as COMMS, but its lens never lights:
+               js/story.js plays ink/assist.ink's `assist` knot from the
+               top in #comms-panel on every press, and disables it while
+               a COMMS conversation is still going. -->
+          <button type="button" id="assist-tile" class="tile assist" aria-haspopup="true" aria-expanded="false" aria-controls="comms-panel">
             <div class="push-btn round"><div class="btn-lens"></div></div>
             <div class="tile-label" data-short="Asst">Assist</div>
           </button>
@@ -478,6 +480,10 @@
             <div class="monitor-body">
               <ul id="comms-log" class="comms-log"></ul>
               <div id="comms-replies" class="comms-replies"></div>
+              <!-- the ASSIST button's conversation, shown instead of
+                   the two above while it's running (js/story.js) -->
+              <ul id="assist-log" class="comms-log" hidden></ul>
+              <div id="assist-replies" class="comms-replies" hidden></div>
             </div>
           </div>
         </div>

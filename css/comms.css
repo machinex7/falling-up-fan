@@ -40,6 +40,11 @@
   transform: translateX(0);
 }
 
+/* the panel swaps between the COMMS and ASSIST transcripts with
+   [hidden], which loses to the display: flex below without this */
+.comms-log[hidden],
+.comms-replies[hidden] { display: none; }
+
 /* ── transcript ── */
 .comms-log {
   list-style: none;
