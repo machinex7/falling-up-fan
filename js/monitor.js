@@ -25,6 +25,11 @@
 // placeholder `"TODO"` strings until the real words get filled
 // in by hand — this file just displays whatever string is there,
 // it doesn't know or care whether it's a placeholder.
+//
+// Stars: album rows, track rows and the header (#monitor-star, for
+// the album on the track list and the track on the lyrics view) get
+// a `.star-btn` whose `data-star` names what it stars. This file
+// only sets that; js/stars.js handles clicks and the cookie.
 // ═══════════════════════════════════════════════════════
 (function () {
   const DATA_URL = 'data/albums.json';
@@ -43,6 +48,7 @@
   const closeBtn = document.getElementById('monitor-close');
   const backBtn = document.getElementById('monitor-back');
   const titleEl = document.getElementById('monitor-title');
+  const headerStarEl = document.getElementById('monitor-star');
   const albumListEl = document.getElementById('album-list');
   const trackViewEl = document.getElementById('track-view');
   const trackMetaEl = document.getElementById('track-meta');
@@ -52,7 +58,7 @@
   const lyricsBodyEl = document.getElementById('lyrics-body');
   if (!monitor || !openBtn || !closeBtn || !backBtn || !titleEl ||
       !albumListEl || !trackViewEl || !trackMetaEl || !trackListEl ||
-      !lyricsViewEl || !lyricsMetaEl || !lyricsBodyEl ||
+      !lyricsViewEl || !headerStarEl || !lyricsMetaEl || !lyricsBodyEl ||
       !membersBtn || !flagEl || !memberViewEl || !memberFilterEl || !bioViewEl) return;
 
   const VIEWS = [albumListEl, trackViewEl, lyricsViewEl, memberViewEl, bioViewEl];
@@ -84,6 +90,30 @@
       .toUpperCase();
   }
 
+  // `data-star` identity strings, read by js/stars.js.
+  const albumStar = album => `album:${album.title}`;
+  const trackStar = (album, track) => `track:${album.title}/${track.title}`;
+
+  function starButton(id, label) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'star-btn';
+    btn.dataset.star = id;
+    btn.setAttribute('aria-pressed', 'false');
+    btn.setAttribute('aria-label', `Star ${label}`);
+    btn.title = 'Star';
+    btn.innerHTML = headerStarEl.innerHTML;
+    return btn;
+  }
+
+  // The header star follows whatever the header's title is showing.
+  function setHeaderStar(id, label) {
+    headerStarEl.hidden = !id;
+    if (!id) return;
+    headerStarEl.dataset.star = id;
+    headerStarEl.setAttribute('aria-label', `Star ${label}`);
+  }
+
   // "m:ss" -> seconds; null when a track has no (valid) duration yet.
   function parseDuration(text) {
     const m = /^(\d+):([0-5]\d)$/.exec(text || '');
@@ -98,6 +128,7 @@
     albums.forEach(album => {
       const li = document.createElement('li');
       li.className = 'album-row';
+      li.appendChild(starButton(albumStar(album), album.title));
       const card = document.createElement('button');
       card.type = 'button';
       card.className = 'album-card';
@@ -160,8 +191,10 @@
       }
       btn.addEventListener('click', () => showLyrics(album, track));
       li.appendChild(btn);
+      li.appendChild(starButton(trackStar(album, track), track.title));
       trackListEl.appendChild(li);
     });
+    setHeaderStar(albumStar(album), album.title);
     showView(trackViewEl);
     backBtn.hidden = false;
     backBtn.textContent = '← Albums';
@@ -173,6 +206,7 @@
     titleEl.textContent = track.title;
     lyricsMetaEl.textContent = album.title;
     lyricsBodyEl.textContent = track.lyrics;
+    setHeaderStar(trackStar(album, track), track.title);
     showView(lyricsViewEl);
     backBtn.hidden = false;
     backBtn.textContent = `← ${album.title}`;
@@ -181,6 +215,7 @@
 
   function showAlbumList() {
     titleEl.textContent = 'Albums';
+    setHeaderStar(null);
     showView(albumListEl);
     backBtn.hidden = true;
     view = 'albums';
@@ -188,6 +223,7 @@
 
   function showMembers() {
     titleEl.textContent = 'Members';
+    setHeaderStar(null);
     showView(memberViewEl);
     backBtn.hidden = true;
     view = 'members';
@@ -196,6 +232,7 @@
 
   function showBio(name) {
     titleEl.textContent = name;
+    setHeaderStar(null);
     showView(bioViewEl);
     backBtn.hidden = false;
     backBtn.textContent = '← Members';
