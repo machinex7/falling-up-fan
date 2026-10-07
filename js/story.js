@@ -14,7 +14,9 @@
 // (#comms-tile/#comms-panel) — they're driven by the same Story object and
 // the same per-line tags, so keeping them in one file avoids threading
 // that shared state through a cross-file event pair for what's now
-// genuinely one flow. 'timer:complete' (in) and 'timer:start' (out) are
+// genuinely one flow. The ASSIST button (#assist-tile) shares the same
+// Story and panel: it plays ink/assist.ink's `assist` knot from the top
+// in its own transcript (see "The assistant" below). 'timer:complete' (in) and 'timer:start' (out) are
 // still real DOM events, since js/timer.js is a separate file this one
 // doesn't otherwise talk to.
 // ═══════════════════════════════════════════════════════
@@ -27,10 +29,14 @@
   const panel = document.getElementById('comms-panel');
   const closeBtn = document.getElementById('comms-close');
   const titleEl = document.getElementById('comms-title');
-  const logEl = document.getElementById('comms-log');
-  const repliesEl = document.getElementById('comms-replies');
+  const commsLogEl = document.getElementById('comms-log');
+  const commsRepliesEl = document.getElementById('comms-replies');
+  const assistTile = document.getElementById('assist-tile');
+  const assistLogEl = document.getElementById('assist-log');
+  const assistRepliesEl = document.getElementById('assist-replies');
   if (!sceneObject || !sceneObjectImg || !tile || !panel || !closeBtn ||
-      !titleEl || !logEl || !repliesEl) return;
+      !titleEl || !commsLogEl || !commsRepliesEl || !assistTile ||
+      !assistLogEl || !assistRepliesEl) return;
 
   const STORY_URL = 'data/story.json';
   // fetched eagerly (unlike monitor.js's lazy on-click fetch) since
@@ -63,6 +69,30 @@
   // encountered while gathering a beat (see applyTags).
   let currentContact = 'Unknown';
   let hasActiveConversation = false;
+
+  // The assistant: the panel holds two conversations, each with its own
+  // transcript/replies pair, and shows one at a time (`mode`). Every
+  // function below writes to whichever pair logEl/repliesEl point at.
+  // Only one conversation is ever in progress: ASSIST is disabled while
+  // a COMMS scene is (commsActive), and switching modes abandons
+  // whatever was in flight. An incoming scene doesn't interrupt an
+  // assistant conversation the player is looking at: it's deferred until
+  // the panel closes, with COMMS already flashing.
+  const ASSIST_KNOT = 'assist';
+  const ASSIST_TITLE = 'Ship Assistant';
+  const VIEWS = {
+    comms: { log: commsLogEl, replies: commsRepliesEl, ended: 'Transmission ended' },
+    assist: { log: assistLogEl, replies: assistRepliesEl, ended: 'Assistant standing by' },
+  };
+  let mode = 'comms';
+  let logEl = commsLogEl;
+  let repliesEl = commsRepliesEl;
+  let commsTitle = titleEl.textContent;
+  let commsContact = currentContact; // saved while the assistant talks
+  let commsActive = false;           // a COMMS scene hasn't ended yet
+  // A scene that arrived while the player was talking to the assistant
+  // waits until they close the panel (see 'timer:complete' below).
+  let sceneDeferred = false;
 
   // Ship state that lives in ink variables (see ink/ship.ink's "SHIP
   // STATE" header). Ink is the one source of truth — there are no tags
@@ -279,7 +309,7 @@
     repliesEl.innerHTML = '';
     const p = document.createElement('p');
     p.className = 'comms-ended';
-    p.textContent = 'Transmission ended';
+    p.textContent = VIEWS[mode].ended;
     repliesEl.appendChild(p);
   }
 
@@ -306,6 +336,8 @@
       return;
     }
     renderEnded();
+    if (mode === 'assist') return; // never starts the mission timer
+    setCommsActive(false);
     if (story.EvaluateFunction('scene_queued')) {
       const seconds = Number(story.variablesState.$('next_countdown')) || 0;
       document.dispatchEvent(new CustomEvent('timer:start', { detail: { seconds } }));
@@ -321,13 +353,61 @@
   }
 
   async function playScene(story, knotName) {
+    setMode('comms');
     story.ChoosePathString(knotName);
     logEl.innerHTML = '';
     const lines = runContinueLoop(story);
 
     hasActiveConversation = true;
-    titleEl.textContent = `Incoming Transmission: ${currentContact}`;
+    setCommsActive(true);
+    commsTitle = titleEl.textContent = `Incoming Transmission: ${currentContact}`;
     tile.classList.add('is-pending');
+    const id = deliveryCount + 1;
+    await deliverLines(lines, false);
+    if (deliveryCount === id) finishBeat(story);
+  }
+
+  // Drops whatever conversation is in flight: pending lines stop (their
+  // delivery id goes stale) and its replies are no longer on offer.
+  function abandonConversation() {
+    deliveryCount++;
+    delivering = 0;
+    resolvePanelOpen = null;
+    awaitingReply = false;
+  }
+
+  // Switches which conversation the panel shows. Leaving one abandons
+  // it — the assistant is restarted on every press anyway, and a COMMS
+  // conversation is never left while it's still going (ASSIST is
+  // disabled then).
+  function setMode(next) {
+    if (next === mode) return;
+    abandonConversation();
+    if (next === 'assist') commsContact = currentContact;
+    else currentContact = commsContact;
+    mode = next;
+    logEl = VIEWS[next].log;
+    repliesEl = VIEWS[next].replies;
+    Object.entries(VIEWS).forEach(([name, view]) => {
+      view.log.hidden = view.replies.hidden = name !== next;
+    });
+    titleEl.textContent = next === 'assist' ? ASSIST_TITLE : commsTitle;
+  }
+
+  function setCommsActive(active) {
+    commsActive = active;
+    assistTile.disabled = active;
+  }
+
+  // ASSIST: always starts the `assist` knot over from the top.
+  async function startAssist(story) {
+    if (commsActive) return;
+    setMode('assist');
+    abandonConversation(); // restarting mid-conversation
+    story.ChoosePathString(ASSIST_KNOT);
+    logEl.innerHTML = '';
+    const lines = runContinueLoop(story);
+    showPanel(assistTile);
     const id = deliveryCount + 1;
     await deliverLines(lines, false);
     if (deliveryCount === id) finishBeat(story);
@@ -335,8 +415,13 @@
 
   function openPanel() {
     if (!hasActiveConversation) return; // nothing queued yet
+    setMode('comms');
     tile.classList.remove('is-pending');
-    tile.setAttribute('aria-expanded', 'true');
+    showPanel(tile);
+  }
+
+  function showPanel(opener) {
+    [tile, assistTile].forEach(t => t.setAttribute('aria-expanded', String(t === opener)));
     panel.classList.add('is-open');
     panel.setAttribute('aria-hidden', 'false');
     if (resolvePanelOpen) { resolvePanelOpen(); resolvePanelOpen = null; }
@@ -347,16 +432,28 @@
   // waiting on the player still says so. Not re-flashed mid-conversation
   // while the panel is open — see the .is-pending note in AGENTS.md.
   function closePanel() {
-    if (awaitingReply || delivering) tile.classList.add('is-pending');
+    if (mode === 'comms' && (awaitingReply || delivering)) tile.classList.add('is-pending');
     panel.classList.remove('is-open');
     panel.setAttribute('aria-hidden', 'true');
     tile.setAttribute('aria-expanded', 'false');
+    assistTile.setAttribute('aria-expanded', 'false');
+    if (sceneDeferred) {
+      sceneDeferred = false;
+      storyPromise.then(story => playScene(story, NEXT_SCENE_KNOT));
+    }
   }
 
   document.addEventListener('timer:complete', () => {
     storyPromise
       .then(story => {
         if (!story.EvaluateFunction('scene_queued')) return; // nothing queued
+        if (mode === 'assist' && panelIsOpen()) {
+          // let them finish with the assistant; plays when the panel closes
+          sceneDeferred = true;
+          setCommsActive(true);
+          tile.classList.add('is-pending');
+          return;
+        }
         playScene(story, NEXT_SCENE_KNOT);
       })
       .catch(err => console.error('data/story.json failed to load', err));
@@ -384,6 +481,11 @@
   });
 
   tile.addEventListener('click', openPanel);
+  assistTile.addEventListener('click', () => {
+    storyPromise
+      .then(startAssist)
+      .catch(err => console.error('data/story.json failed to load', err));
+  });
   closeBtn.addEventListener('click', closePanel);
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && panel.classList.contains('is-open')) closePanel();

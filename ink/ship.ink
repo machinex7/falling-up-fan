@@ -54,6 +54,11 @@
 //   game_start is queued from the start; it plays when the timer first
 //   runs out after launch.
 //
+// ── THE ASSISTANT ──────────────────────────────────────────────────────
+// The ASSIST button plays the `assist` knot in ink/assist.ink from the
+// top, every press. It isn't a story thread: never queue() from there.
+// See that file's header.
+//
 // ── SHIP STATE (variables) ─────────────────────────────────────────────
 // Ongoing ship state lives in the variables below, not in tags.
 // js/story.js watches each one, so the console updates the moment the

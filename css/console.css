@@ -569,6 +569,12 @@ button.tile {
 }
 .tile.comms.is-pending .tile-label { color: var(--led-blue); }
 
+/* #assist-tile — the same face as COMMS, never lit. js/story.js
+   disables it while a COMMS conversation is still going. */
+.tile.assist:disabled { cursor: default; }
+.tile.assist:disabled .push-btn { filter: brightness(0.6); }
+.tile.assist:disabled .tile-label { opacity: 0.5; }
+
 /* MISSION TIMER — a readout face (bare glowing digits, same as
    .tile.readout) but wider and explicitly grid-placed top-right,
    same reserved-block trick LAUNCH uses just below: dense packing

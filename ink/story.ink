@@ -9,6 +9,7 @@
 // will pull it in automatically, no changes needed there.
 
 INCLUDE ship.ink
+INCLUDE assist.ink
 
 -> play_next
 
