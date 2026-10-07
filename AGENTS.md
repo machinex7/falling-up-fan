@@ -203,6 +203,10 @@ js/
                      members mode and swaps its album-list/track-list/
                      lyrics-view/member-view views — see "The info
                      monitor" below
+  stars.js           favorite albums/tracks: toggles every
+                     `.star-btn[data-star]` monitor.js renders and
+                     saves them in the `fu_stars` cookie — see "Stars"
+                     under "The info monitor" below
   members.js         draws the members timeline into #member-view
                      when monitor.js enters members mode
                      ('monitor:mode'), plus the instrument/album filter bar
@@ -1356,6 +1360,22 @@ line while the row is hovered. The scale is shared, not fit to each
 album, so tracks and albums compare directly. Where the name leaves no
 room the trace wraps under it. Tracks with no `duration` show no
 trace. Only Captiva has durations so far.
+
+**Stars.** Visitors can star albums and tracks: a `.star-btn` at the
+left of each album row, at the right end of each track row, and
+`#monitor-star` in the header (beside the close button), which stars
+whatever the title names — the album on its track list, the track on
+its lyrics view — and is hidden elsewhere. `js/monitor.js` only
+renders the buttons and sets `data-star` to an identity string
+(`album:<title>` / `track:<album>/<track>`); `js/stars.js` handles the
+click, `aria-pressed`, and the `fu_stars` cookie, and a
+MutationObserver on `#info-monitor` syncs newly rendered stars, so
+neither file calls the other. The cookie stores short FNV-1a hashes
+of those strings, not the titles (the whole catalog by title would
+overflow a cookie), so reordering or adding albums keeps stars but
+renaming a title in albums.json drops that one's star. Starred is
+filled amber. Stars are a fan convenience only; ink never sees them
+(explicit call).
 
 **Why a slide-out panel instead of a real page:** the user's own framing
 was "a slot or additional monitor to the side" — an in-universe second

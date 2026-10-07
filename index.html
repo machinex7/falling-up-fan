@@ -420,6 +420,10 @@
             <header class="monitor-header">
               <button type="button" id="monitor-back" class="monitor-back" hidden>&larr; Albums</button>
               <h2 id="monitor-title">Albums</h2>
+              <!-- star for the album/track the title names; js/monitor.js
+                   shows it and sets data-star, js/stars.js toggles it.
+                   Its icon is also the template for every row star. -->
+              <button type="button" id="monitor-star" class="star-btn monitor-star" aria-pressed="false" title="Star" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.85 5.95 6.55.85-4.8 4.55 1.2 6.5L12 17.3l-5.8 3.15 1.2-6.5-4.8-4.55 6.55-.85z"/></svg></button>
               <button type="button" id="monitor-close" class="monitor-close" aria-label="Close info monitor">&times;</button>
             </header>
             <p id="monitor-flag" class="monitor-flag">Catalog cross-checked against public release listings — flag any discrepancy you spot.</p>
@@ -533,6 +537,7 @@
 <script src="https://unpkg.com/inkjs@2.4.0/dist/ink.js"></script>
 <script src="js/story.js"></script>
 <script src="js/monitor.js"></script>
+<script src="js/stars.js"></script>
 <script src="js/members.js"></script>
 </body>
 </html>
