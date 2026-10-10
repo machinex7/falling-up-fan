@@ -35,15 +35,81 @@ Come in, Hauler Aeolus. Aeolus, do you read me?
 * [Big load?]
     Negative. Should be no problem even for a small hauler like yours. -> q1
 * [Let's go!]
-    Confirmed, Aeolus. Continue on your orbit to Station Beta. After docking, they'll load you up, and I'll be in touch to let you know next steps.
+    Confirmed, Aeolus. Continue on your orbit to Station Zeta. After docking, they'll load you up, and I'll be in touch to let you know next steps.
 -
 * [Understood Control. Aeolus out.]
 -
 // Queue the next thread here once it's written, e.g.
-// ~ queue(-> station_beta, 300)
+~ queue(-> station_zeta, 300)
 # image: clear
 -> close
 
 === close ===
 # image: clear
 -> END
+
+=== station_zeta ===
+# contact: Handler
+Aeolus, this is Control, come in.
+* [I read you Control.]
+- I read you on approach to Station Zeta. Can you confirm you have eyes on target?
+# image: images/scenes/station_zeta.svg
+* [Confirmed, control. He's a beaut.]
+    "He", Aeolus?
+    ** [Roger. Stations are boys. Ships are girls. Everyone knows that.]
+        We've got to get you more time planet-side.
+* [Confirmed, control. Time to dock this puppy.]
+    Don't get ahead of yourself. Your part here is easy.
+- You remember what to do for docking?
+* [Easy enough. Turn on the autopilot and let it handle it.]
+    Roger.
++ (waitwhat) [Wait, what do I do again?]
+    Activate the autopilot. The button that reads as AUTO on your console.
+- 
++ {!autopilot} [Wait, what do I do again?] 
+    -> waitwhat
++ {autopilot} [Autopilot engaged.]
+    Good. Just let the system handle this part.
+- I'll be in touch after docking.
+~ queue(-> station_zeta_dock, 60)
+-> END
+
+=== station_zeta_dock ===
+Status?
++ [We're docked.]
+    Roger. Good to hear.
++ [Locked in tighter than a... I don't know, something tight.]
+    What the... alright Aeolus.
+- Stand by to receive cargo.
++ [Roger.]
+- Cargo loaded.
+~cargo = 10
+Ready to go?
++ [Control, my cargo hold is showing nowhere near capacity.]
+- Hold on, checking.
+Confirmed, you're good Aeolus. It's a small but critical load.
++ [Someone is chartering a hauler just for this?]
+- Yep. Nice to have boatloads of money. 
+Confirm autopilot is engaged and you can move on to the jumpgate. -> auto
+= auto
++ {!autopilot} Re-engaging autopilot...
+    Waiting on your signal. -> auto
++ {autopilot} Autopilot engaged.
+- Good. I'll contact again once you're clear of Zeta.
+~ queue(-> station_zeta_depart, 60)
+-> END
+
+=== station_zeta_depart ===
+Clear, Aeolus?
++ [Yep, ready to go.]
++ [I'm more clear than a...]
+    ++ [I'm not gonna do that again.]
+        Sounds smart, Aeolus.
+- I have your flightpath registered with Emerson Jumpgate. They'll be expecting you. Please proceed.
++ [NEED more story!]
+    -> END
+    
+    
+    
+    
+    
