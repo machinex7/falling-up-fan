@@ -99,6 +99,10 @@ scripts/
                      touches ink/** and commits the resulting
                      data/story.json back to the same branch. See "The
                      cutscene system" below.
+  validate-json.yml   fails the push if any data/*.json file doesn't
+                     parse, with the file and line as an annotation —
+                     a guard for hand-edits to albums.json/members.json.
+                     Read-only, never commits.
 css/
   base.css           reset, :root palette/spacing variables, html/body
   cockpit.css        shell layout: plaque bar, hull walls, seams,
