@@ -1,0 +1,46 @@
+name: Validate JSON
+
+# Fails if any data/*.json file isn't valid JSON, so a hand-edit typo (a
+# missing comma, a stray quote) shows up as a red check on the push with
+# the file and line named, instead of the site silently failing to load
+# the catalog. Read-only: it never commits anything.
+on:
+  push:
+    paths:
+      - "data/**.json"
+      - ".github/workflows/validate-json.yml"
+  pull_request:
+    paths:
+      - "data/**.json"
+      - ".github/workflows/validate-json.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Checks every file and reports them all before failing, rather than
+      # stopping at the first bad one. Each error is also emitted as a
+      # GitHub annotation, so it shows on the run summary page with its
+      # file and line without opening the log.
+      - name: Parse data/*.json
+        shell: python3 {0}
+        run: |
+          import glob, json, sys
+
+          failed = False
+          for path in sorted(glob.glob("data/**/*.json", recursive=True)):
+              try:
+                  with open(path, encoding="utf-8") as f:
+                      json.load(f)
+                  print(f"ok      {path}")
+              except json.JSONDecodeError as e:
+                  failed = True
+                  print(f"INVALID {path}: {e.msg} (line {e.lineno}, column {e.colno})")
+                  print(f"::error file={path},line={e.lineno},col={e.colno}::{e.msg}")
+          sys.exit(1 if failed else 0)
