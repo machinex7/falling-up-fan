@@ -234,7 +234,11 @@
 //                      the wording there.
 //   lock_radius()      the current radius (negative = Scan too low).
 //   lock_scan_needed() the lowest Scan that can lock at this difficulty.
+//   scan_too_low()     true while lock_active and Scan is under that.
 //
+//   The console shows it on LEDs on the knob plates: Phase's and Freq's
+//   light green while phase_locked() / freq_locked(), Scan's lights red
+//   while scan_too_low().//
 //   With a LAUNCH pending, the big button stays disabled until
 //   locked_on() (on top of the Drive Charge rule), and pressing it ends
 //   the lock. Mid-conversation, check it yourself — but remember a
@@ -412,6 +416,9 @@ VAR next_countdown = 0
 
 === function locked_on()
 ~ return phase_locked() && freq_locked()
+
+=== function scan_too_low()
+~ return lock_active && lock_radius() < 0
 
 // the window HUD's scan line; with no lock requested the ship's
 // scanner reads as locked

@@ -727,7 +727,13 @@ story.js's `PERCENT_STATS`/`PLAYER_CONTROLS`). The lock VARs are
 observed only to re-run the `'ship:flight'` recompute, since a pending
 LAUNCH waits for `locked_on()`; a LAUNCH press ends the lock (STOP
 ignores it). Mid-conversation the story checks `locked_on()` itself
-after a choice. The window HUD's top-right line
+after a choice. The console shows it on a `.knob-led` atop each knob
+plate (between the screws, console.css): Phase's and Freq's light
+green while ink's `phase_locked()`/`freq_locked()`, Scan's lights red
+while `scan_too_low()` (a lock is active and Scan is under
+`lock_scan_needed()`). Those are boolean `DERIVED_STATS`;
+`instruments.js` toggles `.is-on` on any `.knob-led[data-stat=<name>]`.
+The window HUD's top-right line
 (`#hud-lock_status`) shows ink's `lock_status()` — "Scan Lock"
 (both, or no lock requested, so it reads that from power-up), "Phase
 Lock", "Freq Lock" or "No Lock". It's a string `DERIVED_STATS`

@@ -18,6 +18,8 @@
 //                                  THRESHOLDS as the warning lights
 //   .tile[data-stat=<name>] .toggle-btn  on/off button (true/false
 //                                  stats, e.g. signal_boost)
+//   .knob-led[data-stat=<name>]    LED on a knob plate (true/false
+//                                  stats, e.g. phase_locked)
 //   #hud-<name>                    window HUD text (string stats, e.g.
 //                                  lock_status — the words come from ink)
 //
@@ -74,6 +76,11 @@
     const level = severity(name, v);
     if (level) fill.dataset.level = level;
     else delete fill.dataset.level;
+  }
+
+  function renderLed(name, on) {
+    document.querySelectorAll(`.knob-led[data-stat="${name}"]`)
+      .forEach(led => led.classList.toggle('is-on', on));
   }
 
   function renderToggle(name, on) {
@@ -171,6 +178,7 @@
     const { name } = e.detail;
     if (typeof e.detail.value === 'boolean') {
       renderToggle(name, e.detail.value);
+      renderLed(name, e.detail.value);
       return;
     }
     if (typeof e.detail.value === 'string') {
