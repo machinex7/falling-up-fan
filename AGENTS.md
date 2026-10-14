@@ -766,7 +766,8 @@ The corner text on `#window` (`.hud` blocks in index.html, values in
   target), so each new target moves the ship somewhere new. Not
   meaningful beyond that, by design.
 
-Range (top right) is still static text. Story strings reach hud.js as
+The top right is static text: the ship's name and registry, "Aeolus -
+MOD 22404" (it used to read "Range: Deep Field"). Story strings reach hud.js as
 string-valued `'ship:stat'` events (`STRING_STATS` in story.js);
 `instruments.js` ignores strings.
 
@@ -845,6 +846,12 @@ instrument or a second `setInterval` loop. Both `'ship:launch'` and
 `'timer:start'` funnel through the same `startCountdown()`, so "the
 mission timer, restarted mid-mission" and "the mission timer, started
 at launch" are one code path, not two.
+
+**Test speed-up:** on a `github.io` host (the GitHub Pages test
+deploy) `js/timer.js` ticks 10x faster (`TEST_SPEED`), so story
+countdowns can be playtested without editing the seconds in ink. It
+still counts every second, just faster. Anywhere else it's real time,
+so this assumes the real site is never served from github.io.
 
 ## The cutscene system
 
