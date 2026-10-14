@@ -523,6 +523,28 @@ button.tile {
 .bar-fill[data-level="critical"] { background: var(--red);    box-shadow: 0 0 6px var(--red-glow); }
 .bar-fill.live { transition-duration: 0.25s; }
 
+/* scan lock LEDs — a tiny indicator on each knob plate, top center
+   between the two screws but a little lower, off the plate's edge (js/instruments.js toggles .is-on from ink:
+   phase_locked / freq_locked green, scan_too_low red). Dark glass
+   until lit, like .alert-lamp, just smaller and steady. */
+.knob-led {
+  position: absolute;
+  top: 7px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--bezel-lo);
+  box-shadow: inset 0 0 2px rgba(0,0,0,0.85), 0 0 0 1px var(--bezel-lo);
+  --led: var(--led-green);
+  --led-glow: var(--green-glow);
+}
+.knob-led.red { --led: var(--red); --led-glow: var(--red-glow); }
+.knob-led.is-on {
+  background: var(--led);
+  box-shadow: 0 0 5px 1px var(--led-glow), inset 0 0 1px rgba(255,255,255,0.5);
+}
+
 /* alert light tile — small round lamp, off by default */
 .alert-lamp {
   width: clamp(9px, 2.6vw, 13px);
@@ -549,6 +571,16 @@ button.tile {
 }
 .tile.alert:is(.is-alert, [data-level="warn"], [data-level="critical"]) .tile-label { color: var(--lamp); }
 .tile.alert.is-acked .alert-lamp { animation: none; }
+/* a readout/bar plate that doubles as its stat's warning light: the
+   lamp sits in the plate's right edge, clear of the centered digits */
+.alert-lamp.corner {
+  position: absolute;
+  top: 50%;
+  right: 5px;
+  transform: translateY(-50%);
+}
+/* a bar runs the plate's full width, so make room for the lamp */
+.tile.bar.alert { padding-right: calc(clamp(9px, 2.6vw, 13px) + 10px); }
 
 /* #comms-tile — the same round .push-btn/.btn-lens component every
    toggle button uses (console.css's push-btn section above), not the

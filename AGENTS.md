@@ -144,7 +144,8 @@ js/
                      tick ring, sweeps the pointer 270° via --knob-pos,
                      turns +10 per click (100 wraps to 0), by vertical
                      drag on its tile, wheel or arrow keys. A data-stat
-                     knob (Scan, ink `scan`) sends 'control:set' like a
+                     knob (Phase/Freq/Scan, ink `phase`/`freq`/`scan` —
+                     see "Scan lock") sends 'control:set' like a
                      lever and is turned by instruments.js; the rest fire
                      a bubbling 'knob:input' ({ name, value }) that
                      nothing listens to yet. Deck knob
@@ -189,6 +190,11 @@ js/
                      powered, and while lit it re-aims --light-pos /
                      --light-angle at itself — see "The cabin light"
                      below
+  hud.js             the window's corner HUD text (#hud-* spans):
+                     ink `waypoint`/`proximity`, Velocity per engaged
+                     flight mode, made-up galactic L/B coordinates
+                     hashed from the last scan lock target — see
+                     "The window HUD" below
   instruments.js     every console instrument showing a ship-state
                      value (readouts, the Reactor usage
                      and Cargo bars, the warning lights, the Shield/Reactor lever
@@ -666,6 +672,8 @@ differ, the big button asks for the ordered mode:
   `data-flight="ready"`, blinking green, pressable. The pilot sets the
   other levers (reactor etc.) as desired before pressing, since the
   press spends `power_cost()` (Reactor lever ÷ 4) from `power`.
+  While the story has a scan lock requested (see "Scan lock"
+  below), `launch_ready()` also needs `locked_on()`.
 - **stopped** → reads STOP (`data-flight="stop"`, blinking red), always
   pressable, costs nothing.
 
@@ -706,6 +714,62 @@ works because image tags are queued per beat (`queuedImage`) and
 settled in `resolveImage()` after `runContinueLoop()`, rather than
 applied line by line, so tag-vs-`~ movement =` order within the beat
 doesn't matter. `# image: clear` is never held.
+
+## Scan lock
+
+The story can ask the pilot to scan for something in space: `start_lock(difficulty,
+phase, freq)` in ink (ship.ink's "SCAN LOCK" header has the full
+reference). Phase and Freq each have their own target, checked
+separately: `phase_locked()`/`freq_locked()` are true while that knob
+is within `lock_radius()` of its target (edge inclusive), and
+`locked_on()` is both. The radius is
+`LOCK_BASE_RADIUS` (5) − difficulty + 1 per `SCAN_PER_RADIUS` (10) % of
+Scan, so Scan widens it (and costs reactor) and a negative radius can't
+lock, which is where the minimum Scan comes from
+(`lock_scan_needed()`). Max useful difficulty is 15: full Scan, exact
+values. All three knobs start at 0 and are ship state (`data-stat`, in
+story.js's `PERCENT_STATS`/`PLAYER_CONTROLS`). The lock VARs are
+observed only to re-run the `'ship:flight'` recompute, since a pending
+LAUNCH waits for `locked_on()`; a LAUNCH press ends the lock (STOP
+ignores it). Mid-conversation the story checks `locked_on()` itself
+after a choice. The console shows it on a `.knob-led` atop each knob
+plate (between the screws, console.css): Phase's and Freq's light
+green while ink's `phase_locked()`/`freq_locked()`, Scan's lights red
+while `scan_too_low()` (a lock is active and Scan is under
+`lock_scan_needed()`). Those are boolean `DERIVED_STATS`;
+`instruments.js` toggles `.is-on` on any `.knob-led[data-stat=<name>]`.
+There's no window HUD text for it (an earlier "Scan Lock / Phase
+Lock / …" line there was removed by explicit call: the LEDs sit by the
+knobs being turned, and the HUD is for ambient flavor).
+
+**Scan lock is not signal.** The Signal readout (`signal_strength()`)
+and SGNL BST belong to COMMS: a weak signal is meant to hurt the
+pilot's ability to communicate (not built yet). Scan lock is for
+finding things out in space. Keep the two apart in names and wording.
+
+## The window HUD
+
+The corner text on `#window` (`.hud` blocks in index.html, values in
+`#hud-*` spans) is flavor, owned by `js/hud.js`:
+
+- **Waypoint** (bottom right): ink `VAR waypoint`, the current
+  destination, shown as soon as the story sets it.
+- **Proximity** (bottom left): ink `VAR proximity`, what the ship is at
+  right now. It can differ from Waypoint (a story stop halfway). Like a
+  scene image, it's held while a launch is pending: `js/story.js`'s
+  `announceFlight()` only announces it once ordered === engaged, so a
+  scene can order a LAUNCH and set the new proximity in the same beat.
+- **Velocity** (top left): text per ENGAGED flight mode
+  (`VELOCITY` in hud.js), from `'ship:movement'`.
+- **Coordinates** (top left, replacing the old Heading): galactic L/B
+  made up by hashing ink's `lock_phase`/`lock_freq` (the last scan lock
+  target), so each new target moves the ship somewhere new. Not
+  meaningful beyond that, by design.
+
+The top right is static text: the ship's name and registry, "Aeolus -
+MOD 22404" (it used to read "Range: Deep Field"). Story strings reach hud.js as
+string-valued `'ship:stat'` events (`STRING_STATS` in story.js);
+`instruments.js` ignores strings.
 
 ## The cabin light
 
@@ -782,6 +846,12 @@ instrument or a second `setInterval` loop. Both `'ship:launch'` and
 `'timer:start'` funnel through the same `startCountdown()`, so "the
 mission timer, restarted mid-mission" and "the mission timer, started
 at launch" are one code path, not two.
+
+**Test speed-up:** on a `github.io` host (the GitHub Pages test
+deploy) `js/timer.js` ticks 10x faster (`TEST_SPEED`), so story
+countdowns can be playtested without editing the seconds in ink. It
+still counts every second, just faster. Anywhere else it's real time,
+so this assumes the real site is never served from github.io.
 
 ## The cutscene system
 
@@ -925,7 +995,7 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
   everything that displays one, found by naming convention — `#ro-<name>`
   (readout digits), `#gauge-<name>-arc`/`-text` (arc gauge — the Power dial is the only one; Thrust, O2 and Fuel were
   removed by explicit call, O2's warning light too),
-  `.tile.alert[data-stat=<name>]` (warning light; Reactor/Hull/Integrity). A
+  `.tile.alert[data-stat=<name>]` (warning light on the stat's own plate; Reactor/Hull/Integrity). A
   new stat is a `VAR` plus its name in `PERCENT_STATS`, and gets
   whichever of those elements exist for it. Those readouts/gauges are
   no longer decorative (nothing drifts randomly any more), and
@@ -1018,7 +1088,18 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
   color and never warns — a full or empty hold isn't a fault.
 
   **Warning lights** (`data-stat` alert tiles; Hull, Reactor,
-  Integrity): Hull/Integrity flash yellow below 70 and red below 20;
+  Integrity). Each is the stat's own readout/bar plate, not a separate
+  tile: the plate carries `.alert` + `data-stat` and an
+  `.alert-lamp.corner` at its right edge (the Reactor bar plate pads
+  its right side so the lamp clears the track), so clicking the plate
+  acknowledges it. They were three standalone lamp tiles until an
+  explicit call merged them in. `#master-caution` ("Alert", the one
+  standalone lamp tile left) is the master caution: `instruments.js`'s
+  `renderMaster()` lights it in the worst level of any warning light,
+  blinking while any lit one is unacknowledged, and clicking it
+  acknowledges them all. A new warning light is just another
+  `.tile.alert[data-stat]` plate; the master picks it up automatically.
+  Hull/Integrity flash yellow below 70 and red below 20;
   Reactor follows `reactor_use` and is inverted — yellow above 80%,
   red at or over 100% of the limit — since spare capacity is fine and
   maxing out or overloading is the danger (per-stat `THRESHOLDS` in `instruments.js`, `below`

@@ -156,10 +156,11 @@
           </div>
         </div>
 
-        <div class="hud tl">Heading 227.4&deg;<br>Drift 0.001 AU/HR</div>
-        <div class="hud tr">Range: Deep Field<br>Signal: Locked</div>
-        <div class="hud bl">Proximity: Clear</div>
-        <div class="hud br">Waypoint: Deep Station &alpha;</div>
+        <!-- the values in the spans are kept live by js/hud.js -->
+        <div class="hud tl"><span id="hud-coords">L 000.00&deg; B +00.00&deg;</span><br>Velocity <span id="hud-velocity">0.000 AU/HR</span></div>
+        <div class="hud tr">Aeolus - MOD 22404</div>
+        <div class="hud bl">Proximity: <span id="hud-proximity">Clear</span></div>
+        <div class="hud br">Waypoint: <span id="hud-waypoint">None</span></div>
 
         <svg id="reticle" viewBox="0 0 70 70">
           <circle cx="35" cy="35" r="32" fill="none" stroke="#d9861f" stroke-width="0.6"/>
@@ -207,14 +208,19 @@
             <div class="r-value" id="ro-signal_strength" data-max="100">040%</div>
             <div class="tile-label">Signal</div>
           </div>
-          <div class="tile readout c-amber">
+          <!-- .alert + data-stat: this plate is also the stat's warning
+               light (its .alert-lamp; yellow/red, click to acknowledge —
+               js/instruments.js). Same on Reactor and Integrity. -->
+          <div class="tile readout c-amber alert" data-stat="hull">
+            <div class="alert-lamp corner"></div>
             <div class="r-value" id="ro-hull">100%</div>
             <div class="tile-label">Hull</div>
           </div>
           <!-- reactor load as a share of the output limit the Reactor
                lever sets (full width = the limit), not a raw % —
                js/instruments.js sizes and colors the fill -->
-          <div class="tile bar">
+          <div class="tile bar alert" data-stat="reactor_use">
+            <div class="alert-lamp corner"></div>
             <div class="bar-track">
               <div class="bar-fill c-green live" id="bar-reactor_use"></div>
             </div>
@@ -222,7 +228,8 @@
           </div>
           <!-- hull + shield: shown up to 100, "100+" above (data-max);
                no % since it's a sum, not a percentage -->
-          <div class="tile readout c-green">
+          <div class="tile readout c-green alert" data-stat="integrity">
+            <div class="alert-lamp corner"></div>
             <div class="r-value" id="ro-integrity" data-unit="" data-max="100">100</div>
             <div class="tile-label">Integrity</div>
           </div>
@@ -278,16 +285,20 @@
 
 
           <!-- row 3: knobs (a 2-row bank pinned to rows 4-5 — see
-               .tile:has(.knob) in console.css) -->
+               .tile:has(.knob) in console.css). Each plate's .knob-led
+               is the scan lock indicator (see .knob-led in console.css) -->
           <div class="tile">
-            <div class="knob worn" data-name="phase" data-value="83" style="--wear: 0.9; --wear-a: 72% 70%; --wear-b: 24% 34%"><div class="knob-pointer"></div></div>
+            <span class="knob-led" data-stat="phase_locked" aria-hidden="true"></span>
+            <div class="knob worn" data-name="phase" data-stat="phase" data-value="0" style="--wear: 0.9; --wear-a: 72% 70%; --wear-b: 24% 34%"><div class="knob-pointer"></div></div>
             <div class="tile-label">Phase</div>
           </div>
           <div class="tile">
-            <div class="knob worn" data-name="freq" data-value="93" style="--wear: 0.6; --wear-a: 34% 78%; --wear-b: 82% 44%"><div class="knob-pointer"></div></div>
+            <span class="knob-led" data-stat="freq_locked" aria-hidden="true"></span>
+            <div class="knob worn" data-name="freq" data-stat="freq" data-value="0" style="--wear: 0.6; --wear-a: 34% 78%; --wear-b: 82% 44%"><div class="knob-pointer"></div></div>
             <div class="tile-label">Freq</div>
           </div>
           <div class="tile">
+            <span class="knob-led red" data-stat="scan_too_low" aria-hidden="true"></span>
             <div class="knob worn" data-name="scan" data-stat="scan" data-value="0" style="--wear: 1.3; --wear-a: 22% 64%; --wear-b: 70% 26%"><div class="knob-pointer"></div></div>
             <div class="tile-label">Scan</div>
           </div>
@@ -324,21 +335,13 @@
             <div class="tile-label">Cargo</div>
           </div>
 
-          <!-- data-stat: driven by that ink variable via js/instruments.js
-               (yellow < 70, red < 20, click to acknowledge) rather than
-               js/controls.js's plain click-toggle -->
-          <div class="tile alert" data-stat="reactor_use">
+          <!-- master caution: lit in the worst color of any warning
+               light on the deck (Hull, Reactor, Integrity plates),
+               blinking while any of them is unacknowledged; clicking it
+               acknowledges them all (js/instruments.js) -->
+          <div class="tile alert master" id="master-caution">
             <div class="alert-lamp"></div>
-            <div class="tile-label" data-short="Rctr">Reactor</div>
-          </div>
-
-          <div class="tile alert" data-stat="hull">
-            <div class="alert-lamp"></div>
-            <div class="tile-label">Hull</div>
-          </div>
-          <div class="tile alert" data-stat="integrity">
-            <div class="alert-lamp"></div>
-            <div class="tile-label" data-short="Integ">Integrity</div>
+            <div class="tile-label">Alert</div>
           </div>
           <!-- COMMS — the pending-conversation button js/story.js owns:
                the same round push-btn/lens face every toggle button
@@ -528,6 +531,7 @@
 <script src="js/power.js"></script>
 <script src="js/timer.js"></script>
 <script src="js/instruments.js"></script>
+<script src="js/hud.js"></script>
 <script src="js/cabin-light.js"></script>
 <!-- ink runtime, CDN-loaded (unpkg mirrors npm) rather than vendored —
      see AGENTS.md's "The cutscene system" for why. Pinned to an exact

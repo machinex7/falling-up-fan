@@ -82,7 +82,12 @@
 //   drive     0–100%, the drive's charge (the pilot's Drive Charge
 //             lever). Costs DRIVE_COST (0.5) reactor points per %.
 //   scan      0–100%, the scanner's sweep (the pilot's Scan knob).
-//             Costs SCAN_COST (0.1) reactor points per %.
+//             Costs SCAN_COST (0.1) reactor points per %. Widens a
+//             scan lock's target (see SCAN LOCK).
+//   phase     0–100, the pilot's Phase knob (starts at 0). No cost.
+//   freq      0–100, the pilot's Freq knob (starts at 0). No cost.
+//             Phase and Freq are the two values the pilot tunes to lock
+//             onto a scan contact — see SCAN LOCK below.
 //   signal    0–100, base signal strength (set from the story).
 //   signal_boost  true/false, the pilot's SGNL BST button. While on,
 //             adds SIGNAL_BOOST (50) to the Signal readout and draws
@@ -142,9 +147,9 @@
 //     Reactor               yellow above 80% used, red at 100% (maxed)
 //
 //   The pilot can move the Shield, Reactor and Drive Charge levers, turn
-//   the Scan knob and press SGNL BST / CABIN LT / AUTO at any time after
+//   the Phase, Freq and Scan knobs and press SGNL BST / CABIN LT / AUTO at any time after
 //   launch; those call set_shield(), set_reactor(), set_drive(),
-//   set_scan(), set_signal_boost(), set_cabin_light() and
+//   set_scan(), set_phase(), set_freq(), set_signal_boost(), set_cabin_light() and
 //   set_autopilot() below, so they
 //   obey the same rules as the story.
 //
@@ -161,6 +166,8 @@
 //     ~ set_reactor(80)         same as set_level(reactor, 80)
 //     ~ set_drive(30)           same as set_level(drive, 30)
 //     ~ set_scan(50)            same as set_level(scan, 50)
+//     ~ set_phase(20)           same as set_level(phase, 20)
+//     ~ set_freq(70)            same as set_level(freq, 70)
 //     ~ set_signal_boost(true)  SGNL BST on / off
 //     ~ set_cabin_light(false)  CABIN LT on / off
 //     ~ set_autopilot(true)     AUTO on / off
@@ -191,6 +198,76 @@
 //     stopped               reads STOP, always pressable, costs nothing.
 //   The very first press (the launch out of the silo) is the exception:
 //   no criteria, no power, and it doesn't touch either variable.
+//   While a scan lock is requested (below), LAUNCH also waits for
+//   locked_on(); STOP never does.
+//
+// ── WINDOW HUD ─────────────────────────────────────────────────────────
+// The text in the window's corners. Two lines come from the story:
+//
+//   waypoint   where the ship is headed (bottom right). Shows right away.
+//                ~ waypoint = "Station Zeta"
+//   proximity  what the ship is at or near right now (bottom left) —
+//              set it in the scene where you arrive, like an # image:.
+//                ~ proximity = "Station Zeta"
+//              Like an image, it waits for the pilot to press LAUNCH/
+//              STOP if the scene has ordered a flight mode they haven't
+//              engaged yet. Set it to "Clear" (or anything) once you've
+//              left. It can differ from waypoint: a stop halfway there
+//              for a story beat.
+//
+//   The rest is automatic: Velocity follows the engaged flight mode,
+//   and the galactic L/B coordinates are made up from the last scan
+//   lock's target phase/freq (flavor only — a new start_lock() target
+//   moves them).
+//
+// ── SCAN LOCK ────────────────────────────────────────────────────────
+// Ask the pilot to lock onto something out in space: Phase and Freq each have a target
+// value, and each knob has to get within lock_radius() of its own target
+// (checked separately, not as a distance on a grid).
+//
+//     ~ start_lock(3, 62, 18)     difficulty 3, target phase 62, freq 18
+//     ~ start_lock(6, RANDOM(10, 90), RANDOM(10, 90))   random target
+//     ~ end_lock()                stop asking
+//
+//   The radius is lock_radius() = LOCK_BASE_RADIUS (5) - difficulty
+//   + 1 per SCAN_PER_RADIUS (10) % of Scan. Turning Scan up makes the
+//   target easier to hit (and draws reactor points); difficulty makes
+//   it smaller. "Within" includes the edge: |phase - target| <= radius.
+//     difficulty 0, Scan 0      each knob within 5 of its target
+//     difficulty 5, Scan 0      within 0 — the exact value
+//     difficulty 8              needs Scan 30+ (radius 0 at 30, 1 at 40)
+//     difficulty 15             needs Scan 100, then both exact (max)
+//   A radius below 0 can't lock at all, so the minimum Scan falls out
+//   of the difficulty: lock_scan_needed() = (difficulty - 5) * 10,
+//   never below 0.
+//
+//   lock_active        true while a lock is requested (start_lock()).
+//   lock_difficulty    / lock_phase / lock_freq — what start_lock() set.
+//   phase_locked()     true while lock_active and Phase is in the radius.
+//   freq_locked()      same for Freq.
+//   locked_on()        both. All three are live: they change as the
+//                      pilot turns the knobs.
+//   lock_radius()      the current radius (negative = Scan too low).
+//   lock_scan_needed() the lowest Scan that can lock at this difficulty.
+//   scan_too_low()     true while lock_active and Scan is under that.
+//
+//   The console shows it on LEDs on the knob plates: Phase's and Freq's
+//   light green while phase_locked() / freq_locked(), Scan's lights red
+//   while scan_too_low().//
+//   With a LAUNCH pending, the big button stays disabled until
+//   locked_on() (on top of the Drive Charge rule), and pressing it ends
+//   the lock. Mid-conversation, check it yourself — but remember a
+//   choice's condition is only checked when the choices are shown, so
+//   offer a choice the pilot can come back to and branch after it:
+//
+//     = tune
+//     + [Locked on.]
+//         { locked_on():
+//             ~ end_lock()
+//             Got it. Patching you through. -> close
+//         - else:
+//             That's static. Keep tuning. -> tune
+//         }
 
 CONST SHIELD_COST = 0.5         // reactor points per shield %
 CONST DRIVE_COST = 0.5          // reactor points per drive charge %
@@ -206,12 +283,22 @@ VAR shield = 0
 VAR cargo = 0
 VAR drive = 0
 VAR scan = 0
+VAR phase = 0
+VAR freq = 0
 VAR signal = 95
 VAR signal_boost = false
 VAR cabin_light = false
 VAR autopilot = false
 LIST movement = (stopped), thruster, sideSpace
 VAR engaged_movement = stopped
+CONST LOCK_BASE_RADIUS = 5      // lock radius at difficulty 0, Scan 0
+CONST SCAN_PER_RADIUS = 10      // Scan % per +1 lock radius
+VAR lock_active = false         // set with start_lock(), see SCAN LOCK
+VAR lock_difficulty = 0
+VAR lock_phase = 0
+VAR lock_freq = 0
+VAR waypoint = "None"           // window HUD, see WINDOW HUD
+VAR proximity = "Clear"
 VAR next_scene = -> game_start   // set with queue(), see STORY THREADS
 VAR next_countdown = 0
 
@@ -242,6 +329,12 @@ VAR next_countdown = 0
 
 === function set_scan(to)
 ~ set_level(scan, to)
+
+=== function set_phase(to)
+~ set_level(phase, to)
+
+=== function set_freq(to)
+~ set_level(freq, to)
 
 === function set_signal_boost(on)
 ~ signal_boost = on
@@ -289,6 +382,9 @@ VAR next_countdown = 0
 { movement == stopped:
     ~ return true
 }
+{ lock_active && not locked_on():
+    ~ return false
+}
 ~ return drive >= 100
 
 === function engage()
@@ -296,12 +392,50 @@ VAR next_countdown = 0
     ~ return false
 }
 ~ power = projected_power()
-// a launch spends the drive's charge; STOP leaves it alone
+// a launch spends the drive's charge and ends any scan lock; STOP
+// leaves both alone
 { movement != stopped:
     ~ set_drive(0)
+    ~ end_lock()
 }
 ~ engaged_movement = movement
 ~ return true
+
+// ── SCAN LOCK ────────────────────────────────────────────────────────
+// See the header.
+
+=== function start_lock(difficulty, target_phase, target_freq)
+~ lock_difficulty = MAX(0, difficulty)
+~ lock_phase = MAX(0, MIN(100, target_phase))
+~ lock_freq = MAX(0, MIN(100, target_freq))
+~ lock_active = true
+
+=== function end_lock()
+~ lock_active = false
+
+// whole-number division: +1 per full SCAN_PER_RADIUS of Scan
+=== function lock_radius()
+~ return LOCK_BASE_RADIUS - lock_difficulty + scan / SCAN_PER_RADIUS
+
+=== function lock_scan_needed()
+~ return MAX(0, lock_difficulty - LOCK_BASE_RADIUS) * SCAN_PER_RADIUS
+
+// each knob against its own target; a negative radius never locks
+=== function within_lock(value, target)
+~ temp r = lock_radius()
+~ return lock_active && r >= 0 && value >= target - r && value <= target + r
+
+=== function phase_locked()
+~ return within_lock(phase, lock_phase)
+
+=== function freq_locked()
+~ return within_lock(freq, lock_freq)
+
+=== function locked_on()
+~ return phase_locked() && freq_locked()
+
+=== function scan_too_low()
+~ return lock_active && lock_radius() < 0
 
 // ── COMPUTED STATS ─────────────────────────────────────────────────────
 // js/story.js calls each of these by name (its DERIVED_STATS list) to

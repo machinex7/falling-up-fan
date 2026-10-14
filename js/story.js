@@ -104,21 +104,29 @@
   // a 'ship:stat' DOM event (detail: { name, value }); js/instruments.js
   // owns every readout/gauge/warning light that shows one. A new stat is
   // a VAR in ink/ship.ink plus its name here.
-  const PERCENT_STATS = ['hull', 'power', 'reactor', 'shield', 'cargo', 'drive', 'scan', 'signal'];
+  const PERCENT_STATS = ['hull', 'power', 'reactor', 'shield', 'cargo', 'drive', 'scan', 'phase', 'freq', 'signal'];
   // true/false ink VARs, announced the same way (instruments.js shows
   // them on a data-stat toggle button).
   const TOGGLE_STATS = ['signal_boost', 'cabin_light', 'autopilot'];
+  // text ink VARs, announced the same way (js/hud.js shows them on the
+  // window HUD). `proximity` is NOT here: it waits for a pending launch
+  // like an image does (see announceFlight).
+  const STRING_STATS = ['waypoint'];
+  // the scan lock's target, announced for js/hud.js's made-up galactic
+  // coordinates (nothing on the console shows them)
+  const LOCK_TARGETS = ['lock_phase', 'lock_freq'];
   // Stats computed from others rather than stored — each is an ink
   // function of the same name in ink/ship.ink ("COMPUTED STATS"), called
   // directly so the formula lives only there. Re-announced after any
   // ship-state change.
-  const DERIVED_STATS = ['integrity', 'reactor_load', 'reactor_use', 'signal_strength', 'projected_power', 'cabin_lit'];
+  const DERIVED_STATS = ['integrity', 'reactor_load', 'reactor_use', 'signal_strength', 'projected_power', 'cabin_lit',
+    'phase_locked', 'freq_locked', 'scan_too_low'];
   // Stats the pilot can set from the console ('control:set' events from
   // js/throttle.js levers, js/knobs.js knobs and js/controls.js toggle
   // buttons). Each goes
   // through ship.ink's set_<name>() function, so the player obeys the
   // same rules the story does.
-  const PLAYER_CONTROLS = ['shield', 'reactor', 'drive', 'scan', 'signal_boost', 'cabin_light', 'autopilot'];
+  const PLAYER_CONTROLS = ['shield', 'reactor', 'drive', 'scan', 'phase', 'freq', 'signal_boost', 'cabin_light', 'autopilot'];
   const MOVEMENT_MODES = ['stopped', 'thruster', 'sideSpace'];
 
   function announceStat(name, value) {
@@ -150,6 +158,7 @@
   // DOM event (detail.mode) whenever it changes — the hook for whatever
   // each mode should look like.
   let lastEngaged = null;
+  let shownProximity = null;
   function announceFlight(story) {
     const ordered = String(story.variablesState.$('movement'));
     const engaged = String(story.variablesState.$('engaged_movement'));
@@ -163,6 +172,13 @@
       showSceneObject(heldImage);
       heldImage = null;
     }
+    // proximity (what the ship is near) waits the same way: while a
+    // launch is pending, the HUD keeps showing where the ship still is
+    const proximity = String(story.variablesState.$('proximity'));
+    if (proximity !== shownProximity && ordered === engaged) {
+      shownProximity = proximity;
+      announceStat('proximity', proximity);
+    }
     const ready = Boolean(story.EvaluateFunction('launch_ready'));
     document.dispatchEvent(new CustomEvent('ship:flight', { detail: { ordered, engaged, ready } }));
     if (engaged === lastEngaged) return;
@@ -172,16 +188,20 @@
   }
 
   function watchShipState(story) {
-    [...PERCENT_STATS, ...TOGGLE_STATS].forEach(name => {
+    [...PERCENT_STATS, ...TOGGLE_STATS, ...STRING_STATS, ...LOCK_TARGETS].forEach(name => {
       announceStat(name, story.variablesState.$(name));
       story.ObserveVariable(name, (_name, value) => {
         announceStat(name, value);
         announceDerived(story);
       });
     });
-    // the flight modes feed launch_ready()/power_cost(), so they just
-    // trigger the same recompute (which also announces them)
-    ['movement', 'engaged_movement'].forEach(name => {
+    // the flight modes and the scan lock (ship.ink's "SCAN LOCK")
+    // feed launch_ready()/power_cost(), so they just trigger the same
+    // recompute (which also announces the flight modes)
+    // (lock_phase/lock_freq trigger it from the loop above). proximity
+    // too: announceFlight decides when it reaches the HUD.
+    ['movement', 'engaged_movement', 'lock_active', 'lock_difficulty',
+     'proximity'].forEach(name => {
       story.ObserveVariable(name, () => announceDerived(story));
     });
     announceDerived(story);

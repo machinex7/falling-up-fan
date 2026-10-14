@@ -28,7 +28,7 @@
     }
     // data-stat lamps are driven by ship state (js/instruments.js owns
     // their clicks too), so only the purely decorative ones toggle here
-    if (tile.classList.contains('alert') && !tile.dataset.stat) {
+    if (tile.classList.contains('alert') && !tile.dataset.stat && !tile.classList.contains('master')) {
       tile.addEventListener('click', () => tile.classList.toggle('is-alert'));
     }
   });

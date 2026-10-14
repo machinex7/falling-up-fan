@@ -11,6 +11,10 @@
 // 'ship:launch' and 'timer:start' funnel through, so a restart is
 // exactly "the same countdown, from a different number" rather than
 // separate code paths.
+//
+// Testing speed-up: on a github.io host (the test deploy) each tick
+// comes TICK_MS / TEST_SPEED apart, so the clock still counts every
+// second, just 10x faster — the durations in ink stay untouched.
 // ═══════════════════════════════════════════════════════
 (function () {
   const el = document.getElementById('ro-timer');
@@ -19,6 +23,8 @@
   const START_S = 15 * 60;
   let remaining = START_S;
   let intervalId = null;
+  const TEST_SPEED = 10;
+  const TICK_MS = 1000 / (location.hostname.includes('github.io') ? TEST_SPEED : 1);
 
   function render() {
     const pad = n => String(n).padStart(2, '0');
@@ -41,7 +47,7 @@
         clearInterval(intervalId);
         document.dispatchEvent(new CustomEvent('timer:complete'));
       }
-    }, 1000);
+    }, TICK_MS);
   }
 
   document.addEventListener('ship:launch', () => startCountdown(START_S));
