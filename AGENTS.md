@@ -144,7 +144,8 @@ js/
                      tick ring, sweeps the pointer 270° via --knob-pos,
                      turns +10 per click (100 wraps to 0), by vertical
                      drag on its tile, wheel or arrow keys. A data-stat
-                     knob (Scan, ink `scan`) sends 'control:set' like a
+                     knob (Phase/Freq/Scan, ink `phase`/`freq`/`scan` —
+                     see "Signal lock") sends 'control:set' like a
                      lever and is turned by instruments.js; the rest fire
                      a bubbling 'knob:input' ({ name, value }) that
                      nothing listens to yet. Deck knob
@@ -666,6 +667,8 @@ differ, the big button asks for the ordered mode:
   `data-flight="ready"`, blinking green, pressable. The pilot sets the
   other levers (reactor etc.) as desired before pressing, since the
   press spends `power_cost()` (Reactor lever ÷ 4) from `power`.
+  While the story has a signal lock requested (see "Signal lock"
+  below), `launch_ready()` also needs `locked_on()`.
 - **stopped** → reads STOP (`data-flight="stop"`, blinking red), always
   pressable, costs nothing.
 
@@ -706,6 +709,24 @@ works because image tags are queued per beat (`queuedImage`) and
 settled in `resolveImage()` after `runContinueLoop()`, rather than
 applied line by line, so tag-vs-`~ movement =` order within the beat
 doesn't matter. `# image: clear` is never held.
+
+## Signal lock
+
+The story can ask the pilot to tune in a signal: `start_lock(difficulty,
+phase, freq)` in ink (ship.ink's "SIGNAL LOCK" header has the full
+reference). The Phase and Freq knobs are X/Y on a 0–100 grid, and
+`locked_on()` is true while they're within `lock_radius()` of the target
+(distance compared squared, edge inclusive). The radius is
+`LOCK_BASE_RADIUS` (5) − difficulty + 1 per `SCAN_PER_RADIUS` (10) % of
+Scan, so Scan widens it (and costs reactor) and a negative radius can't
+lock, which is where the minimum Scan comes from
+(`lock_scan_needed()`). Max useful difficulty is 15: full Scan, exact
+spot. All three knobs start at 0 and are ship state (`data-stat`, in
+story.js's `PERCENT_STATS`/`PLAYER_CONTROLS`). The lock VARs are
+observed only to re-run the `'ship:flight'` recompute, since a pending
+LAUNCH waits for `locked_on()`; a LAUNCH press ends the lock (STOP
+ignores it). Mid-conversation the story checks `locked_on()` itself
+after a choice. There's no on-screen lock indicator yet.
 
 ## The cabin light
 

@@ -104,7 +104,7 @@
   // a 'ship:stat' DOM event (detail: { name, value }); js/instruments.js
   // owns every readout/gauge/warning light that shows one. A new stat is
   // a VAR in ink/ship.ink plus its name here.
-  const PERCENT_STATS = ['hull', 'power', 'reactor', 'shield', 'cargo', 'drive', 'scan', 'signal'];
+  const PERCENT_STATS = ['hull', 'power', 'reactor', 'shield', 'cargo', 'drive', 'scan', 'phase', 'freq', 'signal'];
   // true/false ink VARs, announced the same way (instruments.js shows
   // them on a data-stat toggle button).
   const TOGGLE_STATS = ['signal_boost', 'cabin_light', 'autopilot'];
@@ -118,7 +118,7 @@
   // buttons). Each goes
   // through ship.ink's set_<name>() function, so the player obeys the
   // same rules the story does.
-  const PLAYER_CONTROLS = ['shield', 'reactor', 'drive', 'scan', 'signal_boost', 'cabin_light', 'autopilot'];
+  const PLAYER_CONTROLS = ['shield', 'reactor', 'drive', 'scan', 'phase', 'freq', 'signal_boost', 'cabin_light', 'autopilot'];
   const MOVEMENT_MODES = ['stopped', 'thruster', 'sideSpace'];
 
   function announceStat(name, value) {
@@ -179,9 +179,11 @@
         announceDerived(story);
       });
     });
-    // the flight modes feed launch_ready()/power_cost(), so they just
-    // trigger the same recompute (which also announces them)
-    ['movement', 'engaged_movement'].forEach(name => {
+    // the flight modes and the signal lock (ship.ink's "SIGNAL LOCK")
+    // feed launch_ready()/power_cost(), so they just trigger the same
+    // recompute (which also announces the flight modes)
+    ['movement', 'engaged_movement', 'lock_active', 'lock_difficulty',
+     'lock_phase', 'lock_freq'].forEach(name => {
       story.ObserveVariable(name, () => announceDerived(story));
     });
     announceDerived(story);
