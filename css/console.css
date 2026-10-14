@@ -524,12 +524,12 @@ button.tile {
 .bar-fill.live { transition-duration: 0.25s; }
 
 /* scan lock LEDs — a tiny indicator on each knob plate, top center
-   between the two screws (js/instruments.js toggles .is-on from ink:
+   between the two screws but a little lower, off the plate's edge (js/instruments.js toggles .is-on from ink:
    phase_locked / freq_locked green, scan_too_low red). Dark glass
    until lit, like .alert-lamp, just smaller and steady. */
 .knob-led {
   position: absolute;
-  top: 3px;
+  top: 7px;
   left: 50%;
   transform: translateX(-50%);
   width: 5px; height: 5px;

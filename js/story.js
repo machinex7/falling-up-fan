@@ -112,7 +112,7 @@
   // function of the same name in ink/ship.ink ("COMPUTED STATS"), called
   // directly so the formula lives only there. Re-announced after any
   // ship-state change.
-  const DERIVED_STATS = ['integrity', 'reactor_load', 'reactor_use', 'signal_strength', 'projected_power', 'cabin_lit', 'lock_status',
+  const DERIVED_STATS = ['integrity', 'reactor_load', 'reactor_use', 'signal_strength', 'projected_power', 'cabin_lit',
     'phase_locked', 'freq_locked', 'scan_too_low'];
   // Stats the pilot can set from the console ('control:set' events from
   // js/throttle.js levers, js/knobs.js knobs and js/controls.js toggle

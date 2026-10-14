@@ -20,8 +20,6 @@
 //                                  stats, e.g. signal_boost)
 //   .knob-led[data-stat=<name>]    LED on a knob plate (true/false
 //                                  stats, e.g. phase_locked)
-//   #hud-<name>                    window HUD text (string stats, e.g.
-//                                  lock_status — the words come from ink)
 //
 // Warning lights: flash yellow / red when a stat crosses its
 // THRESHOLDS (data-level on the tile, colored in console.css) — low is
@@ -179,11 +177,6 @@
     if (typeof e.detail.value === 'boolean') {
       renderToggle(name, e.detail.value);
       renderLed(name, e.detail.value);
-      return;
-    }
-    if (typeof e.detail.value === 'string') {
-      const hud = document.getElementById(`hud-${name}`);
-      if (hud) hud.textContent = e.detail.value;
       return;
     }
     const v = clamp(name, e.detail.value);

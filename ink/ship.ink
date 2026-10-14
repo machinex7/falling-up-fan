@@ -228,10 +228,6 @@
 //   freq_locked()      same for Freq.
 //   locked_on()        both. All three are live: they change as the
 //                      pilot turns the knobs.
-//   lock_status()      the window HUD's scan line (top right):
-//                      "Scan Lock" (both, or no lock requested),
-//                      "Phase Lock", "Freq Lock" or "No Lock". Edit
-//                      the wording there.
 //   lock_radius()      the current radius (negative = Scan too low).
 //   lock_scan_needed() the lowest Scan that can lock at this difficulty.
 //   scan_too_low()     true while lock_active and Scan is under that.
@@ -419,20 +415,6 @@ VAR next_countdown = 0
 
 === function scan_too_low()
 ~ return lock_active && lock_radius() < 0
-
-// the window HUD's scan line; with no lock requested the ship's
-// scanner reads as locked
-=== function lock_status()
-{
-- not lock_active || locked_on():
-    ~ return "Scan Lock"
-- phase_locked():
-    ~ return "Phase Lock"
-- freq_locked():
-    ~ return "Freq Lock"
-- else:
-    ~ return "No Lock"
-}
 
 // ── COMPUTED STATS ─────────────────────────────────────────────────────
 // js/story.js calls each of these by name (its DERIVED_STATS list) to

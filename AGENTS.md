@@ -733,12 +733,9 @@ green while ink's `phase_locked()`/`freq_locked()`, Scan's lights red
 while `scan_too_low()` (a lock is active and Scan is under
 `lock_scan_needed()`). Those are boolean `DERIVED_STATS`;
 `instruments.js` toggles `.is-on` on any `.knob-led[data-stat=<name>]`.
-The window HUD's top-right line
-(`#hud-lock_status`) shows ink's `lock_status()` — "Scan Lock"
-(both, or no lock requested, so it reads that from power-up), "Phase
-Lock", "Freq Lock" or "No Lock". It's a string `DERIVED_STATS`
-entry; `instruments.js` writes any string stat into `#hud-<name>`, so
-the wording lives only in ink.
+There's no window HUD text for it (an earlier "Scan Lock / Phase
+Lock / …" line there was removed by explicit call: the LEDs sit by the
+knobs being turned, and the HUD is for ambient flavor).
 
 **Scan lock is not signal.** The Signal readout (`signal_strength()`)
 and SGNL BST belong to COMMS: a weak signal is meant to hurt the
