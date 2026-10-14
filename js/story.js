@@ -179,7 +179,7 @@
         announceDerived(story);
       });
     });
-    // the flight modes and the signal lock (ship.ink's "SIGNAL LOCK")
+    // the flight modes and the scan lock (ship.ink's "SCAN LOCK")
     // feed launch_ready()/power_cost(), so they just trigger the same
     // recompute (which also announces the flight modes)
     ['movement', 'engaged_movement', 'lock_active', 'lock_difficulty',

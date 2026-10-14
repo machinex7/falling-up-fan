@@ -83,11 +83,11 @@
 //             lever). Costs DRIVE_COST (0.5) reactor points per %.
 //   scan      0–100%, the scanner's sweep (the pilot's Scan knob).
 //             Costs SCAN_COST (0.1) reactor points per %. Widens a
-//             signal lock's target (see SIGNAL LOCK).
+//             scan lock's target (see SCAN LOCK).
 //   phase     0–100, the pilot's Phase knob (starts at 0). No cost.
 //   freq      0–100, the pilot's Freq knob (starts at 0). No cost.
 //             Phase and Freq are the two values the pilot tunes to lock
-//             onto a signal — see SIGNAL LOCK below.
+//             onto a scan contact — see SCAN LOCK below.
 //   signal    0–100, base signal strength (set from the story).
 //   signal_boost  true/false, the pilot's SGNL BST button. While on,
 //             adds SIGNAL_BOOST (50) to the Signal readout and draws
@@ -198,11 +198,11 @@
 //     stopped               reads STOP, always pressable, costs nothing.
 //   The very first press (the launch out of the silo) is the exception:
 //   no criteria, no power, and it doesn't touch either variable.
-//   While a signal lock is requested (below), LAUNCH also waits for
+//   While a scan lock is requested (below), LAUNCH also waits for
 //   locked_on(); STOP never does.
 //
-// ── SIGNAL LOCK ────────────────────────────────────────────────────────
-// Ask the pilot to lock onto a signal: Phase and Freq each have a target
+// ── SCAN LOCK ────────────────────────────────────────────────────────
+// Ask the pilot to lock onto something out in space: Phase and Freq each have a target
 // value, and each knob has to get within lock_radius() of its own target
 // (checked separately, not as a distance on a grid).
 //
@@ -228,9 +228,9 @@
 //   freq_locked()      same for Freq.
 //   locked_on()        both. All three are live: they change as the
 //                      pilot turns the knobs.
-//   lock_status()      the window HUD's signal line (top right):
-//                      "Signal Locked" (both, or no lock requested),
-//                      "Phase Lock", "Freq Lock" or "No Signal". Edit
+//   lock_status()      the window HUD's scan line (top right):
+//                      "Scan Lock" (both, or no lock requested),
+//                      "Phase Lock", "Freq Lock" or "No Lock". Edit
 //                      the wording there.
 //   lock_radius()      the current radius (negative = Scan too low).
 //   lock_scan_needed() the lowest Scan that can lock at this difficulty.
@@ -274,7 +274,7 @@ LIST movement = (stopped), thruster, sideSpace
 VAR engaged_movement = stopped
 CONST LOCK_BASE_RADIUS = 5      // lock radius at difficulty 0, Scan 0
 CONST SCAN_PER_RADIUS = 10      // Scan % per +1 lock radius
-VAR lock_active = false         // set with start_lock(), see SIGNAL LOCK
+VAR lock_active = false         // set with start_lock(), see SCAN LOCK
 VAR lock_difficulty = 0
 VAR lock_phase = 0
 VAR lock_freq = 0
@@ -371,7 +371,7 @@ VAR next_countdown = 0
     ~ return false
 }
 ~ power = projected_power()
-// a launch spends the drive's charge and ends any signal lock; STOP
+// a launch spends the drive's charge and ends any scan lock; STOP
 // leaves both alone
 { movement != stopped:
     ~ set_drive(0)
@@ -380,7 +380,7 @@ VAR next_countdown = 0
 ~ engaged_movement = movement
 ~ return true
 
-// ── SIGNAL LOCK ────────────────────────────────────────────────────────
+// ── SCAN LOCK ────────────────────────────────────────────────────────
 // See the header.
 
 === function start_lock(difficulty, target_phase, target_freq)
@@ -413,18 +413,18 @@ VAR next_countdown = 0
 === function locked_on()
 ~ return phase_locked() && freq_locked()
 
-// the window HUD's signal line; with no lock requested the ship's
-// own signal counts as locked
+// the window HUD's scan line; with no lock requested the ship's
+// scanner reads as locked
 === function lock_status()
 {
 - not lock_active || locked_on():
-    ~ return "Signal Locked"
+    ~ return "Scan Lock"
 - phase_locked():
     ~ return "Phase Lock"
 - freq_locked():
     ~ return "Freq Lock"
 - else:
-    ~ return "No Signal"
+    ~ return "No Lock"
 }
 
 // ── COMPUTED STATS ─────────────────────────────────────────────────────

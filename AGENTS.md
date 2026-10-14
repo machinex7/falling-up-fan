@@ -145,7 +145,7 @@ js/
                      turns +10 per click (100 wraps to 0), by vertical
                      drag on its tile, wheel or arrow keys. A data-stat
                      knob (Phase/Freq/Scan, ink `phase`/`freq`/`scan` —
-                     see "Signal lock") sends 'control:set' like a
+                     see "Scan lock") sends 'control:set' like a
                      lever and is turned by instruments.js; the rest fire
                      a bubbling 'knob:input' ({ name, value }) that
                      nothing listens to yet. Deck knob
@@ -667,7 +667,7 @@ differ, the big button asks for the ordered mode:
   `data-flight="ready"`, blinking green, pressable. The pilot sets the
   other levers (reactor etc.) as desired before pressing, since the
   press spends `power_cost()` (Reactor lever ÷ 4) from `power`.
-  While the story has a signal lock requested (see "Signal lock"
+  While the story has a scan lock requested (see "Scan lock"
   below), `launch_ready()` also needs `locked_on()`.
 - **stopped** → reads STOP (`data-flight="stop"`, blinking red), always
   pressable, costs nothing.
@@ -710,10 +710,10 @@ settled in `resolveImage()` after `runContinueLoop()`, rather than
 applied line by line, so tag-vs-`~ movement =` order within the beat
 doesn't matter. `# image: clear` is never held.
 
-## Signal lock
+## Scan lock
 
-The story can ask the pilot to tune in a signal: `start_lock(difficulty,
-phase, freq)` in ink (ship.ink's "SIGNAL LOCK" header has the full
+The story can ask the pilot to scan for something in space: `start_lock(difficulty,
+phase, freq)` in ink (ship.ink's "SCAN LOCK" header has the full
 reference). Phase and Freq each have their own target, checked
 separately: `phase_locked()`/`freq_locked()` are true while that knob
 is within `lock_radius()` of its target (edge inclusive), and
@@ -728,11 +728,16 @@ observed only to re-run the `'ship:flight'` recompute, since a pending
 LAUNCH waits for `locked_on()`; a LAUNCH press ends the lock (STOP
 ignores it). Mid-conversation the story checks `locked_on()` itself
 after a choice. The window HUD's top-right line
-(`#hud-lock_status`) shows ink's `lock_status()` — "Signal Locked"
+(`#hud-lock_status`) shows ink's `lock_status()` — "Scan Lock"
 (both, or no lock requested, so it reads that from power-up), "Phase
-Lock", "Freq Lock" or "No Signal". It's a string `DERIVED_STATS`
+Lock", "Freq Lock" or "No Lock". It's a string `DERIVED_STATS`
 entry; `instruments.js` writes any string stat into `#hud-<name>`, so
 the wording lives only in ink.
+
+**Scan lock is not signal.** The Signal readout (`signal_strength()`)
+and SGNL BST belong to COMMS: a weak signal is meant to hurt the
+pilot's ability to communicate (not built yet). Scan lock is for
+finding things out in space. Keep the two apart in names and wording.
 
 ## The cabin light
 
