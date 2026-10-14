@@ -207,14 +207,19 @@
             <div class="r-value" id="ro-signal_strength" data-max="100">040%</div>
             <div class="tile-label">Signal</div>
           </div>
-          <div class="tile readout c-amber">
+          <!-- .alert + data-stat: this plate is also the stat's warning
+               light (its .alert-lamp; yellow/red, click to acknowledge —
+               js/instruments.js). Same on Reactor and Integrity. -->
+          <div class="tile readout c-amber alert" data-stat="hull">
+            <div class="alert-lamp corner"></div>
             <div class="r-value" id="ro-hull">100%</div>
             <div class="tile-label">Hull</div>
           </div>
           <!-- reactor load as a share of the output limit the Reactor
                lever sets (full width = the limit), not a raw % —
                js/instruments.js sizes and colors the fill -->
-          <div class="tile bar">
+          <div class="tile bar alert" data-stat="reactor_use">
+            <div class="alert-lamp corner"></div>
             <div class="bar-track">
               <div class="bar-fill c-green live" id="bar-reactor_use"></div>
             </div>
@@ -222,7 +227,8 @@
           </div>
           <!-- hull + shield: shown up to 100, "100+" above (data-max);
                no % since it's a sum, not a percentage -->
-          <div class="tile readout c-green">
+          <div class="tile readout c-green alert" data-stat="integrity">
+            <div class="alert-lamp corner"></div>
             <div class="r-value" id="ro-integrity" data-unit="" data-max="100">100</div>
             <div class="tile-label">Integrity</div>
           </div>
@@ -328,21 +334,13 @@
             <div class="tile-label">Cargo</div>
           </div>
 
-          <!-- data-stat: driven by that ink variable via js/instruments.js
-               (yellow < 70, red < 20, click to acknowledge) rather than
-               js/controls.js's plain click-toggle -->
-          <div class="tile alert" data-stat="reactor_use">
+          <!-- master caution: lit in the worst color of any warning
+               light on the deck (Hull, Reactor, Integrity plates),
+               blinking while any of them is unacknowledged; clicking it
+               acknowledges them all (js/instruments.js) -->
+          <div class="tile alert master" id="master-caution">
             <div class="alert-lamp"></div>
-            <div class="tile-label" data-short="Rctr">Reactor</div>
-          </div>
-
-          <div class="tile alert" data-stat="hull">
-            <div class="alert-lamp"></div>
-            <div class="tile-label">Hull</div>
-          </div>
-          <div class="tile alert" data-stat="integrity">
-            <div class="alert-lamp"></div>
-            <div class="tile-label" data-short="Integ">Integrity</div>
+            <div class="tile-label">Alert</div>
           </div>
           <!-- COMMS — the pending-conversation button js/story.js owns:
                the same round push-btn/lens face every toggle button

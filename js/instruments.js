@@ -23,8 +23,11 @@
 //
 // Warning lights: flash yellow / red when a stat crosses its
 // THRESHOLDS (data-level on the tile, colored in console.css) — low is
-// bad for most stats, high is bad for reactor use (maxed out). Clicking a lit one acknowledges it — stops the flash,
+// bad for most stats, high is bad for reactor use (maxed out). Each is
+// the stat's own readout/bar plate (.tile.alert[data-stat]). Clicking a lit one acknowledges it — stops the flash,
 // stays lit — until the severity changes, which flashes again.
+// #master-caution mirrors them all: lit in the worst level, blinking
+// while any lit one is unacknowledged; clicking it acknowledges all.
 //
 // Launch power-up: before LAUNCH the digits are blank (console.css
 // hides them under #cockpit.unpowered). On 'ship:launch' the Power dial
@@ -138,6 +141,20 @@
     if (level) tile.dataset.level = level;
     else delete tile.dataset.level;
     tile.classList.remove('is-acked');
+    renderMaster();
+  }
+
+  const master = document.getElementById('master-caution');
+  const warningLights = () => [...document.querySelectorAll('.tile.alert[data-stat]')];
+  const RANK = { warn: 1, critical: 2 };
+
+  function renderMaster() {
+    if (!master) return;
+    const lit = warningLights().filter(t => t.dataset.level);
+    const worst = lit.reduce((w, t) => (RANK[t.dataset.level] > (RANK[w] || 0) ? t.dataset.level : w), '');
+    if (worst) master.dataset.level = worst;
+    else delete master.dataset.level;
+    master.classList.toggle('is-acked', lit.every(t => t.classList.contains('is-acked')));
   }
 
   // the Power dial's two arcs, swept up from 0 on launch
@@ -166,10 +183,15 @@
   }
   document.addEventListener('ship:launch', sweepGauges);
 
-  document.querySelectorAll('.tile.alert[data-stat]').forEach(tile => {
+  warningLights().forEach(tile => {
     tile.addEventListener('click', () => {
       if (tile.dataset.level) tile.classList.add('is-acked');
+      renderMaster();
     });
+  });
+  if (master) master.addEventListener('click', () => {
+    warningLights().forEach(t => { if (t.dataset.level) t.classList.add('is-acked'); });
+    renderMaster();
   });
 
   document.addEventListener('ship:stat', e => {

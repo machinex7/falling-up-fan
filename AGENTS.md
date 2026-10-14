@@ -960,7 +960,7 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
   everything that displays one, found by naming convention — `#ro-<name>`
   (readout digits), `#gauge-<name>-arc`/`-text` (arc gauge — the Power dial is the only one; Thrust, O2 and Fuel were
   removed by explicit call, O2's warning light too),
-  `.tile.alert[data-stat=<name>]` (warning light; Reactor/Hull/Integrity). A
+  `.tile.alert[data-stat=<name>]` (warning light on the stat's own plate; Reactor/Hull/Integrity). A
   new stat is a `VAR` plus its name in `PERCENT_STATS`, and gets
   whichever of those elements exist for it. Those readouts/gauges are
   no longer decorative (nothing drifts randomly any more), and
@@ -1053,7 +1053,18 @@ enforced by inkjs itself — it's just what `js/story.js` expects to find:
   color and never warns — a full or empty hold isn't a fault.
 
   **Warning lights** (`data-stat` alert tiles; Hull, Reactor,
-  Integrity): Hull/Integrity flash yellow below 70 and red below 20;
+  Integrity). Each is the stat's own readout/bar plate, not a separate
+  tile: the plate carries `.alert` + `data-stat` and an
+  `.alert-lamp.corner` at its right edge (the Reactor bar plate pads
+  its right side so the lamp clears the track), so clicking the plate
+  acknowledges it. They were three standalone lamp tiles until an
+  explicit call merged them in. `#master-caution` ("Alert", the one
+  standalone lamp tile left) is the master caution: `instruments.js`'s
+  `renderMaster()` lights it in the worst level of any warning light,
+  blinking while any lit one is unacknowledged, and clicking it
+  acknowledges them all. A new warning light is just another
+  `.tile.alert[data-stat]` plate; the master picks it up automatically.
+  Hull/Integrity flash yellow below 70 and red below 20;
   Reactor follows `reactor_use` and is inverted — yellow above 80%,
   red at or over 100% of the limit — since spare capacity is fine and
   maxing out or overloading is the danger (per-stat `THRESHOLDS` in `instruments.js`, `below`
