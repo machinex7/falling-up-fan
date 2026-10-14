@@ -18,6 +18,8 @@
 //                                  THRESHOLDS as the warning lights
 //   .tile[data-stat=<name>] .toggle-btn  on/off button (true/false
 //                                  stats, e.g. signal_boost)
+//   #hud-<name>                    window HUD text (string stats, e.g.
+//                                  lock_status — the words come from ink)
 //
 // Warning lights: flash yellow / red when a stat crosses its
 // THRESHOLDS (data-level on the tile, colored in console.css) — low is
@@ -169,6 +171,11 @@
     const { name } = e.detail;
     if (typeof e.detail.value === 'boolean') {
       renderToggle(name, e.detail.value);
+      return;
+    }
+    if (typeof e.detail.value === 'string') {
+      const hud = document.getElementById(`hud-${name}`);
+      if (hud) hud.textContent = e.detail.value;
       return;
     }
     const v = clamp(name, e.detail.value);

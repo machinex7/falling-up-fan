@@ -86,8 +86,8 @@
 //             signal lock's target (see SIGNAL LOCK).
 //   phase     0–100, the pilot's Phase knob (starts at 0). No cost.
 //   freq      0–100, the pilot's Freq knob (starts at 0). No cost.
-//             Phase and Freq are the X/Y the pilot tunes to lock onto a
-//             signal — see SIGNAL LOCK below.
+//             Phase and Freq are the two values the pilot tunes to lock
+//             onto a signal — see SIGNAL LOCK below.
 //   signal    0–100, base signal strength (set from the story).
 //   signal_boost  true/false, the pilot's SGNL BST button. While on,
 //             adds SIGNAL_BOOST (50) to the Signal readout and draws
@@ -202,8 +202,9 @@
 //   locked_on(); STOP never does.
 //
 // ── SIGNAL LOCK ────────────────────────────────────────────────────────
-// Ask the pilot to lock onto a signal: Phase and Freq are X/Y on a
-// 0–100 grid, and they have to get within a radius of the target point.
+// Ask the pilot to lock onto a signal: Phase and Freq each have a target
+// value, and each knob has to get within lock_radius() of its own target
+// (checked separately, not as a distance on a grid).
 //
 //     ~ start_lock(3, 62, 18)     difficulty 3, target phase 62, freq 18
 //     ~ start_lock(6, RANDOM(10, 90), RANDOM(10, 90))   random target
@@ -212,19 +213,25 @@
 //   The radius is lock_radius() = LOCK_BASE_RADIUS (5) - difficulty
 //   + 1 per SCAN_PER_RADIUS (10) % of Scan. Turning Scan up makes the
 //   target easier to hit (and draws reactor points); difficulty makes
-//   it smaller. "Within" includes the edge: distance <= radius.
-//     difficulty 0, Scan 0      within 5
-//     difficulty 5, Scan 0      within 0 — the exact spot
+//   it smaller. "Within" includes the edge: |phase - target| <= radius.
+//     difficulty 0, Scan 0      each knob within 5 of its target
+//     difficulty 5, Scan 0      within 0 — the exact value
 //     difficulty 8              needs Scan 30+ (radius 0 at 30, 1 at 40)
-//     difficulty 15             needs Scan 100, then the exact spot (max)
+//     difficulty 15             needs Scan 100, then both exact (max)
 //   A radius below 0 can't lock at all, so the minimum Scan falls out
 //   of the difficulty: lock_scan_needed() = (difficulty - 5) * 10,
 //   never below 0.
 //
 //   lock_active        true while a lock is requested (start_lock()).
 //   lock_difficulty    / lock_phase / lock_freq — what start_lock() set.
-//   locked_on()        true while lock_active and the knobs are in the
-//                      radius. Live: it changes as the pilot turns them.
+//   phase_locked()     true while lock_active and Phase is in the radius.
+//   freq_locked()      same for Freq.
+//   locked_on()        both. All three are live: they change as the
+//                      pilot turns the knobs.
+//   lock_status()      the window HUD's signal line (top right):
+//                      "Signal Locked" (both, or no lock requested),
+//                      "Phase Lock", "Freq Lock" or "No Signal". Edit
+//                      the wording there.
 //   lock_radius()      the current radius (negative = Scan too low).
 //   lock_scan_needed() the lowest Scan that can lock at this difficulty.
 //
@@ -392,18 +399,33 @@ VAR next_countdown = 0
 === function lock_scan_needed()
 ~ return MAX(0, lock_difficulty - LOCK_BASE_RADIUS) * SCAN_PER_RADIUS
 
-// compared squared, so no square root needed
-=== function locked_on()
-{ not lock_active:
-    ~ return false
-}
+// each knob against its own target; a negative radius never locks
+=== function within_lock(value, target)
 ~ temp r = lock_radius()
-{ r < 0:
-    ~ return false
+~ return lock_active && r >= 0 && value >= target - r && value <= target + r
+
+=== function phase_locked()
+~ return within_lock(phase, lock_phase)
+
+=== function freq_locked()
+~ return within_lock(freq, lock_freq)
+
+=== function locked_on()
+~ return phase_locked() && freq_locked()
+
+// the window HUD's signal line; with no lock requested the ship's
+// own signal counts as locked
+=== function lock_status()
+{
+- not lock_active || locked_on():
+    ~ return "Signal Locked"
+- phase_locked():
+    ~ return "Phase Lock"
+- freq_locked():
+    ~ return "Freq Lock"
+- else:
+    ~ return "No Signal"
 }
-~ temp dp = phase - lock_phase
-~ temp df = freq - lock_freq
-~ return dp * dp + df * df <= r * r
 
 // ── COMPUTED STATS ─────────────────────────────────────────────────────
 // js/story.js calls each of these by name (its DERIVED_STATS list) to

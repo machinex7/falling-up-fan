@@ -714,19 +714,25 @@ doesn't matter. `# image: clear` is never held.
 
 The story can ask the pilot to tune in a signal: `start_lock(difficulty,
 phase, freq)` in ink (ship.ink's "SIGNAL LOCK" header has the full
-reference). The Phase and Freq knobs are X/Y on a 0–100 grid, and
-`locked_on()` is true while they're within `lock_radius()` of the target
-(distance compared squared, edge inclusive). The radius is
+reference). Phase and Freq each have their own target, checked
+separately: `phase_locked()`/`freq_locked()` are true while that knob
+is within `lock_radius()` of its target (edge inclusive), and
+`locked_on()` is both. The radius is
 `LOCK_BASE_RADIUS` (5) − difficulty + 1 per `SCAN_PER_RADIUS` (10) % of
 Scan, so Scan widens it (and costs reactor) and a negative radius can't
 lock, which is where the minimum Scan comes from
 (`lock_scan_needed()`). Max useful difficulty is 15: full Scan, exact
-spot. All three knobs start at 0 and are ship state (`data-stat`, in
+values. All three knobs start at 0 and are ship state (`data-stat`, in
 story.js's `PERCENT_STATS`/`PLAYER_CONTROLS`). The lock VARs are
 observed only to re-run the `'ship:flight'` recompute, since a pending
 LAUNCH waits for `locked_on()`; a LAUNCH press ends the lock (STOP
 ignores it). Mid-conversation the story checks `locked_on()` itself
-after a choice. There's no on-screen lock indicator yet.
+after a choice. The window HUD's top-right line
+(`#hud-lock_status`) shows ink's `lock_status()` — "Signal Locked"
+(both, or no lock requested, so it reads that from power-up), "Phase
+Lock", "Freq Lock" or "No Signal". It's a string `DERIVED_STATS`
+entry; `instruments.js` writes any string stat into `#hud-<name>`, so
+the wording lives only in ink.
 
 ## The cabin light
 
