@@ -156,10 +156,11 @@
           </div>
         </div>
 
-        <div class="hud tl">Heading 227.4&deg;<br>Drift 0.001 AU/HR</div>
+        <!-- the values in the spans are kept live by js/hud.js -->
+        <div class="hud tl"><span id="hud-coords">L 000.00&deg; B +00.00&deg;</span><br>Velocity <span id="hud-velocity">0.000 AU/HR</span></div>
         <div class="hud tr">Range: Deep Field</div>
-        <div class="hud bl">Proximity: Clear</div>
-        <div class="hud br">Waypoint: Deep Station &alpha;</div>
+        <div class="hud bl">Proximity: <span id="hud-proximity">Clear</span></div>
+        <div class="hud br">Waypoint: <span id="hud-waypoint">None</span></div>
 
         <svg id="reticle" viewBox="0 0 70 70">
           <circle cx="35" cy="35" r="32" fill="none" stroke="#d9861f" stroke-width="0.6"/>
@@ -530,6 +531,7 @@
 <script src="js/power.js"></script>
 <script src="js/timer.js"></script>
 <script src="js/instruments.js"></script>
+<script src="js/hud.js"></script>
 <script src="js/cabin-light.js"></script>
 <!-- ink runtime, CDN-loaded (unpkg mirrors npm) rather than vendored —
      see AGENTS.md's "The cutscene system" for why. Pinned to an exact

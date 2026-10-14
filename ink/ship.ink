@@ -201,6 +201,25 @@
 //   While a scan lock is requested (below), LAUNCH also waits for
 //   locked_on(); STOP never does.
 //
+// ── WINDOW HUD ─────────────────────────────────────────────────────────
+// The text in the window's corners. Two lines come from the story:
+//
+//   waypoint   where the ship is headed (bottom right). Shows right away.
+//                ~ waypoint = "Station Zeta"
+//   proximity  what the ship is at or near right now (bottom left) —
+//              set it in the scene where you arrive, like an # image:.
+//                ~ proximity = "Station Zeta"
+//              Like an image, it waits for the pilot to press LAUNCH/
+//              STOP if the scene has ordered a flight mode they haven't
+//              engaged yet. Set it to "Clear" (or anything) once you've
+//              left. It can differ from waypoint: a stop halfway there
+//              for a story beat.
+//
+//   The rest is automatic: Velocity follows the engaged flight mode,
+//   and the galactic L/B coordinates are made up from the last scan
+//   lock's target phase/freq (flavor only — a new start_lock() target
+//   moves them).
+//
 // ── SCAN LOCK ────────────────────────────────────────────────────────
 // Ask the pilot to lock onto something out in space: Phase and Freq each have a target
 // value, and each knob has to get within lock_radius() of its own target
@@ -278,6 +297,8 @@ VAR lock_active = false         // set with start_lock(), see SCAN LOCK
 VAR lock_difficulty = 0
 VAR lock_phase = 0
 VAR lock_freq = 0
+VAR waypoint = "None"           // window HUD, see WINDOW HUD
+VAR proximity = "Clear"
 VAR next_scene = -> game_start   // set with queue(), see STORY THREADS
 VAR next_countdown = 0
 

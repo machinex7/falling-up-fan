@@ -201,6 +201,7 @@
       renderLed(name, e.detail.value);
       return;
     }
+    if (typeof e.detail.value === 'string') return; // window HUD text, js/hud.js
     const v = clamp(name, e.detail.value);
     latest[name] = v;
     renderReadout(name, v);

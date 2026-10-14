@@ -190,6 +190,11 @@ js/
                      powered, and while lit it re-aims --light-pos /
                      --light-angle at itself — see "The cabin light"
                      below
+  hud.js             the window's corner HUD text (#hud-* spans):
+                     ink `waypoint`/`proximity`, Velocity per engaged
+                     flight mode, made-up galactic L/B coordinates
+                     hashed from the last scan lock target — see
+                     "The window HUD" below
   instruments.js     every console instrument showing a ship-state
                      value (readouts, the Reactor usage
                      and Cargo bars, the warning lights, the Shield/Reactor lever
@@ -741,6 +746,29 @@ knobs being turned, and the HUD is for ambient flavor).
 and SGNL BST belong to COMMS: a weak signal is meant to hurt the
 pilot's ability to communicate (not built yet). Scan lock is for
 finding things out in space. Keep the two apart in names and wording.
+
+## The window HUD
+
+The corner text on `#window` (`.hud` blocks in index.html, values in
+`#hud-*` spans) is flavor, owned by `js/hud.js`:
+
+- **Waypoint** (bottom right): ink `VAR waypoint`, the current
+  destination, shown as soon as the story sets it.
+- **Proximity** (bottom left): ink `VAR proximity`, what the ship is at
+  right now. It can differ from Waypoint (a story stop halfway). Like a
+  scene image, it's held while a launch is pending: `js/story.js`'s
+  `announceFlight()` only announces it once ordered === engaged, so a
+  scene can order a LAUNCH and set the new proximity in the same beat.
+- **Velocity** (top left): text per ENGAGED flight mode
+  (`VELOCITY` in hud.js), from `'ship:movement'`.
+- **Coordinates** (top left, replacing the old Heading): galactic L/B
+  made up by hashing ink's `lock_phase`/`lock_freq` (the last scan lock
+  target), so each new target moves the ship somewhere new. Not
+  meaningful beyond that, by design.
+
+Range (top right) is still static text. Story strings reach hud.js as
+string-valued `'ship:stat'` events (`STRING_STATS` in story.js);
+`instruments.js` ignores strings.
 
 ## The cabin light
 
