@@ -11,8 +11,7 @@
 INCLUDE ship.ink
 INCLUDE assist.ink
 
-//-> play_next
--> station_zeta_depart
+-> play_next
 
 === game_start ===
 # contact: Handler
@@ -96,9 +95,9 @@ Confirmed, you're good Aeolus. It's a small but critical load.
 - Yep. Nice to have boatloads of money. 
 Confirm autopilot is engaged, then you can move on to the jumpgate. -> auto
 = auto
-+ {!autopilot} Re-engaging autopilot...
++ {!autopilot} [Re-engaging autopilot...]
     Waiting on your signal. -> auto
-+ {autopilot} Autopilot engaged.
++ {autopilot} [Autopilot engaged.]
 - Good. I'll contact again once you're clear of Zeta.
 ~ queue(-> station_zeta_depart, 60)
 -> END
@@ -110,7 +109,11 @@ Clear, Aeolus?
 + [I'm more clear than a...]
     ++ [I'm not gonna do that again.]
         Sounds smart, Aeolus.
-- I have your flightpath registered with Emerson Jumpgate. They'll be expecting you. Charge your thrusters and get going.
+- I have your flightpath registered with Emerson Jumpgate. They'll be expecting you. -> disengageauto
+= disengageauto
+{autopilot} Disenage your autopilot before proceesing.
++ {autopilot} [Roger] -> disengageauto
+Now charge your thrusters and get going.
 ~ waypoint = "Emerson Jumpgate"
 ~ proximity = "Clear"
 ~movement=thruster
@@ -126,7 +129,7 @@ Clear, Aeolus?
     -> getmoving
 + {drive < 100} [Checking Drive Charge. One moment, Control.]
     Take your time. -> getmoving
-+ {drive == 100} [Fully charged and good to go.]
++ {drive == 100 || engaged_movement == thruster} [Fully charged and good to go.]
 - Hit it. Over and out.
 # image: clear
 ~ queue(-> emerson_jumpgate, 60*60)
@@ -146,7 +149,11 @@ Please confirm your cargo.
 + [Wait, what?]
 + [Is there a problem, Emerson?]
 - You are ordered to full stop, Aeolus.
-Immediately. Over and out.
+Immediately. -> ejstop
+= ejstop
++ {movement!=stopped} [Understood, stopping now.]
+    -> ejstop
+Over and out.
 ~ queue(-> emerson_jumpgate_control, 2*60)
 -> END
 
