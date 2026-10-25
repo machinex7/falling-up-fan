@@ -119,7 +119,7 @@ Now charge your thrusters and get going.
 ~movement=thruster
 -> getmoving
 =getmoving
-+ {getmoving < 3} [Uh, Control?]
++ {getmoving < 2 && drive < 100} [Uh, Control?]
     Yep?
     ++ [I stayed up too late last night... How do I get moving again?]
     Sigh. I got you.
