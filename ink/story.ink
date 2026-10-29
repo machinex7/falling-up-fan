@@ -13,8 +13,8 @@ INCLUDE assist.ink
 
 
 
-~queue(-> emerson_jumpgate, 60) //FOR TESTING!
--> play_next //UNCOMMENT ME
+//~queue(-> station_zeta_depart, 60) //FOR TESTING!
+-> play_next
 
 === game_start ===
 # contact: Handler
@@ -234,6 +234,7 @@ All that's left is to max out your drive charge and hit Launch.
 - Godspeed, Aeolus
 ~movement=sideSpace
 # image: none
+~ proximity = "Clear"
 ~ queue(-> crashings_sidespace, 24*60*60)
 -> END
 
@@ -270,9 +271,14 @@ Basically just a glorified help system.
 + [I'll give it a shot if I get bored.]
 Roger. I'll speak with you again after you exit at Jumpgate Tennyson.
 Control out.
+~ waypoint = "Jumpgate Tennyson"
 ~ queue(-> TODO, 24*60*60)
 -> END
 
+=== tennyson ===
+~proximity = waypoint
+
+-> TODO
 // Exit at tennyson. AI is down. Fix it after the drop off. Thruster on to the next destination.
 // thrusters off in a bunch of shrapnel.
 
@@ -282,7 +288,8 @@ Control out.
 //start_lock(3, 62, 18)     difficulty 3, target phase 62, freq 18
 //locked_on():
 //             ~ end_lock()
-    
+//~ proximity = "NEAR HERE"
+//~ waypoint = "TRAVELING HERE"
     
     
     
