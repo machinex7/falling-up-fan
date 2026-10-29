@@ -13,9 +13,8 @@ INCLUDE assist.ink
 
 
 
-~ next_scene = -> no_scene
--> emerson_jumpgate //FOR TESTING!
-// -> play_next //UNCOMMENT ME
+~queue(-> emerson_jumpgate, 60) //FOR TESTING!
+-> play_next //UNCOMMENT ME
 
 === game_start ===
 # contact: Handler
@@ -152,15 +151,15 @@ Processing...
 Please confirm your cargo.
 + [Light Cargo. Machinery. Class D only.]
 - Roger. You are instructed to move to all stop.
-~engaged_movement=stopped
+~movement=stopped
 + [Wait, what?]
 + [Is there a problem, Emerson?]
 - You are ordered to full stop, Aeolus.
 Immediately. -> ejstop
 = ejstop
-+ {movement != stopped} [Understood, stopping now.]
++ {engaged_movement != stopped} [Understood, stopping now.]
     -> ejstop
-+ {movement == stopped} [I'm come to a full stop, Emerson.]
++ {engaged_movement == stopped} [I'm come to a full stop, Emerson.]
 - Hold position. Emerson out.
 ~ queue(-> emerson_jumpgate_control, 2*60)
 -> END
