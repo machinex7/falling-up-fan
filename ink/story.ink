@@ -11,6 +11,9 @@
 INCLUDE ship.ink
 INCLUDE assist.ink
 
+
+
+//~queue(-> station_zeta_depart, 60) //FOR TESTING!
 -> play_next
 
 === game_start ===
@@ -28,19 +31,20 @@ Come in, Hauler Aeolus. Aeolus, do you read me?
 * [Negative, Control. This is my baby.]
     Haha, roger that, Aeolus.
 -
-* (q1) [So what's the job today, m'am?]
-- {Easy haul. Custom machinery.|Any more questions?}
+* (q1) [So what's the job today?]
+- {Easy haul. Custom machinery. Class D stuff, nothing fancy.|Any more questions?}
 * [How far away is the drop?]
     Not far. Couple days and you'll be done. -> q1
 * [Big load?]
     Negative. Should be no problem even for a small hauler like yours. -> q1
-* [Let's go!]
+* [Let's get to work.]
     Confirmed, Aeolus. Continue on your orbit to Station Zeta. After docking, they'll load you up, and I'll be in touch to let you know next steps.
 -
 * [Understood Control. Aeolus out.]
 -
-// Queue the next thread here once it's written, e.g.
+// Queue the next thread
 ~ queue(-> station_zeta, 300)
+~ waypoint = "Station Zeta"
 # image: clear
 -> close
 
@@ -54,6 +58,7 @@ Aeolus, this is Control, come in.
 * [I read you Control.]
 - I read you on approach to Station Zeta. Can you confirm you have eyes on target?
 # image: images/scenes/station_zeta.svg
+~ proximity = "Station Zeta"
 * [Confirmed, control. He's a beaut.]
     "He", Aeolus?
     ** [Roger. Stations are boys. Ships are girls. Everyone knows that.]
@@ -75,6 +80,7 @@ Aeolus, this is Control, come in.
 -> END
 
 === station_zeta_dock ===
+# contact: Handler
 Status?
 + [We're docked.]
     Roger. Good to hear.
@@ -90,25 +96,200 @@ Ready to go?
 Confirmed, you're good Aeolus. It's a small but critical load.
 + [Someone is chartering a hauler just for this?]
 - Yep. Nice to have boatloads of money. 
-Confirm autopilot is engaged and you can move on to the jumpgate. -> auto
+Confirm autopilot is engaged, then you can move on to the jumpgate. -> auto
 = auto
-+ {!autopilot} Re-engaging autopilot...
++ {!autopilot} [Re-engaging autopilot...]
     Waiting on your signal. -> auto
-+ {autopilot} Autopilot engaged.
++ {autopilot} [Autopilot engaged.]
 - Good. I'll contact again once you're clear of Zeta.
 ~ queue(-> station_zeta_depart, 60)
 -> END
 
 === station_zeta_depart ===
+# contact: Handler
 Clear, Aeolus?
 + [Yep, ready to go.]
 + [I'm more clear than a...]
     ++ [I'm not gonna do that again.]
         Sounds smart, Aeolus.
-- I have your flightpath registered with Emerson Jumpgate. They'll be expecting you. Please proceed.
-+ [NEED more story!]
+- I have your flightpath registered with Emerson Jumpgate. They'll be expecting you. -> disengageauto
+= disengageauto
+Disenage your autopilot before proceeding.
++ {autopilot} [Roger] -> disengageauto
++ {!autopilot} [Disengaged]
+- Now charge your thrusters and get going.
+~ waypoint = "Emerson Jumpgate"
+~ proximity = "Clear"
+~movement=thruster
+-> getmoving
+=getmoving
++ {getmoving < 2 && drive < 100} [Uh, Control?]
+    Yep?
+    ++ [I stayed up too late last night... How do I get moving again?]
+    Sigh. I got you.
+    Move your Drive Charge into the max position.
+    If your reactor shows red, then be sure to increase it as well. No point straining your ship right from the start.
+    Then hit the Launch button.
+    -> getmoving
++ {drive < 100} [Checking Drive Charge. One moment, Control.]
+    Take your time. -> getmoving
++ {drive == 100} [Fully charged and good to go.]
+    Hit it. <>
++ {engaged_movement == thruster} [I'm flying now, Control.]
+- Over and out.
+# image: clear
+~ queue(-> emerson_jumpgate, 60*60)
+-> END
+
+=== emerson_jumpgate ===
+# contact: Emerson Jumpgate
+~ proximity = "Emerson Jumpgate"
+A22404. Come in, A22404. This is Jumpgate Emerson Coordination.
++ [I read you Emerson. This is Hauler A22404, callsign Aeolus.]
+- Got you, Aeolus. Confirming flight manifest.
+Processing...
+Please confirm your cargo.
++ [Light Cargo. Machinery. Class D only.]
+- Roger. You are instructed to move to all stop.
+~movement=stopped
++ [Wait, what?]
++ [Is there a problem, Emerson?]
+- You are ordered to full stop, Aeolus.
+Immediately. -> ejstop
+= ejstop
++ {engaged_movement != stopped} [Understood, stopping now.]
+    -> ejstop
++ {engaged_movement == stopped} [I'm come to a full stop, Emerson.]
+- Hold position. Emerson out.
+~ queue(-> emerson_jumpgate_control, 2*60)
+-> END
+
+
+=== emerson_jumpgate_control ===
+#contact: Handler
+Come in, Aelous.
++ [Aelous here. Glad to hear a friendly voice.]
+- I read you sitting just outside range of Emerson Jumpgate, can you confirm?
++ [Confirmed. I'm a ways out still, but I can see it. Big old circle thingy.]
+- Yes.
+"Big old circle thingy."
++ [Control, I was on approach to the jumpgate when I was ordered to hold position. What gives?]
+- I just learned of it myself.
++ [Am I in trouble?]
+- Negative. Priority transport coming through. ALL ships are being ordered to hold position.
+Be happy, Aelous. Some ships that didn't have their manifest filed yet were ordered to return planetside.
++ [Whoa. Any idea who's getting the golden treatment?]
+- Transport Zagan. Should be coming into view soon.
+#image: zagan
++ [WHOA. That's the Capitol's own personal hauler!]
+    ++ [I get it now.]
+- Yep. They're undoubtedly carrying priceless cargo. Or cargo worth more than we can imagine.
+Once they're through, the jumpgate will return to normal operation and you'll be one of the first in line.
+Let this be a lesson: always get your paperwork in quick.
++ [You're the best, control.]
+- Roger. Over and out.
+~ queue(-> emerson_jumpgate_launch, 10*60)
+-> END
+
+
+=== emerson_jumpgate_launch ===
+# contact: Emerson Jumpgate
+# image: emerson_jumpgate
+Hauler Aeolus, A22404. Come in, A22404.
++ [This is A22404, responding.]
+- Jump gate clear. Manifest registered for Sector 74 Delta. You are clear to engage drive for side space.
++ [Roger, Emerson. I'll be out of your hair in a jiffy.]
+- Uh, roger that A22404.
+~ queue(-> emerson_jumpgate_launch_help, 30)
+-> END
+=== emerson_jumpgate_launch_help ===
+# contact: Handler
+Aeolus, this is Control. You've got clearance to launch.
+~ start_lock(0, 40, 50) //difficulty, phase, freq
+Why are you still sitting there? -> scanning
+= scanning
+* [Uh, Control?]
+    Yeah, Aeolus?
+    ++ [How do I do that again?]
+        You're kidding.
+        You're lucky you got me, Aelous. You need to scan for the homing signal on 74D.
+        +++ [I say that every day.]
+            Adjust your Phase and Frequency knobs until you're locked in.
+            You can increase your Scan intensity, but you probably don't need to waste the power this time. Should be pretty close to the center.
+            ++++ [Roger. Thanks Control.]
+                -> scanning
++ {!locked_on() && scanning} [Look good, Control?]
+    {locked_on():
+        Not yet. Keep adjusting your Phase and Frequency until they are both locked in. -> scanning
+    - else:
+        Good work. -> launch
+    }
++ {locked_on()} [Got the scan in Control.]
+    Good work. -> launch
+= launch
+~ end_lock()
+Don't forget, while you are traveling through side space I'll have a harder time contacting you.
+All that's left is to max out your drive charge and hit Launch.
++ [See you on the other side, Control.]
+- Godspeed, Aeolus
+~movement=sideSpace
+# image: none
+~ proximity = "Clear"
+~ queue(-> crashings_sidespace, 24*60*60)
+-> END
+
+
+=== crashings_sidespace ===
+# contact: Handler
+~signal = 45
+{signal_strength() > 90: -> clear}
+Come... Aeolus. Do... read...
++ [Uh, what was that?] -> crashings_sidespace
++ [Control, you're breaking up.]
+- ... Signal ...
+... boost ... -> doboost
+= doboost
++ [Signal boost? Toggling it on now.]
+    {signal_strength() > 90: -> clear}
+    ...ger...
+    -> doboost
+= clear
+Come in Aelous, do you read me?
++ [Yep, you're all clear.]
+- You boosted the signal?
++ [Yeah, I can hear you now.]
+You'll only need it when you're deep in side space. Or if you ever do any really remote hauls.
+But your little ship wouldn't be up for those jobs anyways.
+Everything good on your end?
++ [All good here.]
++ [Just watching the stars go by.]
+- Roger, Aeolus.
+If it gets too quiet out there, don't forget that your ship has an AI assistant installed.
++ [Any risk of it going crazy and taking control of my ship?]
+- The new ones are pretty powerful. But you've got an very old model installed on your ship.
+Basically just a glorified help system.
++ [I'll give it a shot if I get bored.]
+Roger. I'll speak with you again after you exit at Jumpgate Tennyson.
+Control out.
+~ waypoint = "Jumpgate Tennyson"
+~ queue(-> TODO, 24*60*60)
+-> END
+
+=== tennyson ===
+~proximity = waypoint
+
+-> TODO
+// Exit at tennyson. AI is down. Fix it after the drop off. Thruster on to the next destination.
+// thrusters off in a bunch of shrapnel.
+
+=== TODO ===
++ [MORE STORY coming!]
     -> END
-    
+//start_lock(3, 62, 18)     difficulty 3, target phase 62, freq 18
+//locked_on():
+//             ~ end_lock()
+//~ proximity = "NEAR HERE"
+//~ waypoint = "TRAVELING HERE"
     
     
     

@@ -23,7 +23,7 @@
   const START_S = 15 * 60;
   let remaining = START_S;
   let intervalId = null;
-  const TEST_SPEED = 10;
+  const TEST_SPEED = 60;
   const TICK_MS = 1000 / (location.hostname.includes('github.io') ? TEST_SPEED : 1);
 
   function render() {
