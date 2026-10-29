@@ -209,6 +209,8 @@ js/
                      what used to be two files (cutscenes.js + comms.js
                      walking a hand-rolled JSON node graph) — see "The
                      cutscene system" below
+                     — and the localStorage autosave (see "Saved
+                     game" below)
   monitor.js         opens/closes #info-monitor in its albums or
                      members mode and swaps its album-list/track-list/
                      lyrics-view/member-view views — see "The info
@@ -1262,6 +1264,25 @@ wise the two panels aren't shared at all: `#comms-log`/`#comms-replies`
 and their styling are new in `comms.css`, same way `.album-list`/
 `.track-view`/`.lyrics-view` are Albums-only content inside the shared
 `.monitor-body` shell.
+
+## Saved game
+
+A testing convenience: `js/story.js` autosaves to `localStorage`
+(`fu_save`) each time a COMMS scene ends and queues the next one —
+the same moment `finishBeat()` starts the timer. ASSIST never saves.
+The save holds `story.state.toJson()` (story position, every ship VAR,
+the queued scene) plus the page-only bits ink doesn't know: the
+window image (shown or held), the comms contact/title and the last
+transcript's HTML. Once the page's `load` event and the story fetch
+are both done, `restoreGame()` loads it: `LoadJson` fires no observers,
+so it re-announces every stat (`announceAll()`), dispatches
+`'ship:restore'` (power.js powers on without `'ship:launch'`,
+window-scenes.js jumps straight to space, instruments.js sweeps the
+dial), and restarts the timer from the queued scene's full
+`next_countdown`. A LAUNCH pressed before that skips the restore. A
+save that fails to load (story changed too much) is discarded; bump
+`SAVE_VERSION` if the saved shape changes. `?reset` in the URL deletes
+the save.
 
 ## The window's scene system
 

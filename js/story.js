@@ -187,9 +187,18 @@
     document.dispatchEvent(new CustomEvent('ship:movement', { detail: { mode: engaged } }));
   }
 
+  const ANNOUNCED = [...PERCENT_STATS, ...TOGGLE_STATS, ...STRING_STATS, ...LOCK_TARGETS];
+
+  // Announces every stat's current value at once — at startup, and after
+  // a saved game is loaded (LoadJson swaps the state without firing any
+  // observer).
+  function announceAll(story) {
+    ANNOUNCED.forEach(name => announceStat(name, story.variablesState.$(name)));
+    announceDerived(story);
+  }
+
   function watchShipState(story) {
-    [...PERCENT_STATS, ...TOGGLE_STATS, ...STRING_STATS, ...LOCK_TARGETS].forEach(name => {
-      announceStat(name, story.variablesState.$(name));
+    ANNOUNCED.forEach(name => {
       story.ObserveVariable(name, (_name, value) => {
         announceStat(name, value);
         announceDerived(story);
@@ -204,7 +213,7 @@
      'proximity'].forEach(name => {
       story.ObserveVariable(name, () => announceDerived(story));
     });
-    announceDerived(story);
+    announceAll(story);
   }
 
   function showSceneObject(imageSrc) {
@@ -359,9 +368,14 @@
     if (mode === 'assist') return; // never starts the mission timer
     setCommsActive(false);
     if (story.EvaluateFunction('scene_queued')) {
-      const seconds = Number(story.variablesState.$('next_countdown')) || 0;
-      document.dispatchEvent(new CustomEvent('timer:start', { detail: { seconds } }));
+      saveGame(story);
+      startNextTimer(story);
     }
+  }
+
+  function startNextTimer(story) {
+    const seconds = Number(story.variablesState.$('next_countdown')) || 0;
+    document.dispatchEvent(new CustomEvent('timer:start', { detail: { seconds } }));
   }
 
   async function pickChoice(story, i, text) {
@@ -499,6 +513,82 @@
       .then(story => story.EvaluateFunction('engage'))
       .catch(err => console.error('story: engage failed', err));
   });
+
+  // ── Saved game ────────────────────────────────────────────────────
+  // An autosave in localStorage, written each time a COMMS scene ends
+  // and starts the timer toward the next one (finishBeat) — never by the
+  // assistant. It holds the whole ink state (story position, every ship
+  // VAR, the queued scene) plus the few page-only bits needed to put the
+  // window and comms panel back: the image outside the window, and the
+  // last transcript. Loaded once the page has finished loading: the ship
+  // powers straight on in space ('ship:restore', no ascent) and the
+  // timer restarts from the queued scene's full countdown.
+  // Add ?reset to the URL to delete the save and start over.
+  const SAVE_KEY = 'fu_save';
+  const SAVE_VERSION = 1; // bump if the saved shape changes; older saves are dropped
+
+  function saveGame(story) {
+    const data = {
+      version: SAVE_VERSION,
+      ink: story.state.toJson(),
+      image: sceneObject.classList.contains('is-visible') ? sceneObjectImg.getAttribute('src') : null,
+      heldImage,
+      contact: currentContact,
+      title: commsTitle,
+      log: commsLogEl.innerHTML,
+    };
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(data)); }
+    catch (err) { console.warn('story: could not save', err); }
+  }
+
+  function readSave() {
+    try {
+      if (new URLSearchParams(location.search).has('reset')) {
+        localStorage.removeItem(SAVE_KEY);
+        return null;
+      }
+      const data = JSON.parse(localStorage.getItem(SAVE_KEY));
+      return data && data.version === SAVE_VERSION ? data : null;
+    } catch (err) {
+      return null;
+    }
+  }
+
+  // a LAUNCH pressed before the page finished loading wins over the save
+  let launchedFresh = false;
+  document.addEventListener('ship:launch', () => { launchedFresh = true; });
+
+  function restoreGame(story) {
+    const data = readSave();
+    if (!data || launchedFresh) return;
+    try {
+      story.state.LoadJson(data.ink);
+    } catch (err) {
+      // e.g. the story changed too much since this was saved
+      console.warn('story: saved game no longer loads, discarding it', err);
+      try { localStorage.removeItem(SAVE_KEY); } catch (_) { /* ignore */ }
+      return;
+    }
+    document.dispatchEvent(new CustomEvent('ship:restore'));
+    heldImage = data.heldImage ?? null;
+    if (data.image) showSceneObject(data.image);
+    currentContact = commsContact = data.contact || currentContact;
+    commsTitle = titleEl.textContent = data.title || commsTitle;
+    commsLogEl.innerHTML = data.log || '';
+    if (data.log) {
+      hasActiveConversation = true; // COMMS reopens the last transcript
+      renderEnded();
+    }
+    announceAll(story);
+    if (story.EvaluateFunction('scene_queued')) startNextTimer(story);
+  }
+
+  const pageLoaded = document.readyState === 'complete'
+    ? Promise.resolve()
+    : new Promise(r => window.addEventListener('load', r, { once: true }));
+  Promise.all([storyPromise, pageLoaded])
+    .then(([story]) => restoreGame(story))
+    .catch(err => console.error('story: restoring the saved game failed', err));
 
   tile.addEventListener('click', openPanel);
   assistTile.addEventListener('click', () => {

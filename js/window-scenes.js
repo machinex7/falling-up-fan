@@ -43,4 +43,9 @@
   }
 
   document.addEventListener('ship:launch', playAscent);
+  // a saved game loaded (js/story.js): skip the ascent, already in space
+  document.addEventListener('ship:restore', () => {
+    showScene(space);
+    document.getElementById('cockpit')?.classList.add('in-space');
+  });
 })();

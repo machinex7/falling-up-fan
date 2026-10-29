@@ -182,6 +182,7 @@
     requestAnimationFrame(frame);
   }
   document.addEventListener('ship:launch', sweepGauges);
+  document.addEventListener('ship:restore', sweepGauges); // a saved game powering on
 
   warningLights().forEach(tile => {
     tile.addEventListener('click', () => {
