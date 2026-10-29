@@ -11,7 +11,11 @@
 INCLUDE ship.ink
 INCLUDE assist.ink
 
--> play_next
+
+
+~ next_scene = -> no_scene
+-> emerson_jumpgate //FOR TESTING!
+// -> play_next //UNCOMMENT ME
 
 === game_start ===
 # contact: Handler
@@ -111,10 +115,10 @@ Clear, Aeolus?
         Sounds smart, Aeolus.
 - I have your flightpath registered with Emerson Jumpgate. They'll be expecting you. -> disengageauto
 = disengageauto
-{autopilot: Disenage your autopilot before proceesing.}
+Disenage your autopilot before proceeding.
 + {autopilot} [Roger] -> disengageauto
 + {!autopilot} [Disengaged]
-Now charge your thrusters and get going.
+- Now charge your thrusters and get going.
 ~ waypoint = "Emerson Jumpgate"
 ~ proximity = "Clear"
 ~movement=thruster
@@ -130,8 +134,10 @@ Now charge your thrusters and get going.
     -> getmoving
 + {drive < 100} [Checking Drive Charge. One moment, Control.]
     Take your time. -> getmoving
-+ {drive == 100 || engaged_movement == thruster} [Fully charged and good to go.]
-- Hit it. Over and out.
++ {drive == 100} [Fully charged and good to go.]
+    Hit it. <>
++ {engaged_movement == thruster} [I'm flying now, Control.]
+- Over and out.
 # image: clear
 ~ queue(-> emerson_jumpgate, 60*60)
 -> END
@@ -146,15 +152,16 @@ Processing...
 Please confirm your cargo.
 + [Light Cargo. Machinery. Class D only.]
 - Roger. You are instructed to move to all stop.
-~movement=stopped
+~engaged_movement=stopped
 + [Wait, what?]
 + [Is there a problem, Emerson?]
 - You are ordered to full stop, Aeolus.
 Immediately. -> ejstop
 = ejstop
-+ {movement!=stopped} [Understood, stopping now.]
++ {movement != stopped} [Understood, stopping now.]
     -> ejstop
-Over and out.
++ {movement == stopped} [I'm come to a full stop, Emerson.]
+- Hold position. Emerson out.
 ~ queue(-> emerson_jumpgate_control, 2*60)
 -> END
 
