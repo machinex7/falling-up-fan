@@ -111,8 +111,9 @@ Clear, Aeolus?
         Sounds smart, Aeolus.
 - I have your flightpath registered with Emerson Jumpgate. They'll be expecting you. -> disengageauto
 = disengageauto
-{autopilot} Disenage your autopilot before proceesing.
+{autopilot: Disenage your autopilot before proceesing.}
 + {autopilot} [Roger] -> disengageauto
++ {!autopilot} [Disengaged]
 Now charge your thrusters and get going.
 ~ waypoint = "Emerson Jumpgate"
 ~ proximity = "Clear"
@@ -226,9 +227,48 @@ All that's left is to max out your drive charge and hit Launch.
 + [See you on the other side, Control.]
 - Godspeed, Aeolus
 ~movement=sideSpace
+# image: none
+~ queue(-> crashings_sidespace, 24*60*60)
+-> END
+
+
+=== crashings_sidespace ===
+# contact: Handler
+~signal = 45
+{signal_strength() > 90: -> clear}
+Come... Aeolus. Do... read...
++ [Uh, what was that?] -> crashings_sidespace
++ [Control, you're breaking up.]
+- ... Signal ...
+... boost ... -> doboost
+= doboost
++ [Signal boost? Toggling it on now.]
+    {signal_strength() > 90: -> clear}
+    ...ger...
+    -> doboost
+= clear
+Come in Aelous, do you read me?
++ [Yep, you're all clear.]
+- You boosted the signal?
++ [Yeah, I can hear you now.]
+You'll only need it when you're deep in side space. Or if you ever do any really remote hauls.
+But your little ship wouldn't be up for those jobs anyways.
+Everything good on your end?
++ [All good here.]
++ [Just watching the stars go by.]
+- Roger, Aeolus.
+If it gets too quiet out there, don't forget that your ship has an AI assistant installed.
++ [Any risk of it going crazy and taking control of my ship?]
+- The new ones are pretty powerful. But you've got an very old model installed on your ship.
+Basically just a glorified help system.
++ [I'll give it a shot if I get bored.]
+Roger. I'll speak with you again after you exit at Jumpgate Tennyson.
+Control out.
 ~ queue(-> TODO, 24*60*60)
 -> END
 
+// Exit at tennyson. AI is down. Fix it after the drop off. Thruster on to the next destination.
+// thrusters off in a bunch of shrapnel.
 
 === TODO ===
 + [MORE STORY coming!]
