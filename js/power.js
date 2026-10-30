@@ -7,7 +7,9 @@
 // no power spent. It flips #cockpit to "powered", flickers everything
 // else to life (css/*.css own the actual dimming/flicker rules, keyed
 // off these classes), and fires 'ship:launch' for js/window-scenes.js
-// (the ascent) and js/timer.js (the countdown).
+// (the ascent) and js/timer.js (the countdown). Loading a saved game
+// ('ship:restore' from js/story.js) powers on the same way, minus
+// 'ship:launch'.
 //
 // After that the button engages flight modes (see ink/ship.ink's
 // "FLIGHT MODES" header). js/story.js announces 'ship:flight'
@@ -58,11 +60,7 @@
     render();
   });
 
-  launch.addEventListener('click', () => {
-    if (launched) {
-      document.dispatchEvent(new CustomEvent('control:engage'));
-      return;
-    }
+  function powerOn() {
     launched = true;
     cockpit.classList.remove('unpowered');
     cockpit.classList.add('powered', 'flicker');
@@ -70,7 +68,18 @@
     label.textContent = 'Launched';
     setTimeout(() => cockpit.classList.remove('flicker'), FLICKER_MS);
     render();
+  }
 
+  launch.addEventListener('click', () => {
+    if (launched) {
+      document.dispatchEvent(new CustomEvent('control:engage'));
+      return;
+    }
+    powerOn();
     document.dispatchEvent(new CustomEvent('ship:launch'));
   });
+
+  // a saved game loaded (js/story.js): power on, but no launch — the
+  // ship is already out in space
+  document.addEventListener('ship:restore', () => { if (!launched) powerOn(); });
 })();
