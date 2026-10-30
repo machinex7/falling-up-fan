@@ -225,12 +225,18 @@
     sceneObject.classList.remove('is-visible');
   }
 
+  // the log's .monitor-body is what scrolls, not the <ul> itself
+  function scrollToEnd() {
+    const body = logEl.closest('.monitor-body');
+    body.scrollTop = body.scrollHeight;
+  }
+
   function appendLine(from, text, isYou) {
     const li = document.createElement('li');
     li.className = 'comms-msg' + (isYou ? ' from-you' : '');
     li.innerHTML = `<span class="comms-from">${from}</span>${text}`;
     logEl.appendChild(li);
-    logEl.scrollTop = logEl.scrollHeight;
+    scrollToEnd();
   }
 
   // `# image:` tags aren't applied the moment they're read: the last one
@@ -313,7 +319,7 @@
     li.innerHTML = `<span class="comms-from">${from}</span>` +
       '<span class="typing-dots" aria-hidden="true"><i></i><i></i><i></i></span>';
     logEl.appendChild(li);
-    logEl.scrollTop = logEl.scrollHeight;
+    scrollToEnd();
     return li;
   }
 
@@ -340,6 +346,7 @@
     p.className = 'comms-ended';
     p.textContent = VIEWS[mode].ended;
     repliesEl.appendChild(p);
+    scrollToEnd();
   }
 
   function renderChoices(story) {
@@ -352,6 +359,7 @@
       btn.addEventListener('click', () => pickChoice(story, i, choice.text));
       repliesEl.appendChild(btn);
     });
+    scrollToEnd();
   }
 
   // Whatever runContinueLoop() just gathered, decide how the beat ends:

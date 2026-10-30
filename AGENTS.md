@@ -1211,6 +1211,12 @@ Reply buttons (and "Transmission ended" plus the next scene's timer)
 appear only after the last line lands. Closing mid-delivery re-flashes
 the tile, same as closing with replies on offer. Ink state (tags,
 images, ship VARs) still runs immediately; only the text is paced.
+New lines and replies scroll `.monitor-body` (the element that actually
+scrolls, not the `<ul>`) to the end, and the comms body's bottom padding
+uses the same `--armrest-h` clearance as `#member-filter`, so the last
+line and the replies scroll up clear of the armrests. Reply buttons have
+a dashed border (transcript lines are solid) so an option reads
+differently from a line already said.
 
 There's no separate "resume state" to restore on reopen: the transcript
 and current reply buttons already live in the DOM inside `#comms-panel`,
