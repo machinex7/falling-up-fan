@@ -40,6 +40,15 @@
   transform: translateX(0);
 }
 
+/* The armrests are fixed over the viewport's bottom corners above this
+   panel (see cockpit.css), so content scrolled to the screen's true
+   bottom edge sat behind them. Pad the scroll area by the same
+   clearance #member-filter uses (monitor.css), so the last line and
+   reply buttons scroll up clear of the arms. */
+.comms-panel .monitor-body {
+  padding-bottom: max(20px, calc(var(--armrest-h) * 0.7 - 13px));
+}
+
 /* the panel swaps between the COMMS and ASSIST transcripts with
    [hidden], which loses to the display: flex below without this */
 .comms-log[hidden],
@@ -84,7 +93,7 @@
   padding: 8px 10px;
   appearance: none;
   -webkit-appearance: none;
-  border: 1px solid var(--green);
+  border: 1px dashed var(--green); /* dashed, unlike the solid transcript boxes: an option, not a sent line */
   border-radius: 0;
   background: transparent;
   font: inherit;
